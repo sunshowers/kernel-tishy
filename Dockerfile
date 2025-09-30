@@ -12,7 +12,7 @@ RUN dnf install -y fedpkg fedora-packager rpmdevtools ncurses-devel pesign \
     perl-generators python3-devel python3-docutils rsync rust rust-src \
     systemd-boot-unsigned systemd-ukify which xmlto xz-devel zlib-devel \
     python3-requests hmaccalc dracut tpm2-tools rustfmt clippy bpftool \
-    python3-jsonschema libxml2-devel swig && dnf clean all
+    python3-jsonschema libxml2-devel swig opencsd-devel && dnf clean all
 
 ARG UID=1000
 ARG GID=1000
