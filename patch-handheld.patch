@@ -3594,6 +3594,33 @@ index 000000000000..cd6053bae417
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Thu, 17 Apr 2025 12:54:04 +0200
+Subject: scsi: sd: remove unused warning inherited from fedora
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/scsi/sd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/scsi/sd.c b/drivers/scsi/sd.c
+index 2e1a2d9532f5..4d10e766903f 100644
+--- a/drivers/scsi/sd.c
++++ b/drivers/scsi/sd.c
+@@ -121,7 +121,7 @@ static const char *sd_cache_types[] = {
+ 	"write back, no read (daft)"
+ };
+ 
+-static const char *sd_probe_types[] = { "async", "sync" };
++// static const char * sd_probe_types[] = { "async", "sync" };
+ 
+ static char sd_probe_type[6] = "async";
+ module_param_string(probe, sd_probe_type, sizeof(sd_probe_type),
+-- 
+2.51.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Maximilian Luz <luzmaximilian@gmail.com>
 Date: Sun, 9 Jun 2024 19:48:58 +0200
 Subject: Revert "efi/x86: Set the PE/COFF header's NX compat flag

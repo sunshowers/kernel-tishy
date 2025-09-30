@@ -4596,6 +4596,7 @@ fi\
 - mwifiex: Add quirk resetting the PCI bridge on MS Surface devices (Jonas Dreßler)
 - (surface3-oemb) add DMI matches for Surface 3 with broken DMI table (Tsuchiya Yuto)
 - Revert "efi/x86: Set the PE/COFF header's NX compat flag unconditionally" (Maximilian Luz)
+- scsi: sd: remove unused warning inherited from fedora (Antheas Kapenekakis)
 - [NA] add dev tools (Antheas Kapenekakis)
 - usb: typec: ucsi: Handle incorrect num_connectors capability (Mark Pearson)
 - Initial setup for stable Fedora releases (Justin M. Forbes)

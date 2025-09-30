@@ -1,635 +1,638 @@
-/58fae585da92ee38b44782e7e5601709d93d4da6
- 58fae585da92ee38b44782e7e5601709d93d4da6 drm/amdgpu: defer overdrive taint until used
+/3f8b2199f0f4a5ea1aefb7f7c77565cd572da46b
+ 3f8b2199f0f4a5ea1aefb7f7c77565cd572da46b drm/amdgpu: defer overdrive taint until used
 
-/8829d888f8d51e2b93718e54324e000e7040c4ff
- 8829d888f8d51e2b93718e54324e000e7040c4ff drm/amdgpu: enable override by default for APUs
+/0eb24cfb8356afc32fc860f0e6e265f2d32ea08e
+ 0eb24cfb8356afc32fc860f0e6e265f2d32ea08e drm/amdgpu: enable override by default for APUs
 
-/50201229e6189d812744a6aa2107a365864d7a8d
- 50201229e6189d812744a6aa2107a365864d7a8d lower sleep interval to avoid waking up too long
+/9e9753e7b93fdff459d75364d82a3f867b91c102
+ 9e9753e7b93fdff459d75364d82a3f867b91c102 lower sleep interval to avoid waking up too long
 
-/7c304529c8af8980b0cad01a2343a89b0a6285d1
- 7c304529c8af8980b0cad01a2343a89b0a6285d1 panel quirks: add a2 pro
+/663b82edfe067becd3b6ee07d96e428e09b72e73
+ 663b82edfe067becd3b6ee07d96e428e09b72e73 panel quirks: add a2 pro
 
-/9ef9a8a6771a8e5b3cc5793bc81fdd61dd243008
- 9ef9a8a6771a8e5b3cc5793bc81fdd61dd243008 oxpec: add a2 pro
+/5bb96c23702693057e82b8dee27d217fca7f20b7
+ 5bb96c23702693057e82b8dee27d217fca7f20b7 oxpec: add a2 pro
 
-/4e84f25fe5748bd86cf46f10043e67a9e897d261
- 4e84f25fe5748bd86cf46f10043e67a9e897d261 tmp: add MSI Center button event to msi-wmi
+/84caf98482f2babccff61e25833feb07a90a6aef
+ 84caf98482f2babccff61e25833feb07a90a6aef tmp: add MSI Center button event to msi-wmi
 
-/9007a6ede6d97e78d9a0b8617b51ecb93f1c74b1
- 9007a6ede6d97e78d9a0b8617b51ecb93f1c74b1 add orientation for x1z
+/5fd3a7a00de1b19a878536e0fc01fcf813bea5e3
+ 5fd3a7a00de1b19a878536e0fc01fcf813bea5e3 add orientation for x1z
 
-/03d12012e7d70bae5f35b59ae9240fe394f696b4
- 03d12012e7d70bae5f35b59ae9240fe394f696b4 platform/x86: oxpec: Add support for OneXPlayer X1z
+/e61b66c34d0bbf77667d2c4ec52ae637ba199b16
+ e61b66c34d0bbf77667d2c4ec52ae637ba199b16 platform/x86: oxpec: Add support for OneXPlayer X1z
 
-/d894bc9974214268d101b20084a3e562194b915f
- d894bc9974214268d101b20084a3e562194b915f add suiplay
+/2bdeae97f0f35dbd3c62d56067d034e227f8edd1
+ 2bdeae97f0f35dbd3c62d56067d034e227f8edd1 add suiplay
 
-/fbf261619a1ec3db4ce73db2e6cd06c954b0855a
- fbf261619a1ec3db4ce73db2e6cd06c954b0855a drm: panel-orientation-quirks: add SuiPlay0X1
+/8e06e0631df4e9fc7013982332796df52e761793
+ 8e06e0631df4e9fc7013982332796df52e761793 drm: panel-orientation-quirks: add SuiPlay0X1
 
-/f6b46be46460eceb31ebf2c875bdbaaaf514e944
- f6b46be46460eceb31ebf2c875bdbaaaf514e944 disable custom brightness curve for now
+/cd847a162d46a6c1bf137e3d1e4353937f9f391e
+ cd847a162d46a6c1bf137e3d1e4353937f9f391e disable custom brightness curve for now
 
-/16d97838acf9cadb74b9bbfcab4fa7bd24961558
- 16d97838acf9cadb74b9bbfcab4fa7bd24961558 drm/amd/display: enable private color API universally
+/f2a93826232629f5051c61ff68145b7355a82307
+ f2a93826232629f5051c61ff68145b7355a82307 drm/amd/display: enable private color API universally
 
-/e045f9287a0478af744c53e2839e0c877c30c602
- e045f9287a0478af744c53e2839e0c877c30c602 drm: re-allow no-op changes on non-primary planes in async flips
+/e613a8c05c1dd1cd16d9a91ec649dc36d6d982c9
+ e613a8c05c1dd1cd16d9a91ec649dc36d6d982c9 drm: re-allow no-op changes on non-primary planes in async flips
 
-/7ec0a0042c288da367f0b141d0388cf08084615a
- 7ec0a0042c288da367f0b141d0388cf08084615a drm/amdgpu: tweak min and max clocks of cyan_skillfish
+/85ca4bbb2ebb9b6ab44c11389cd64e2dfcbb710c
+ 85ca4bbb2ebb9b6ab44c11389cd64e2dfcbb710c drm/amdgpu: tweak min and max clocks of cyan_skillfish
 
-/c93ef73bf0711e5f9a5a7c742cc441fb0972aa24
- c93ef73bf0711e5f9a5a7c742cc441fb0972aa24 drm: panel-backlight-quirks: Add Steam Decks
+/6cf3ffa7621dbd10c598165ee6ce4db1868fe70a
+ 6cf3ffa7621dbd10c598165ee6ce4db1868fe70a drm: panel-backlight-quirks: Add Steam Decks
 
-/3f24a61c7a3917ff947c2a366861f7a9f0642765
- 3f24a61c7a3917ff947c2a366861f7a9f0642765 drm: panel-backlight-quirks: Add brightness mask quirk
+/8763238a5366972e1d418f1fdf31e584e8347b43
+ 8763238a5366972e1d418f1fdf31e584e8347b43 drm: panel-backlight-quirks: Add brightness mask quirk
 
-/8988a5886eb36ea44ebcaa64387bba07da8dcc77
- 8988a5886eb36ea44ebcaa64387bba07da8dcc77 drm: panel-backlight-quirks: Add secondary DMI match
+/77dbe8e4a1dd76ebda5581509b795ade2c82b3ef
+ 77dbe8e4a1dd76ebda5581509b795ade2c82b3ef drm: panel-backlight-quirks: Add secondary DMI match
 
-/f3bd5c80988a38d32d5d37fb55012fc44977662a
- f3bd5c80988a38d32d5d37fb55012fc44977662a drm: panel-backlight-quirks: Convert brightness quirk to generic structure
+/97c5a4fb8b70d737ceb4e66952794052c72a87bc
+ 97c5a4fb8b70d737ceb4e66952794052c72a87bc drm: panel-backlight-quirks: Convert brightness quirk to generic structure
 
-/1ba9bd5e794d3a5fecd455be9bbabe98430a1692
- 1ba9bd5e794d3a5fecd455be9bbabe98430a1692 drm: panel-backlight-quirks: Make ident optional
+/645914bd4df21aa949cb82b3592acb7e4f4e1205
+ 645914bd4df21aa949cb82b3592acb7e4f4e1205 drm: panel-backlight-quirks: Make ident optional
 
-/737886bf5b834ab2730d8c610f4f0e6b224e7885
- 737886bf5b834ab2730d8c610f4f0e6b224e7885 drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
+/6192b28977f5bcd31b27ca948bd0ba3339b7e331
+ 6192b28977f5bcd31b27ca948bd0ba3339b7e331 drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
 
-/c4f9da353ed3a242fb851d41b0471c511610200e
- c4f9da353ed3a242fb851d41b0471c511610200e ACPI: EC: Set ec_no_wakeup for MSI Claw A8
+/d599b48e2b53042cb37895772793f14140641cac
+ d599b48e2b53042cb37895772793f14140641cac ACPI: EC: Set ec_no_wakeup for MSI Claw A8
 
-/65ecb365c9f247737d9c681598721e32afbbb071
- 65ecb365c9f247737d9c681598721e32afbbb071 [TMP] platform/x86: ayaneo-ec: Remove charge inhibition for other devices
+/6eb8c961e414ee18ab5d8f29933cab3257bd71ff
+ 6eb8c961e414ee18ab5d8f29933cab3257bd71ff [TMP] platform/x86: ayaneo-ec: Remove charge inhibition for other devices
 
-/fb0d0429b6bf60992543547e8700d7c524cbde15
- fb0d0429b6bf60992543547e8700d7c524cbde15 platform/x86: ayaneo-ec: Move Ayaneo devices from oxpec to ayaneo-ec
+/36cec53173abaf5a1bff326c71da4e24c7c932d2
+ 36cec53173abaf5a1bff326c71da4e24c7c932d2 platform/x86: ayaneo-ec: Move Ayaneo devices from oxpec to ayaneo-ec
 
-/6ddff8b1c1a663b8551f1229a3281af56692fb97
- 6ddff8b1c1a663b8551f1229a3281af56692fb97 platform/x86: ayaneo-ec: Add controller power and modules attributes
+/e0ed4aec5b3116a0df74e071935101e67eeea44e
+ e0ed4aec5b3116a0df74e071935101e67eeea44e platform/x86: ayaneo-ec: Add controller power and modules attributes
 
-/f57030c01962d6178750ecde92651732aec58002
- f57030c01962d6178750ecde92651732aec58002 platform/x86: ayaneo-ec: Add charge control support
+/e6144f7ed5498e6d2c200e6ebfce81dced2ce460
+ e6144f7ed5498e6d2c200e6ebfce81dced2ce460 platform/x86: ayaneo-ec: Add charge control support
 
-/f7042a7dc9a80eb09d1545def3247e0b685bdcf2
- f7042a7dc9a80eb09d1545def3247e0b685bdcf2 platform/x86: ayaneo-ec: Add hwmon support
+/30903678d996753163f82980b569c950ffc72468
+ 30903678d996753163f82980b569c950ffc72468 platform/x86: ayaneo-ec: Add hwmon support
 
-/d954a3c1f4cd92a3f21579c08a52f9ebc9bb3f3a
- d954a3c1f4cd92a3f21579c08a52f9ebc9bb3f3a platform/x86: ayaneo-ec: Add Ayaneo Embedded Controller platform driver
+/19cd60f6ecbdd8a9ccbb7b61292b370dcebac057
+ 19cd60f6ecbdd8a9ccbb7b61292b370dcebac057 platform/x86: ayaneo-ec: Add Ayaneo Embedded Controller platform driver
 
-/541033da6a713905752e4cc026bd478bb778dd1d
- 541033da6a713905752e4cc026bd478bb778dd1d HID: hid-steam: keep evdev connected while steam is active
+/42fe4a2d31272e01ceb9ff9c3926c5428ad47715
+ 42fe4a2d31272e01ceb9ff9c3926c5428ad47715 HID: hid-steam: keep evdev connected while steam is active
 
-/6f96b911467c6018ac7427d4d91305197b731ae4
- 6f96b911467c6018ac7427d4d91305197b731ae4 watchdog: reduce error message level to maintain plymouth
+/f6158c937f0ccac7a9d87f8c6361246204823a74
+ f6158c937f0ccac7a9d87f8c6361246204823a74 watchdog: reduce error message level to maintain plymouth
 
-/b9cfac95d1fdbd8ef029f99d1fb218f19eacedc5
- b9cfac95d1fdbd8ef029f99d1fb218f19eacedc5 Input: evdev - allow releasing keys on grab
+/96a17a912b5d345545c5584d9089ab180de10e2e
+ 96a17a912b5d345545c5584d9089ab180de10e2e Input: evdev - allow releasing keys on grab
 
-/40d0fd48c39bf8b8e8b8ab3f3cff04ec9f6f1b8d
- 40d0fd48c39bf8b8e8b8ab3f3cff04ec9f6f1b8d Input: xpad - add new ID for Lenovo Legion Go controllers
+/038f6a7d337cfb6508b68ed13d7587c4b20c3789
+ 038f6a7d337cfb6508b68ed13d7587c4b20c3789 Input: xpad - add new ID for Lenovo Legion Go controllers
 
-/0c65a58bb3de5c74fcff38055f66808180ece1db
- 0c65a58bb3de5c74fcff38055f66808180ece1db HID: asus: add Zenbook Duo Keyboard
+/0d2fdcc5bd4bb3229de3cc0e4a757bae168cba28
+ 0d2fdcc5bd4bb3229de3cc0e4a757bae168cba28 HID: asus: add Zenbook Duo Keyboard
 
-/fe04a7f40ec06106d01816a206596b8c38af882f
- fe04a7f40ec06106d01816a206596b8c38af882f drm/amd: Use suspend and hibernate post freeze notifications
+/bbb24a76c7a1d5e3d0286f65a1af2cc8b6b6e5cb
+ bbb24a76c7a1d5e3d0286f65a1af2cc8b6b6e5cb drm/amd: Use suspend and hibernate post freeze notifications
 
-/fad80b6522dec21c525c217c6c421703e30b70f8
- fad80b6522dec21c525c217c6c421703e30b70f8 PM: Add suspend and hibernate notifications for after freeze
+/25e45907f56cce8184bc28e6dc77b64a244c6420
+ 25e45907f56cce8184bc28e6dc77b64a244c6420 PM: Add suspend and hibernate notifications for after freeze
 
-/b623ad5d2df2c3362d822b353eedaddbb3bbc720
- b623ad5d2df2c3362d822b353eedaddbb3bbc720 drm/amd: Lower logging level of overdrive warning to err
+/d090d57dfa3ff594efd6bcddb1c52f41187db36c
+ d090d57dfa3ff594efd6bcddb1c52f41187db36c drm/amd: Lower logging level of overdrive warning to err
 
-/b3dc2a5252d56adad4f5df296a1e131e96979d99
- b3dc2a5252d56adad4f5df296a1e131e96979d99 CI: add kmod downloader
+/d8cfb2b047cb704d05d132cd3d67f7f84dc2d1fe
+ d8cfb2b047cb704d05d132cd3d67f7f84dc2d1fe CI: add kmod downloader
 
-/3e557179a653ce07b05f3530733f2ed02e7247f6
- 3e557179a653ce07b05f3530733f2ed02e7247f6 platform/x86: msi-wmi-platform: Restore fan curves on PWM disable and unload
+/191313fdbb91df9c6951f52d65f6141d469c743d
+ 191313fdbb91df9c6951f52d65f6141d469c743d platform/x86: msi-wmi-platform: Restore fan curves on PWM disable and unload
 
-/0ca841d18080a1d5f71671abb0be405974db9568
- 0ca841d18080a1d5f71671abb0be405974db9568 platform/x86: msi-wmi-platform: Update header text
+/495c1890f8e8f5052afb9cd0662af04045469455
+ 495c1890f8e8f5052afb9cd0662af04045469455 platform/x86: msi-wmi-platform: Update header text
 
-/72dc7f0615298c7134feb5c821b287aa30cea6ec
- 72dc7f0615298c7134feb5c821b287aa30cea6ec platform/x86: msi-wmi-platform: Drop excess fans in dual fan devices
+/6bd058e308b19db6e048d78bbbc21f91d2dfa84f
+ 6bd058e308b19db6e048d78bbbc21f91d2dfa84f platform/x86: msi-wmi-platform: Drop excess fans in dual fan devices
 
-/57071a6fb8c8925c3198b44c6d2c8b28ad45613b
- 57071a6fb8c8925c3198b44c6d2c8b28ad45613b platform/x86: msi-wmi-platform: Add charge_threshold support
+/5fcb763df9a550ab080b8a0296e957ce6087da2f
+ 5fcb763df9a550ab080b8a0296e957ce6087da2f platform/x86: msi-wmi-platform: Add charge_threshold support
 
-/601ff4d035306a470edd9d9f27b44e7c019eac30
- 601ff4d035306a470edd9d9f27b44e7c019eac30 platform/x86: msi-wmi-platform: Add tunable support via firmware attributes
+/81c0d7a51d85c4db22dc08852d5190138781c0e7
+ 81c0d7a51d85c4db22dc08852d5190138781c0e7 platform/x86: msi-wmi-platform: Add tunable support via firmware attributes
 
-/b798a1997cb677c3c8158f6445f78c6d590d38ba
- b798a1997cb677c3c8158f6445f78c6d590d38ba platform/x86: msi-wmi-platform: Add platform profile through shift mode
+/3dd8b96e5cdf455ab7a51f6a3d888761e0b56f8f
+ 3dd8b96e5cdf455ab7a51f6a3d888761e0b56f8f platform/x86: msi-wmi-platform: Add platform profile through shift mode
 
-/4b13151a75e68114e9b85feee3bc33a3968031ed
- 4b13151a75e68114e9b85feee3bc33a3968031ed platform/x86: msi-wmi-platform: Add support for fan control
+/b8bdc7cf431dec312b7a1e64e29d685a36727a6a
+ b8bdc7cf431dec312b7a1e64e29d685a36727a6a platform/x86: msi-wmi-platform: Add support for fan control
 
-/e3e82e25e9bff3f08e6f0c3df1d6dca590aad823
- e3e82e25e9bff3f08e6f0c3df1d6dca590aad823 platform/x86: msi-wmi-platform: Add quirk system
+/fa04a54744063b2e6257477611bb0908d1685afd
+ fa04a54744063b2e6257477611bb0908d1685afd platform/x86: msi-wmi-platform: Add quirk system
 
-/0402397aa40eaaf013140d29641fb5be3da1ef4d
- 0402397aa40eaaf013140d29641fb5be3da1ef4d platform/x86: msi-wmi-platform: Add unlocked msi_wmi_platform_query
+/3231c38e1f2060ae698de9eead47b201fcfb6e75
+ 3231c38e1f2060ae698de9eead47b201fcfb6e75 platform/x86: msi-wmi-platform: Add unlocked msi_wmi_platform_query
 
-/2b373228fd5cd87c5af6dfd78497da9eac1dc309
- 2b373228fd5cd87c5af6dfd78497da9eac1dc309 platform/x86: msi-wmi-platform: Use input buffer for returning result
+/3364d563de2caeb71adacb795697c88c605ac5de
+ 3364d563de2caeb71adacb795697c88c605ac5de platform/x86: msi-wmi-platform: Use input buffer for returning result
 
-/da0298b659e06b90bf9819e5d645309a95d43556
- da0298b659e06b90bf9819e5d645309a95d43556 [HACK] ACPI: s2idle: Trigger _WAK as part of exiting s2idle
+/b29de236741f196811247f2f9040cefb665d1d13
+ b29de236741f196811247f2f9040cefb665d1d13 [HACK] ACPI: s2idle: Trigger _WAK as part of exiting s2idle
 
-/cd4c46f7a03a0af16634d661ba796116b8b952cf
- cd4c46f7a03a0af16634d661ba796116b8b952cf PM: standby: Add sysfs attribute for modern standby transitions
+/151e2f0a57d8691e4e7f2863a2926baf5da2999c
+ 151e2f0a57d8691e4e7f2863a2926baf5da2999c PM: standby: Add sysfs attribute for modern standby transitions
 
-/87f653e02d5865e77e087b3bce36f5033aa5af10
- 87f653e02d5865e77e087b3bce36f5033aa5af10 PM: hibernate: Enter s2idle sleep state before hibernation
+/0a328e7229423d0c5212755bdcf3b49d9b1e7538
+ 0a328e7229423d0c5212755bdcf3b49d9b1e7538 PM: hibernate: Enter s2idle sleep state before hibernation
 
-/23420c0b9217be1f87c48d27b01421b9136992ef
- 23420c0b9217be1f87c48d27b01421b9136992ef platform/x86: asus-wmi: remove Ally (1st gen) and Ally X suspend quirk
+/c9f4b5840f1a7907af8abafb4150da419e7c657e
+ c9f4b5840f1a7907af8abafb4150da419e7c657e platform/x86: asus-wmi: remove Ally (1st gen) and Ally X suspend quirk
 
-/6131480a1f12f69696b96de19773dd40bacb6009
- 6131480a1f12f69696b96de19773dd40bacb6009 acpi/x86: s2idle: allow adding a delay before suspend sequence
+/e3ebf49d5bc4df611a62f37f39eb5de790829e26
+ e3ebf49d5bc4df611a62f37f39eb5de790829e26 acpi/x86: s2idle: allow adding a delay before suspend sequence
 
-/29e17a63ba3330436db8258b1ab1d931a5bdd075
- 29e17a63ba3330436db8258b1ab1d931a5bdd075 acpi/x86: s2idle: Add AC/DC burst wakeup support
+/76b14b8214dfd56734b198f74561b89ad4a98d2b
+ 76b14b8214dfd56734b198f74561b89ad4a98d2b acpi/x86: s2idle: Add AC/DC burst wakeup support
 
-/7697d075d11643940f2bf55bb950b6aaeb597835
- 7697d075d11643940f2bf55bb950b6aaeb597835 acpi/x86: s2idle: add quirk table for modern standby delays
+/30b6bde123c329b36a349434f8949131e5ecf607
+ 30b6bde123c329b36a349434f8949131e5ecf607 acpi/x86: s2idle: add quirk table for modern standby delays
 
-/550f3cfba55824f2e966b06059d19880606237ba
- 550f3cfba55824f2e966b06059d19880606237ba acpi/x86: s2idle: add Turn On Display and call as part of callback
+/7e88decf19c605361460e5cc4914d52b3d7eb59d
+ 7e88decf19c605361460e5cc4914d52b3d7eb59d acpi/x86: s2idle: add Turn On Display and call as part of callback
 
-/06e4852ffd73cdc14bee559886f9d0855fac23c0
- 06e4852ffd73cdc14bee559886f9d0855fac23c0 acpi/x86: s2idle: call Sleep Entry/Exit as part of callbacks
+/a1de3532577da0256ea748930a5041672ca0a1d1
+ a1de3532577da0256ea748930a5041672ca0a1d1 acpi/x86: s2idle: call Sleep Entry/Exit as part of callbacks
 
-/f59d049bc0d3c5445a93fb1fdea5cd134329cbf1
- f59d049bc0d3c5445a93fb1fdea5cd134329cbf1 acpi/x86: s2idle: rename MS Exit/Entry to Sleep Exit/Entry
+/e6df99641a821fb1cd486aea58b048541c7d5acb
+ e6df99641a821fb1cd486aea58b048541c7d5acb acpi/x86: s2idle: rename MS Exit/Entry to Sleep Exit/Entry
 
-/ec08228a37189b52ee7dcaedeadb75a75e23a173
- ec08228a37189b52ee7dcaedeadb75a75e23a173 acpi/x86: s2idle: call Display On/Off as part of callbacks
+/bb693f769b292a2f4e36f5a9cb20bbacc089d849
+ bb693f769b292a2f4e36f5a9cb20bbacc089d849 acpi/x86: s2idle: call Display On/Off as part of callbacks
 
-/c3a5a86ea7fc85fd2bafa58ee2e73b2ba074cc60
- c3a5a86ea7fc85fd2bafa58ee2e73b2ba074cc60 acpi/x86: s2idle: rename Screen On/Off to Display On/Off
+/b4535521b7f2311c6af4f498a3d44238ab6d5480
+ b4535521b7f2311c6af4f498a3d44238ab6d5480 acpi/x86: s2idle: rename Screen On/Off to Display On/Off
 
-/56d484aa36396aa123235f11880e6513fd17f0ce
- 56d484aa36396aa123235f11880e6513fd17f0ce acpi/x86: s2idle: add modern standby transition function
+/b36b08d188c621158d08560f27578f8c935ff3d3
+ b36b08d188c621158d08560f27578f8c935ff3d3 acpi/x86: s2idle: add modern standby transition function
 
-/0b006b1402f23301db93dbe628ee5cf6ceedd257
- 0b006b1402f23301db93dbe628ee5cf6ceedd257 acpi/x86: s2idle: add support for Turn On Display callback
+/38dbfb93847a6a84d838ff6c90b04379ba58a98f
+ 38dbfb93847a6a84d838ff6c90b04379ba58a98f acpi/x86: s2idle: add support for Turn On Display callback
 
-/0a524850068420d055fc54f509a3183708f767b0
- 0a524850068420d055fc54f509a3183708f767b0 acpi/x86: s2idle: add support for Sleep Entry and Sleep Exit callbacks
+/955ebf5e3aac18f8c2ae9f78b056e71c424514e1
+ 955ebf5e3aac18f8c2ae9f78b056e71c424514e1 acpi/x86: s2idle: add support for Sleep Entry and Sleep Exit callbacks
 
-/4b8495a875bf8b1f54b53c6a5e0a721f403a07a9
- 4b8495a875bf8b1f54b53c6a5e0a721f403a07a9 acpi/x86: s2idle: add support for Display Off and Display On callbacks
+/531c055a59d4b8276130712f369635afa8e9d8c4
+ 531c055a59d4b8276130712f369635afa8e9d8c4 acpi/x86: s2idle: add support for Display Off and Display On callbacks
 
-/58623477f71304d3ec6a5377d7a70219fd652bd3
- 58623477f71304d3ec6a5377d7a70219fd652bd3 Documentation: PM: Add documentation for S0ix Standby States
+/e10c86a31dca3dc2a2fd601d7e01fa5de70dfed5
+ e10c86a31dca3dc2a2fd601d7e01fa5de70dfed5 Documentation: PM: Add documentation for S0ix Standby States
 
-/fb3d44b5cce65a51a47f7bb0bee9aeeb95767b40
- fb3d44b5cce65a51a47f7bb0bee9aeeb95767b40 [TEMPORARY] remove bmi260 matches from bmi270 driver due to sleep issues
+/62ef2bc0d1c374f48d66d0c336d6c7e1496da611
+ 62ef2bc0d1c374f48d66d0c336d6c7e1496da611 [TEMPORARY] remove bmi260 matches from bmi270 driver due to sleep issues
 
-/cf061973ac09bdfc49922b57a909849e48acde21
- cf061973ac09bdfc49922b57a909849e48acde21 ALSA: hda/realtek: Use DMI matching for Ayaneo Geek, Ayaneo 2, and Ayn MiniPro
+/f2b2753199ddb87442bc49d60b370c07316addc5
+ f2b2753199ddb87442bc49d60b370c07316addc5 ALSA: hda/realtek: Use DMI matching for Ayaneo Geek, Ayaneo 2, and Ayn MiniPro
 
-/44c430972d3e031a4eb99da97466ee2ec799843c
- 44c430972d3e031a4eb99da97466ee2ec799843c ALSA: hda/realtek: Add Ayaneo Air 1S audio quirk
+/485218db94308da0ae97acda3356cdd1a2e7510b
+ 485218db94308da0ae97acda3356cdd1a2e7510b ALSA: hda/realtek: Add Ayaneo Air 1S audio quirk
 
-/7eb3df438da3d41fadfa073ef01d7031c65cd6d4
- 7eb3df438da3d41fadfa073ef01d7031c65cd6d4 Codec: aw87xxx: add dmi match for handheld devices
+/ac06e0ab20ef6dbf5125a28238d81815d4af613f
+ ac06e0ab20ef6dbf5125a28238d81815d4af613f Codec: aw87xxx: add dmi match for handheld devices
 
-/a226574c9642d339564fba1ef0f9ed1b575370bf
- a226574c9642d339564fba1ef0f9ed1b575370bf Codec: Add aw87xxx codec with ACPI implementation
+/43948e34bfb1aac1a68bf494ed1f9f26a901d8cf
+ 43948e34bfb1aac1a68bf494ed1f9f26a901d8cf Codec: Add aw87xxx codec with ACPI implementation
 
-/6c45dabc650891406ab98a02600d1f2148c80f1b
- 6c45dabc650891406ab98a02600d1f2148c80f1b Input: goodix - add support for ACPI ID GDIX1003
+/495391ddb88e10cfac9247ba65ce2479c0b196f3
+ 495391ddb88e10cfac9247ba65ce2479c0b196f3 Input: goodix - add support for ACPI ID GDIX1003
 
-/44591a55e20ca4086f1131ed8dbdecd2c47b45a4
- 44591a55e20ca4086f1131ed8dbdecd2c47b45a4 drm: panel-orientation-quirks: Add OneXPlayer X1Pro EVA-2 quirk This is a special edition of the X1 that uses this year's Intel CPU.
+/16fb8262d7b4cb55ecc5fa6bd957384c0c436995
+ 16fb8262d7b4cb55ecc5fa6bd957384c0c436995 drm: panel-orientation-quirks: Add OneXPlayer X1Pro EVA-2 quirk This is a special edition of the X1 that uses this year's Intel CPU.
 
-/8a37097314309f249f2d73ff22e9075f98d266e7
- 8a37097314309f249f2d73ff22e9075f98d266e7 drm: panel-orientation-quirks: Add Zeenix Pro
+/9df747ab9528841687eb4e88b25b56a92e12de0b
+ 9df747ab9528841687eb4e88b25b56a92e12de0b drm: panel-orientation-quirks: Add Zeenix Pro
 
-/5d0261274253094237b2e13d28d7fd3c2765252b
- 5d0261274253094237b2e13d28d7fd3c2765252b drm: panel-orientation-quirks: Add Ayaneo 3
+/340c68bff5ced0cc1c11ea4011a774c458bce2a3
+ 340c68bff5ced0cc1c11ea4011a774c458bce2a3 drm: panel-orientation-quirks: Add Ayaneo 3
 
-/406f360f4fb8819d8c1058390bc491109d80f890
- 406f360f4fb8819d8c1058390bc491109d80f890 drm: panel-orientation-quirks: Add Steamfork quirks
+/ee72b1029e3da440334fc581e0a3aa2b09ebc6bb
+ ee72b1029e3da440334fc581e0a3aa2b09ebc6bb drm: panel-orientation-quirks: Add Steamfork quirks
 
-/f25a924491ae8719bb88bcd7cca26d03ac222dea
- f25a924491ae8719bb88bcd7cca26d03ac222dea drm: panel-orientation-quirks: Add GPD Win Max (2021)
+/7d3b03ee48662abb3e02f0395dffb4709c8e9399
+ 7d3b03ee48662abb3e02f0395dffb4709c8e9399 drm: panel-orientation-quirks: Add GPD Win Max (2021)
 
-/3013505b1dc88647b3790e22e24f469982bde133
- 3013505b1dc88647b3790e22e24f469982bde133 drm: panel-orientation-quirks: Add OneXPlayer G1 Amd & Intel
+/0b709aeab84906097926411f9abc984c1c5737a7
+ 0b709aeab84906097926411f9abc984c1c5737a7 drm: panel-orientation-quirks: Add OneXPlayer G1 Amd & Intel
 
-/71d0d2cfb0bde9f507a85c99cf0ac4babf7fa22c
- 71d0d2cfb0bde9f507a85c99cf0ac4babf7fa22c drm: panel-orientation-quirks: Add OneXPlayer F1 Hawk Point
+/c0a9175ce722efbffd09735d8ba3395e6a4ce739
+ c0a9175ce722efbffd09735d8ba3395e6a4ce739 drm: panel-orientation-quirks: Add OneXPlayer F1 Hawk Point
 
-/1b71937f6b386fce7edde710896ce79e25680b0f
- 1b71937f6b386fce7edde710896ce79e25680b0f drm: panel-orientation-quirks: Add Zotac Gaming Zone quirk
+/9044cab95ebc34fefbefc1aa5bcf8a9f22ce5828
+ 9044cab95ebc34fefbefc1aa5bcf8a9f22ce5828 drm: panel-orientation-quirks: Add Zotac Gaming Zone quirk
 
-/ba2527d239c5428486ef4782eb74bdc59b638ba8
- ba2527d239c5428486ef4782eb74bdc59b638ba8 HID: Add quirk to ignore the touchscreen battery on OneXPlayer X1
+/8a62ac5f1bbcecc5282958c2d6086f39366274b1
+ 8a62ac5f1bbcecc5282958c2d6086f39366274b1 HID: Add quirk to ignore the touchscreen battery on OneXPlayer X1
 
-/23d06551f6bce16bb8ace3839b129846229d8e99
- 23d06551f6bce16bb8ace3839b129846229d8e99 drm: panel-orientation-quirks: Add OneXPlayer F1Pro quirk
+/0264f09181508169c36126ba286dcc6d8a4d75c7
+ 0264f09181508169c36126ba286dcc6d8a4d75c7 drm: panel-orientation-quirks: Add OneXPlayer F1Pro quirk
 
-/52f3515f414e511e4d40f83b4241c54a190b0fdd
- 52f3515f414e511e4d40f83b4241c54a190b0fdd drm: panel-orientation-quirks: Add OneXPlayer X1Mini Pro quirk
+/0938ad3d45dffce16f612cbfed85390dd9366939
+ 0938ad3d45dffce16f612cbfed85390dd9366939 drm: panel-orientation-quirks: Add OneXPlayer X1Mini Pro quirk
 
-/74c1eadded5998b330717c348ca463f44c8fb3c7
- 74c1eadded5998b330717c348ca463f44c8fb3c7 drm: panel-orientation-quirks: Add OneXPlayer X1 Mini (AMD) quirk
+/c89fc1e6fbde6a0d17e614cda5dc2b9107f00da9
+ c89fc1e6fbde6a0d17e614cda5dc2b9107f00da9 drm: panel-orientation-quirks: Add OneXPlayer X1 Mini (AMD) quirk
 
-/88f8ab3a91352134a0cb6f39e97eca13806cfa63
- 88f8ab3a91352134a0cb6f39e97eca13806cfa63 drm: panel-orientation-quirks: Add OneXPlayer X1 AMD and Intel quirk
+/e8fbf51b1d56d925a26d220a87712cc27da9e319
+ e8fbf51b1d56d925a26d220a87712cc27da9e319 drm: panel-orientation-quirks: Add OneXPlayer X1 AMD and Intel quirk
 
-/3b2cdff01a2d0513c3457bcaed05f34a1ce6df9b
- 3b2cdff01a2d0513c3457bcaed05f34a1ce6df9b drm: panel-orientation-quirks: Add AYANEO FLIP DS quirk
+/5c3e89b5fe13f7e415f977230a489bbd6248baaf
+ 5c3e89b5fe13f7e415f977230a489bbd6248baaf drm: panel-orientation-quirks: Add AYANEO FLIP DS quirk
 
-/246b0e7dca6576b299de920705d9b3e4db0a26ca
- 246b0e7dca6576b299de920705d9b3e4db0a26ca drm: panel-orientation-quirks: Add Aya Neo 2S orientation quirk
+/35dcb34cfc0b33c1788f2a17de57021784b6f2fe
+ 35dcb34cfc0b33c1788f2a17de57021784b6f2fe drm: panel-orientation-quirks: Add Aya Neo 2S orientation quirk
 
-/07cd338680a552436dff568b702d5b90909d45e3
- 07cd338680a552436dff568b702d5b90909d45e3 hid-asus: Add MODULE_IMPORT_NS(ASUS_WMI)
+/1a253e2554bc88f2315659f18a68ce7a66b3d716
+ 1a253e2554bc88f2315659f18a68ce7a66b3d716 hid-asus: Add MODULE_IMPORT_NS(ASUS_WMI)
 
-/0e46ad2945a3c926ffc4a806a63ca630f2cdb975
- 0e46ad2945a3c926ffc4a806a63ca630f2cdb975 platform/x86: asus-armoury: add core count control
+/2f1a10df77c19959f670479cd6021a4efb560f65
+ 2f1a10df77c19959f670479cd6021a4efb560f65 platform/x86: asus-armoury: add core count control
 
-/f52e33a2843de1a0d181906ef6834966d7427b66
- f52e33a2843de1a0d181906ef6834966d7427b66 platform/x86: asus-armoury: add apu-mem control support
+/4be7c765b7f04c0022b6015cff7b90f57cad2452
+ 4be7c765b7f04c0022b6015cff7b90f57cad2452 platform/x86: asus-armoury: add apu-mem control support
 
-/a786c4a0d8369c6a6ff1a3475593023a3a4dbea0
- a786c4a0d8369c6a6ff1a3475593023a3a4dbea0 platform/x86: asus-armoury: add dgpu tgp control
+/5cd3a77fc3b5a5eb3321ce0f1eff939ea62e38c6
+ 5cd3a77fc3b5a5eb3321ce0f1eff939ea62e38c6 platform/x86: asus-armoury: add dgpu tgp control
 
-/ad10c7e34106383318773da50b5ce2184868e0c2
- ad10c7e34106383318773da50b5ce2184868e0c2 platform/x86: asus-armoury: add the ppt_* and nv_* tuning knobs
+/879f6e99d2b178a107554ca6098f93b8e34c6df5
+ 879f6e99d2b178a107554ca6098f93b8e34c6df5 platform/x86: asus-armoury: add the ppt_* and nv_* tuning knobs
 
-/f7a96c2a788b8701da177ffa3f32bb35f5d8478c
- f7a96c2a788b8701da177ffa3f32bb35f5d8478c platform/x86: asus-armoury: add panel_hd_mode attribute
+/b7526ad59d2127c5b403d749915b16029fddac06
+ b7526ad59d2127c5b403d749915b16029fddac06 platform/x86: asus-armoury: add panel_hd_mode attribute
 
-/5c86540b4d1e8a2eef4ba8de765b0bf59553663b
- 5c86540b4d1e8a2eef4ba8de765b0bf59553663b platform/x86: asus-armoury: move existing tunings to asus-armoury module
+/744d2819dc293b0df668fcc4d14087341bbd35fc
+ 744d2819dc293b0df668fcc4d14087341bbd35fc platform/x86: asus-armoury: move existing tunings to asus-armoury module
 
-/a0ad292601f3087b680e6fe1166c133cf792775a
- a0ad292601f3087b680e6fe1166c133cf792775a platform/x86: asus-wmi: export symbols used for read/write WMI
+/30cf375a5c6fd9862c78c1e65775d0b0480ecc04
+ 30cf375a5c6fd9862c78c1e65775d0b0480ecc04 platform/x86: asus-wmi: export symbols used for read/write WMI
 
-/9207d5e4c3428a2931be34b888617832103968e4
- 9207d5e4c3428a2931be34b888617832103968e4 platform/x86: asus-wmi: don't fail if platform_profile already registered
+/5f6837c09f454624757aba87cf2f4e7ba2c51fa9
+ 5f6837c09f454624757aba87cf2f4e7ba2c51fa9 platform/x86: asus-wmi: don't fail if platform_profile already registered
 
-/fe118041bbdd81fa6ef48c1e933f224f7f6af0b1
- fe118041bbdd81fa6ef48c1e933f224f7f6af0b1 Revert "platform/x86: firmware_attributes_class: Drop lifecycle functions"
+/abda78387b80fe166bb38cc8c94d2b8c6d071f05
+ abda78387b80fe166bb38cc8c94d2b8c6d071f05 Revert "platform/x86: firmware_attributes_class: Drop lifecycle functions"
 
-/29fcaa7c4be8d59a1e2ea7e3d6a0057385bc26de
- 29fcaa7c4be8d59a1e2ea7e3d6a0057385bc26de [NOT FOR UPSTREAM] Add DSDT config for original Ally older BIOSes
+/62efebdfab65b97202d88832d4eaad7559969ee4
+ 62efebdfab65b97202d88832d4eaad7559969ee4 [NOT FOR UPSTREAM] Add DSDT config for original Ally older BIOSes
 
-/1eef1859d7dff8b45d6766663fef032756031e6c
- 1eef1859d7dff8b45d6766663fef032756031e6c [NOT FOR UPSTREAM] remove ally quirk from asus_hid
+/1e42ce8b98b022a87f4677aa1a100aa21a8534c4
+ 1e42ce8b98b022a87f4677aa1a100aa21a8534c4 [NOT FOR UPSTREAM] remove ally quirk from asus_hid
 
-/11b9a5ad20efb98701c21526fa4a92dbeccfa3f4
- 11b9a5ad20efb98701c21526fa4a92dbeccfa3f4 Revert "hid-asus: check ROG Ally MCU version and warn"
+/8116216c47f24568211e64bce76165b11f25b558
+ 8116216c47f24568211e64bce76165b11f25b558 Revert "hid-asus: check ROG Ally MCU version and warn"
 
-/a99330d1ae76095cce0ca2f623fc954fbb8315f4
- a99330d1ae76095cce0ca2f623fc954fbb8315f4 Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
+/85e3fd98bc63411afef3643169eb2601ed7c607d
+ 85e3fd98bc63411afef3643169eb2601ed7c607d Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
 
-/4b20ff047165abe1a055299aca3e548b3d1086a1
- 4b20ff047165abe1a055299aca3e548b3d1086a1 Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
+/ac83a90731544c7cee31cb4671c8230fdd104596
+ ac83a90731544c7cee31cb4671c8230fdd104596 Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
 
-/4cc888cabc14eb5166867d155cba6cda605d9e08
- 4cc888cabc14eb5166867d155cba6cda605d9e08 add ROG Ally devices to nct6775
+/e61f3bfe673733d0d72062d38ed7a917bc0a4359
+ e61f3bfe673733d0d72062d38ed7a917bc0a4359 add ROG Ally devices to nct6775
 
-/799c4695ce7ee286c09db7b3554a712aa89b99ad
- 799c4695ce7ee286c09db7b3554a712aa89b99ad HID: asus: initialize LED endpoint early for old NKEY keyboards
+/2861ffa3e8dce1ce99c635f4b281fd996a8591a3
+ 2861ffa3e8dce1ce99c635f4b281fd996a8591a3 HID: asus: initialize LED endpoint early for old NKEY keyboards
 
-/02fde3cd3ded85409097bfe485d96ec891587a28
- 02fde3cd3ded85409097bfe485d96ec891587a28 HID: asus: add RGB support to the ROG Ally units
+/e8d8d349316a2fc68271522a84138572ba0bd7f2
+ e8d8d349316a2fc68271522a84138572ba0bd7f2 HID: asus: add RGB support to the ROG Ally units
 
-/5cac9c749be74a94a37be52b05b210118ebc0af6
- 5cac9c749be74a94a37be52b05b210118ebc0af6 HID: asus: add basic RGB support
+/da97460907617a044614de338ab2ae22a378398a
+ da97460907617a044614de338ab2ae22a378398a HID: asus: add basic RGB support
 
-/d05a6f753a95d407f92e9cfefa81c93b82311217
- d05a6f753a95d407f92e9cfefa81c93b82311217 HID: asus: add support for the asus-wmi brightness handler
+/5c87014df04d7a0ad6cac3ae8ab48f8371a8ca1c
+ 5c87014df04d7a0ad6cac3ae8ab48f8371a8ca1c HID: asus: add support for the asus-wmi brightness handler
 
-/210b0a5a98f4d271527b1408cc6543b561ac2e0c
- 210b0a5a98f4d271527b1408cc6543b561ac2e0c platform/x86: asus-wmi: add keyboard brightness event handler
+/67b9cc9d4db5946bf3d2e59b52e6212464eefebb
+ 67b9cc9d4db5946bf3d2e59b52e6212464eefebb platform/x86: asus-wmi: add keyboard brightness event handler
 
-/dbb622cb7bd3e9f50ec708de7af4b9112c053c52
- dbb622cb7bd3e9f50ec708de7af4b9112c053c52 platform/x86: asus-wmi: remove unused keyboard backlight quirk
+/d800d40c621930139b0fa7df88ae89173de02daf
+ d800d40c621930139b0fa7df88ae89173de02daf platform/x86: asus-wmi: remove unused keyboard backlight quirk
 
-/8187cc1c65ad74b804d5f16419bd46d47326cf70
- 8187cc1c65ad74b804d5f16419bd46d47326cf70 HID: asus: listen to the asus-wmi brightness device instead of creating one
+/9bbd824438f5c9e134d71e391adfb0e6d6ad3730
+ 9bbd824438f5c9e134d71e391adfb0e6d6ad3730 HID: asus: listen to the asus-wmi brightness device instead of creating one
 
-/7695a28945b0eae4401d56af4be7f222fa68d631
- 7695a28945b0eae4401d56af4be7f222fa68d631 platform/x86: asus-wmi: Add support for multiple kbd RGB handlers
+/a5aaf8d4012a3d87c17f476b1f803640d72d0d98
+ a5aaf8d4012a3d87c17f476b1f803640d72d0d98 platform/x86: asus-wmi: Add support for multiple kbd RGB handlers
 
-/81f8b75da13dce59a31a7c7cf0d4c808c5b4fd37
- 81f8b75da13dce59a31a7c7cf0d4c808c5b4fd37 HID: asus: add Z13 folio to generic group for multitouch to work
+/ce66b3ce86208d41709d11b016d77c0e3c66cc98
+ ce66b3ce86208d41709d11b016d77c0e3c66cc98 HID: asus: add Z13 folio to generic group for multitouch to work
 
-/c26e459c1df7ed640a007a4cb943fbb003549ae8
- c26e459c1df7ed640a007a4cb943fbb003549ae8 HID: asus: prevent binding to all HID devices on ROG
+/9f1745755d782187615ece490ce79d43fe363b47
+ 9f1745755d782187615ece490ce79d43fe363b47 HID: asus: prevent binding to all HID devices on ROG
 
-/ee95e2b1ff6cc32f168cb32ae5a1b87bd0afea98
- ee95e2b1ff6cc32f168cb32ae5a1b87bd0afea98 HID: asus: refactor init sequence per spec
+/00d9559ac597b1065d5a4577f6baddcdbcd401de
+ 00d9559ac597b1065d5a4577f6baddcdbcd401de HID: asus: refactor init sequence per spec
 
-/555f4b658b31ffc1fb59cc29a3ce05cc00f7bc2e
- 555f4b658b31ffc1fb59cc29a3ce05cc00f7bc2e drm/amdgpu: enable SI and CIK support by default
+/45a1ec10bc602df87d86ee2ed1bbd8d4393c58f0
+ 45a1ec10bc602df87d86ee2ed1bbd8d4393c58f0 drm/amdgpu: enable SI and CIK support by default
 
-/304e5fdfdb6e2a7cc1575c63f54e25c446adb3b7
- 304e5fdfdb6e2a7cc1575c63f54e25c446adb3b7 set ds controller bluetooth pollrate to 1 ms
+/378d375b85b703a0f1c1a7db60c43a9f89d87f42
+ 378d375b85b703a0f1c1a7db60c43a9f89d87f42 set ds controller bluetooth pollrate to 1 ms
 
-/6767b1e798e2b5e52c1b8c5a65c921240edb7be1
- 6767b1e798e2b5e52c1b8c5a65c921240edb7be1 Allow to set custom USB pollrate for specific devices like so: usbcore.interrupt_interval_override=045e:00db:16,1bcf:0005:1
+/443fdd1754e196c02026089bd4cec2aac64623ca
+ 443fdd1754e196c02026089bd4cec2aac64623ca Allow to set custom USB pollrate for specific devices like so: usbcore.interrupt_interval_override=045e:00db:16,1bcf:0005:1
 
-/22b089f7a671e4eadea81e12613467393ee1f008
- 22b089f7a671e4eadea81e12613467393ee1f008 Cachy: drm/amdgpu/pm: Allow override of min_power_limit with ignore_min_pcap
+/187c4fcb696a1e5efae9a283cd8e6d4a7d2b3bb5
+ 187c4fcb696a1e5efae9a283cd8e6d4a7d2b3bb5 Cachy: drm/amdgpu/pm: Allow override of min_power_limit with ignore_min_pcap
 
-/9abaeecbd39f8c05976438b19f726603c550e78a
- 9abaeecbd39f8c05976438b19f726603c550e78a ACPI: processor_idle: Skip dummy wait for processors based on the Zen microarchitecture
+/f668b15bc73e17a76e3a6f4d48d935387114b4fb
+ f668b15bc73e17a76e3a6f4d48d935387114b4fb ACPI: processor_idle: Skip dummy wait for processors based on the Zen microarchitecture
 
-/597e03b24350217f430fb497252ac2c8bc6e28d7
- 597e03b24350217f430fb497252ac2c8bc6e28d7 Revert "PCI: Add a REBAR size quirk for Sapphire RX 5600 XT Pulse"
+/d061e2ae8846f5d388cf560c133228637ed1bd30
+ d061e2ae8846f5d388cf560c133228637ed1bd30 Revert "PCI: Add a REBAR size quirk for Sapphire RX 5600 XT Pulse"
 
-/466155d6b47af4307a82a8859dadca86d0ef7e11
- 466155d6b47af4307a82a8859dadca86d0ef7e11 Fix HAINAN amdgpu card not being bootable
+/fbe6e0cafa5f345f882bfa73463509babc48def8
+ fbe6e0cafa5f345f882bfa73463509babc48def8 Fix HAINAN amdgpu card not being bootable
 
-/eb16d3f9de750fa2e2a553d1af2e7e471228e82f
- eb16d3f9de750fa2e2a553d1af2e7e471228e82f PCI: Have ACI override bail if no parameter is provided
+/252ebc8d1977f77b4f898bee753b88379e1d03cb
+ 252ebc8d1977f77b4f898bee753b88379e1d03cb PCI: Have ACI override bail if no parameter is provided
 
-/3d7224941e9db08b2c508ae035fdafd4cef8d642
- 3d7224941e9db08b2c508ae035fdafd4cef8d642 PCI: Add ACI override to allow GPU passthrough in older motherboards
+/ca03e7ccda1cb915b94d891b645ae3b890acab44
+ ca03e7ccda1cb915b94d891b645ae3b890acab44 PCI: Add ACI override to allow GPU passthrough in older motherboards
 
-/0e288dc730a299ad3b55933be02ef90d3ebb3ae4
- 0e288dc730a299ad3b55933be02ef90d3ebb3ae4 Input: uinput - Add UI_SET_PHYS_STR and UI_SET_UNIQ_STR
+/8c12f008b3eb76af604f83a0c1141ca42daea8c3
+ 8c12f008b3eb76af604f83a0c1141ca42daea8c3 Input: uinput - Add UI_SET_PHYS_STR and UI_SET_UNIQ_STR
 
-/b9085a89d86c6c1792c7195f1814d96c0b86f590
- b9085a89d86c6c1792c7195f1814d96c0b86f590 [NOT FOR UPSTREAM] remove stupid "No IRQ Handler for vector" message
+/162f33ba3635703a53254e017b0dfdc2301f31ba
+ 162f33ba3635703a53254e017b0dfdc2301f31ba [NOT FOR UPSTREAM] remove stupid "No IRQ Handler for vector" message
 
-/25ce51e41708fae233d0f07b009451ca1f017190
- 25ce51e41708fae233d0f07b009451ca1f017190 [NOT FOR UPSTREAM] add acpi_call module
+/e72c53797c3390e889ed99204789f0b84560c27e
+ e72c53797c3390e889ed99204789f0b84560c27e [NOT FOR UPSTREAM] add acpi_call module
 
-/c722ae4afa1525300cfaab590752fd57baebd8ec
- c722ae4afa1525300cfaab590752fd57baebd8ec drm/amd: use fixed dsc bits-per-pixel from edid
+/a1e9728ed86b3c93d78393e5d940669824714d74
+ a1e9728ed86b3c93d78393e5d940669824714d74 drm/amd: use fixed dsc bits-per-pixel from edid
 
-/e8c5e0230609b62046d808623d865dc548aabe76
- e8c5e0230609b62046d808623d865dc548aabe76 drm/edid: parse DRM VESA dsc bpp target
+/dc1cc43d5c324e2c3898b7293c824f39288606f6
+ dc1cc43d5c324e2c3898b7293c824f39288606f6 drm/edid: parse DRM VESA dsc bpp target
 
-/aa10507fc5789aee73e9730de4ab58c215cc4033
- aa10507fc5789aee73e9730de4ab58c215cc4033 drivers/firmware: skip simpledrm if nvidia-drm.modeset=1 is set
+/0c68ecc041be7b8995786d05d4cf26a819ac16ea
+ 0c68ecc041be7b8995786d05d4cf26a819ac16ea drivers/firmware: skip simpledrm if nvidia-drm.modeset=1 is set
 
-/c37ba20e42e33a9b5a9247ca3b872e38fcfdaad6
- c37ba20e42e33a9b5a9247ca3b872e38fcfdaad6 HID: quirks: Add Apple Magic Trackpad 2 to hid_have_special_driver list
+/8237fcae5c6b559389a71ebb4812276db6135d9f
+ 8237fcae5c6b559389a71ebb4812276db6135d9f HID: quirks: Add Apple Magic Trackpad 2 to hid_have_special_driver list
 
-/721457b6eece61dc450fa309a25d6829db12e9f9
- 721457b6eece61dc450fa309a25d6829db12e9f9 [NOT-FOR-UPSTREAM] ACPICA: Limit error message flood caused by firmware bug
+/a1cf30fb9c0466e0658fbecc636ee8a3b7efdb7c
+ a1cf30fb9c0466e0658fbecc636ee8a3b7efdb7c [NOT-FOR-UPSTREAM] ACPICA: Limit error message flood caused by firmware bug
 
-/4578b2167d6e0ba7f83cab8b23760a2a16b1a88c
- 4578b2167d6e0ba7f83cab8b23760a2a16b1a88c [NOT-FOR-UPSTREAM] drivers: video: backlight: Disable backlight notification events
+/c66664c2753f92962d64501f3eb174c78a963778
+ c66664c2753f92962d64501f3eb174c78a963778 [NOT-FOR-UPSTREAM] drivers: video: backlight: Disable backlight notification events
 
-/ca9648e358dd90fa25bd6431db0ab7959f09b4ad
- ca9648e358dd90fa25bd6431db0ab7959f09b4ad [NOT-FOR-UPSTREAM] PM: suspend: Disable s2idle on Steam Decks
+/64ec6dde6fef82e5bfba59381df9cdb68d9b7bc7
+ 64ec6dde6fef82e5bfba59381df9cdb68d9b7bc7 [NOT-FOR-UPSTREAM] PM: suspend: Disable s2idle on Steam Decks
 
-/a66742f296833326e40201d74845715e0b6a1f4e
- a66742f296833326e40201d74845715e0b6a1f4e drm/amd/display: edp do not add non-edid timings
+/97c438b816140e2d9e64b00cbc4d5f86e2d9090d
+ 97c438b816140e2d9e64b00cbc4d5f86e2d9090d drm/amd/display: edp do not add non-edid timings
 
-/27b58063da7ea1ea99fb4e9e244bfd4bb07bf5f4
- 27b58063da7ea1ea99fb4e9e244bfd4bb07bf5f4 drm/amd/display: Don't limit YUV420 to HDMI
+/319018a663fe1608cae8f3b21730c0d86327051f
+ 319018a663fe1608cae8f3b21730c0d86327051f drm/amd/display: Don't limit YUV420 to HDMI
 
-/dc47eee5d629c62de8d88e189cb361e685b4e702
- dc47eee5d629c62de8d88e189cb361e685b4e702 drm/amdgpu: Don't use doorbells for SDMA 5.2
+/76071585bd207f4a082d9d8dff9dbc638ee496c6
+ 76071585bd207f4a082d9d8dff9dbc638ee496c6 drm/amdgpu: Don't use doorbells for SDMA 5.2
 
-/9b94b7b85a41dbead1b6c815a25485581ca63850
- 9b94b7b85a41dbead1b6c815a25485581ca63850 drm: fix drm lastclose ignoring closed active fbs
+/bf6971a2195884613ed93c66ff29c00b6bc73752
+ bf6971a2195884613ed93c66ff29c00b6bc73752 drm: fix drm lastclose ignoring closed active fbs
 
-/8bbed7a0d53cb47905e30f48053be191ebc3ea7c
- 8bbed7a0d53cb47905e30f48053be191ebc3ea7c drm/amd/display: Enable 3 overlay planes for Steam Deck
+/758f6fb2bb024f745536256341fe89fb819de3a7
+ 758f6fb2bb024f745536256341fe89fb819de3a7 drm/amd/display: Enable 3 overlay planes for Steam Deck
 
-/a09b0931db0c730cb21a1b3cc37d2ac747df4666
- a09b0931db0c730cb21a1b3cc37d2ac747df4666 Disable modes with >1200 MHz Pixel clocks when connected via dock
+/975085b11ed40a08ae711f6b619d647490dd26f1
+ 975085b11ed40a08ae711f6b619d647490dd26f1 Disable modes with >1200 MHz Pixel clocks when connected via dock
 
-/3c5c5757282e3f6dc99cd602e36b39d419567572
- 3c5c5757282e3f6dc99cd602e36b39d419567572 amd/display: Increased DP Alt mode timeout from 200ms to 500ms. SWDEV-358114
+/1fe804d6e09e2573667dc95074bedf5b5f3caef0
+ 1fe804d6e09e2573667dc95074bedf5b5f3caef0 amd/display: Increased DP Alt mode timeout from 200ms to 500ms. SWDEV-358114
 
-/7215ced4c43a55ab7c789dd4bcb9eb49b83f4c40
- 7215ced4c43a55ab7c789dd4bcb9eb49b83f4c40 drm/amd/display: keep eDP Vdd on when eDP stream is already enabled
+/078ae63d748d69407a812b0f28c949dfcff34122
+ 078ae63d748d69407a812b0f28c949dfcff34122 drm/amd/display: keep eDP Vdd on when eDP stream is already enabled
 
-/74e39b0667627656f8abe52d6fa79fab85df035f
- 74e39b0667627656f8abe52d6fa79fab85df035f mmc: core: add safe_trim_quirk attribute
+/8a4dcf229c20ec776bd118b16315d7c70d572816
+ 8a4dcf229c20ec776bd118b16315d7c70d572816 mmc: core: add safe_trim_quirk attribute
 
-/2e19241bdd32262bbaae428840bc7b172b12560b
- 2e19241bdd32262bbaae428840bc7b172b12560b drm: Add GPU reset sysfs event full series
+/de8bb244fd07c01cfa739df31bdea5246316a68f
+ de8bb244fd07c01cfa739df31bdea5246316a68f drm: Add GPU reset sysfs event full series
 
-/3813de55399b81e8731ded725069302e15c2bbda
- 3813de55399b81e8731ded725069302e15c2bbda [HACK] Add 2s delay before enabling DP link for dock
+/8b3c6790a522847279aef2a466f0ec715883cbd6
+ 8b3c6790a522847279aef2a466f0ec715883cbd6 [HACK] Add 2s delay before enabling DP link for dock
 
-/2742dffdf8f28f1ae3aa339e06e965d91e71ce0e
- 2742dffdf8f28f1ae3aa339e06e965d91e71ce0e fixup! [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
+/d3c6f3e4d4ded6dd483034dc74cd648cfb9902af
+ d3c6f3e4d4ded6dd483034dc74cd648cfb9902af fixup! [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
 
-/a2bdda7cffbaadc366bb9abdba8670f9d11336a0
- a2bdda7cffbaadc366bb9abdba8670f9d11336a0 [NOT-FOR-UPSTREAM] ASoC: nau8821: Reset 8821 clock on start
+/f5e0d784763472600827d4f95987822856268db2
+ f5e0d784763472600827d4f95987822856268db2 [NOT-FOR-UPSTREAM] ASoC: nau8821: Reset 8821 clock on start
 
-/2a7c6a54ca9eda3ba09f7e12aba00f79ea015b53
- 2a7c6a54ca9eda3ba09f7e12aba00f79ea015b53 [NOT-FOR-UPSTREAM] ASoC: amd: acp: Use correct DAI link ID for BT codec
+/cb2bf048f76b478740065c2a9113496efb7b5539
+ cb2bf048f76b478740065c2a9113496efb7b5539 [NOT-FOR-UPSTREAM] ASoC: amd: acp: Use correct DAI link ID for BT codec
 
-/bd17b9a57103b280bc72b9629c7a95d39529b785
- bd17b9a57103b280bc72b9629c7a95d39529b785 [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
+/9120ed0cded111ce2f2aa37a294087aa04e08531
+ 9120ed0cded111ce2f2aa37a294087aa04e08531 [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
 
-/9c8bbc2756ab92be210abcdff1f8cef78ef852e3
- 9c8bbc2756ab92be210abcdff1f8cef78ef852e3 [FROM-QUECTEL] Bluetooth: hci_sync: Fix BLE devices turning wakeup on/off
+/5ef818842d6fc05e397697498365d8e08a841eb1
+ 5ef818842d6fc05e397697498365d8e08a841eb1 [FROM-QUECTEL] Bluetooth: hci_sync: Fix BLE devices turning wakeup on/off
 
-/38dc6537bedff4520496e865183bb70390ff9211
- 38dc6537bedff4520496e865183bb70390ff9211 [FROM-QUECTEL] Bluetooth: Fixed an issue where the Steam Deck could not into sleep because it continued advertizing after the Steam Controller was disconnected.
+/a507c7cfc343d79a573217e4c1cc249fd4023fd1
+ a507c7cfc343d79a573217e4c1cc249fd4023fd1 [FROM-QUECTEL] Bluetooth: Fixed an issue where the Steam Deck could not into sleep because it continued advertizing after the Steam Controller was disconnected.
 
-/6474696115b1aee587f0690607bb756f14e82534
- 6474696115b1aee587f0690607bb756f14e82534 [QUECTEL/VALVE] acpi match based on Quanta's 11T09 bios
+/b6d0e12803053f9f878c9174e264f68062b6316c
+ b6d0e12803053f9f878c9174e264f68062b6316c [QUECTEL/VALVE] acpi match based on Quanta's 11T09 bios
 
-/a39565aa1a0f2ea4fa0601a27b5cab1fb9404e3f
- a39565aa1a0f2ea4fa0601a27b5cab1fb9404e3f [QUECTEL/VALVE] Added in Quectel patches for bluetooth
+/0b45db47a104c6b1b4163b056f84bda7bce2522e
+ 0b45db47a104c6b1b4163b056f84bda7bce2522e [QUECTEL/VALVE] Added in Quectel patches for bluetooth
 
-/99a0c7205cc8d668b270b3a9b2034b675d8c3ff1
- 99a0c7205cc8d668b270b3a9b2034b675d8c3ff1 [WIP] ASoC: max98388: Fix power on when resuming from suspend
+/397df48f633531505185be7a8fda74d0e8b7a1d3
+ 397df48f633531505185be7a8fda74d0e8b7a1d3 [WIP] ASoC: max98388: Fix power on when resuming from suspend
 
-/88cc580e32668617f3658f518a1e5490d9878885
- 88cc580e32668617f3658f518a1e5490d9878885 media: platform: cros-ec: Add AMD Lilac to the match table
+/bbea02980406837d4e570d5cba8c17b1fd5a6fe9
+ bbea02980406837d4e570d5cba8c17b1fd5a6fe9 media: platform: cros-ec: Add AMD Lilac to the match table
 
-/6ff568808d87090026e25702c3b486e333f72da9
- 6ff568808d87090026e25702c3b486e333f72da9 usb: dwc3: Fix "linux,extcon-name"
+/2a846c07b0cb4b3f5593e493461931257754ccb3
+ 2a846c07b0cb4b3f5593e493461931257754ccb3 usb: dwc3: Fix "linux,extcon-name"
 
-/97c0e10b9eb66a61bd520eea89dcdf35fef5247f
- 97c0e10b9eb66a61bd520eea89dcdf35fef5247f usb: dwc3: Drop "usb-role-swtich" from dwc3_pci_mr_properties
+/8fbd425307720660d01239e29e5e7a35cca46d8a
+ 8fbd425307720660d01239e29e5e7a35cca46d8a usb: dwc3: Drop "usb-role-swtich" from dwc3_pci_mr_properties
 
-/372dcb9e9f2ba47c06280c39cc71b20964919c8d
- 372dcb9e9f2ba47c06280c39cc71b20964919c8d usb: dwc3: Hardcode jupiter ACPI device as extcon name
+/68d7f85c47c23ce920428c5dbb17e963643b1c88
+ 68d7f85c47c23ce920428c5dbb17e963643b1c88 usb: dwc3: Hardcode jupiter ACPI device as extcon name
 
-/99bdc39fe03105f69bb30b7b8ea33b86cfac7597
- 99bdc39fe03105f69bb30b7b8ea33b86cfac7597 hwmon: steamdeck-hwmon: Add support for max battery level/rate
+/02b477e68c39065bba77d27f4e5a9260c3c2e8c6
+ 02b477e68c39065bba77d27f4e5a9260c3c2e8c6 hwmon: steamdeck-hwmon: Add support for max battery level/rate
 
-/4ddd80cd68d186a15de843c820467235b9870975
- 4ddd80cd68d186a15de843c820467235b9870975 hwmon: Add driver for Steam Deck's EC sensors
+/d5d223729fa4b3d572c5db9724790ca4b28ae885
+ d5d223729fa4b3d572c5db9724790ca4b28ae885 hwmon: Add driver for Steam Deck's EC sensors
 
-/abcc78d90f21facf0e783a83249390f132f42766
- abcc78d90f21facf0e783a83249390f132f42766 extcon: Add driver for Steam Deck
+/00a33718e4669a418578ba3521ac80af8d24551c
+ 00a33718e4669a418578ba3521ac80af8d24551c extcon: Add driver for Steam Deck
 
-/856d21143a155364f7db8fb892df7c917d0803c6
- 856d21143a155364f7db8fb892df7c917d0803c6 leds-steamdeck: Add support for LED birghtness multiplier
+/145ecc27ac27ac1e9915c7909a3d67503d480fbb
+ 145ecc27ac27ac1e9915c7909a3d67503d480fbb leds-steamdeck: Add support for LED birghtness multiplier
 
-/692c498e881b59601790ff3ee0b316545cc640bf
- 692c498e881b59601790ff3ee0b316545cc640bf leds: steamdeck: Add support for Steam Deck LED
+/ee03a2e8ff8bc33744bb7a8b27ccf01eae672ceb
+ ee03a2e8ff8bc33744bb7a8b27ccf01eae672ceb leds: steamdeck: Add support for Steam Deck LED
 
-/39e57a1c414c3fb0d22badfb0d4053287afae27b
- 39e57a1c414c3fb0d22badfb0d4053287afae27b mfd: steamdeck: Expose controller board power in sysfs
+/636335afe106aff9ed27c13cc2a6ad9ccfad3d26
+ 636335afe106aff9ed27c13cc2a6ad9ccfad3d26 mfd: steamdeck: Expose controller board power in sysfs
 
-/4fb0427e33c5480ba2a2bd3154d504a9a380908c
- 4fb0427e33c5480ba2a2bd3154d504a9a380908c mfd: Add MFD core driver for Steam Deck
+/d6526ac740ac35e8c278dffe700b0ee9f65a372e
+ d6526ac740ac35e8c278dffe700b0ee9f65a372e mfd: Add MFD core driver for Steam Deck
 
-/e01776f376599a18dd2f11d08979d5703b982b9c
- e01776f376599a18dd2f11d08979d5703b982b9c HID: Add quirk to ignore the touchscreen battery on 8BitDo SN30 Pro Plus
+/e47b3e53e656a447d0e6d28c1c56a230905397dc
+ e47b3e53e656a447d0e6d28c1c56a230905397dc HID: Add quirk to ignore the touchscreen battery on 8BitDo SN30 Pro Plus
 
-/86b74a39824ceab0018c4543358c4b54dbb27a99
- 86b74a39824ceab0018c4543358c4b54dbb27a99 arm64: dts: qcom: Batocera specific changes
+/ff7958b74c6e0e4c05be09f3d70f416378f40e07
+ ff7958b74c6e0e4c05be09f3d70f416378f40e07 arm64: dts: qcom: Batocera specific changes
 
-/d54ec45fbd947eb49642010a93d057c6141d2f6e
- d54ec45fbd947eb49642010a93d057c6141d2f6e arm64: dts: qcom: Set Gamepad ID for Retroid Pocket
+/149dc88d298512facb27042f7028cfe5e768b3b5
+ 149dc88d298512facb27042f7028cfe5e768b3b5 arm64: dts: qcom: Set Gamepad ID for Retroid Pocket
 
-/79f56e827432855b28563cdae7a41cd73ed4b557
- 79f56e827432855b28563cdae7a41cd73ed4b557 Input: Odin2 Gamepad ability to set input id values from devicetree
+/29b92d92333177d0dc3e57d5bc1912320a6f3f3f
+ 29b92d92333177d0dc3e57d5bc1912320a6f3f3f Input: Odin2 Gamepad ability to set input id values from devicetree
 
-/571a7927f7f2fbdd8a77e5f457d62598c362b7c9
- 571a7927f7f2fbdd8a77e5f457d62598c362b7c9 arm64: dts: qcom: Enable Retroid Pocket Joystick RGB LED
+/ef6403839da104c985a82e214d179ea8732d4413
+ ef6403839da104c985a82e214d179ea8732d4413 arm64: dts: qcom: Enable Retroid Pocket Joystick RGB LED
 
-/4c08060c8d445e7d54928152e530b868e71aba94
- 4c08060c8d445e7d54928152e530b868e71aba94 pwm: htr3212: Add HEROIC HTR3212 support
+/a221c08bcf00c433f045b40a4a421eb65aa2d2de
+ a221c08bcf00c433f045b40a4a421eb65aa2d2de pwm: htr3212: Add HEROIC HTR3212 support
 
-/9474d237d8875e15ffcf2a2c16f64105eb74bb05
- 9474d237d8875e15ffcf2a2c16f64105eb74bb05 drm: panel: Add compatible CH13726A panel
+/c60aa7a05eb068a6dd9462d49b42a9de6e8f2465
+ c60aa7a05eb068a6dd9462d49b42a9de6e8f2465 drm: panel: Add compatible CH13726A panel
 
-/8d7122b704943626af32333e58c6e588794bca32
- 8d7122b704943626af32333e58c6e588794bca32 arm64: dts: qcom: sm8250-retroid-rpmini: Add SM8250 Retroid Pocket variants
+/122a4eb825e1ce05e3f20b8caa851222ac3d16d8
+ 122a4eb825e1ce05e3f20b8caa851222ac3d16d8 arm64: dts: qcom: sm8250-retroid-rpmini: Add SM8250 Retroid Pocket variants
 
-/1ad45d846d6e8191ed8151b42456cdd20e254703
- 1ad45d846d6e8191ed8151b42456cdd20e254703 arm64: dts: qcom: pm8150b: Add a FG
+/47300edde3463a4a19f218f7d10c16a0ce7120e6
+ 47300edde3463a4a19f218f7d10c16a0ce7120e6 arm64: dts: qcom: pm8150b: Add a FG
 
-/b1b71abc09c67a4783fbaca46a97b4b8249249aa
- b1b71abc09c67a4783fbaca46a97b4b8249249aa arm64: dts: qcom: pm8150b: Add a charger
+/ed681e38b4cbbd9fc92e244760782363babdc309
+ ed681e38b4cbbd9fc92e244760782363babdc309 arm64: dts: qcom: pm8150b: Add a charger
 
-/2e1be1c50e28362b27c93cfc83a3ece3fb3eceed
- 2e1be1c50e28362b27c93cfc83a3ece3fb3eceed power: supply: Driver for Qualcomm FG
+/830fdfe270591b705a060eb365f94ab2f64dc3ea
+ 830fdfe270591b705a060eb365f94ab2f64dc3ea power: supply: Driver for Qualcomm FG
 
-/6b76aa6082073d0ac443b9b6c48b961854469a07
- 6b76aa6082073d0ac443b9b6c48b961854469a07 power: supply: Driver for Qualcomm SMB5
+/36226205a6000aeba13723d8f9f83a059679a8c8
+ 36226205a6000aeba13723d8f9f83a059679a8c8 power: supply: Driver for Qualcomm SMB5
 
-/41c549aa0e6f2bd1cf8b88c02365396a8a8173a7
- 41c549aa0e6f2bd1cf8b88c02365396a8a8173a7 Input: driver for AYN Odin2 Gamepad
+/e9dab0b4c2c2860e7d44fac5a63215315f566981
+ e9dab0b4c2c2860e7d44fac5a63215315f566981 Input: driver for AYN Odin2 Gamepad
 
-/1fd2db5d9d8031bafaa42b789a1ef558c01b5dd8
- 1fd2db5d9d8031bafaa42b789a1ef558c01b5dd8 drm: panel: Add DDIC CH13726A panel
+/a9e1c4896aa21b02800cc19cd83362e142e377d2
+ a9e1c4896aa21b02800cc19cd83362e142e377d2 drm: panel: Add DDIC CH13726A panel
 
-/fe017369740a93bacc567836b7e90580ba63d81c
- fe017369740a93bacc567836b7e90580ba63d81c arm64: dts: qcom: sm8250: add uart16
+/f474a775c2c6fd652a86c5ce7703466237569ffb
+ f474a775c2c6fd652a86c5ce7703466237569ffb arm64: dts: qcom: sm8250: add uart16
 
-/7a4752c9dd7abbe1f4ffa51370962f506a27f6c3
- 7a4752c9dd7abbe1f4ffa51370962f506a27f6c3 ASoC: qcom: q6asm-dai: Change some default periods
+/d6e3f05bac02c61d35eae9209fb19d96cdd4f9bd
+ d6e3f05bac02c61d35eae9209fb19d96cdd4f9bd ASoC: qcom: q6asm-dai: Change some default periods
 
-/4187c4908e47242538351c6339e529e9b20ad515
- 4187c4908e47242538351c6339e529e9b20ad515 acpi: allow usage of acpi_tad on HW-reduced platforms
+/fe763badeb79caa35575a4285dbf777a725a8a51
+ fe763badeb79caa35575a4285dbf777a725a8a51 acpi: allow usage of acpi_tad on HW-reduced platforms
 
-/0e16babc16e33cb826ed9547ffc70c6a8e3aa87f
- 0e16babc16e33cb826ed9547ffc70c6a8e3aa87f ACPI: Add AMD 13" Surface Laptop 4 model to irq 7 override quirk
+/7801383464e23d98a5061f4219fc14baf6b1b877
+ 7801383464e23d98a5061f4219fc14baf6b1b877 ACPI: Add AMD 13" Surface Laptop 4 model to irq 7 override quirk
 
-/c658fd660a20e515d155898a3984a57f32008b02
- c658fd660a20e515d155898a3984a57f32008b02 ACPI: Add quirk for Surface Laptop 4 AMD missing irq 7 override
+/dcb7bce7bb1f5d5dc4f04aeacc5b4573ec0bf502
+ dcb7bce7bb1f5d5dc4f04aeacc5b4573ec0bf502 ACPI: Add quirk for Surface Laptop 4 AMD missing irq 7 override
 
-/90d5429cf8d7752d60a173d7c7b45057d0166766
- 90d5429cf8d7752d60a173d7c7b45057d0166766 media: i2c: dw9719: fix probe error on surface go 2
+/8a8c41a07b38b2767e0a40949965551e7fe13577
+ 8a8c41a07b38b2767e0a40949965551e7fe13577 media: i2c: dw9719: fix probe error on surface go 2
 
-/0377bcdcbf2a9303e79941575dfec8f20775ffcf
- 0377bcdcbf2a9303e79941575dfec8f20775ffcf leds: tps68470: Add LED control for tps68470
+/b20a44279eaa04641b062ce17eef5de434ff5b1f
+ b20a44279eaa04641b062ce17eef5de434ff5b1f leds: tps68470: Add LED control for tps68470
 
-/0fdd32f8aa23aa1fadc89ae174f41c666a04ad35
- 0fdd32f8aa23aa1fadc89ae174f41c666a04ad35 include: mfd: tps68470: Add masks for LEDA and LEDB
+/74a868367d3b00ab5be1b07a30e07821691d3464
+ 74a868367d3b00ab5be1b07a30e07821691d3464 include: mfd: tps68470: Add masks for LEDA and LEDB
 
-/3b1a48e890b4909646c217062b201927b2bea39b
- 3b1a48e890b4909646c217062b201927b2bea39b platform: x86: int3472: Add MFD cell for tps68470 LED
+/31f802171d1f8f83a436679ab2f808d7a83509f8
+ 31f802171d1f8f83a436679ab2f808d7a83509f8 platform: x86: int3472: Add MFD cell for tps68470 LED
 
-/d18275ff693287edc873fc4f796247701449d34e
- d18275ff693287edc873fc4f796247701449d34e media: v4l2-core: Acquire privacy led in v4l2_async_register_subdev()
+/1e41e833ecee3bdc39254cd0501b87f9383545ef
+ 1e41e833ecee3bdc39254cd0501b87f9383545ef media: v4l2-core: Acquire privacy led in v4l2_async_register_subdev()
 
-/73622104f237abe37cf172ac76f09f0f0ec0b362
- 73622104f237abe37cf172ac76f09f0f0ec0b362 media: i2c: Clarify that gain is Analogue gain in OV7251
+/e6808003b3121c93608279b16bd3d69dd9d90705
+ e6808003b3121c93608279b16bd3d69dd9d90705 media: i2c: Clarify that gain is Analogue gain in OV7251
 
-/03222d232d4fa510067230deb7b9ff269fe6c177
- 03222d232d4fa510067230deb7b9ff269fe6c177 platform/x86: int3472: Remap reset GPIO for INT347E
+/f0ed8ccef2cb4552bfb3d7a99044ca45a76db72e
+ f0ed8ccef2cb4552bfb3d7a99044ca45a76db72e platform/x86: int3472: Remap reset GPIO for INT347E
 
-/b891cc4ac4e5f1320414d7190de1860b72b2690f
- b891cc4ac4e5f1320414d7190de1860b72b2690f platform/x86: int3472: Enable I2c daisy chain
+/878682fbd58469911decf00d533b4ab01e7120c9
+ 878682fbd58469911decf00d533b4ab01e7120c9 platform/x86: int3472: Enable I2c daisy chain
 
-/dc004ea26abb5ddcff36eef44427970b43e69af9
- dc004ea26abb5ddcff36eef44427970b43e69af9 iommu: intel-ipu: use IOMMU passthrough mode for Intel IPUs
+/2796352373bd3a94f0cd59549415b9657b08ffb6
+ 2796352373bd3a94f0cd59549415b9657b08ffb6 iommu: intel-ipu: use IOMMU passthrough mode for Intel IPUs
 
-/51ae0fc314d46cbf0fa736896792a978a16f6c0a
- 51ae0fc314d46cbf0fa736896792a978a16f6c0a ACPI: delay enumeration of devices with a _DEP pointing to an INT3472 device
+/4b9fc6690edbc62cf3f0580664b1e85ae2f06a46
+ 4b9fc6690edbc62cf3f0580664b1e85ae2f06a46 ACPI: delay enumeration of devices with a _DEP pointing to an INT3472 device
 
-/ac0d0e34587f135e85b1edce1cf120fcea645a49
- ac0d0e34587f135e85b1edce1cf120fcea645a49 platform/surface: gpe: Add support for Surface Pro 9
+/bf2ce8830a32385d3dcc7b2351f3a299bb511073
+ bf2ce8830a32385d3dcc7b2351f3a299bb511073 platform/surface: gpe: Add support for Surface Pro 9
 
-/9a5917d92b314dac4d90460f92b005ac5b0d5dc5
- 9a5917d92b314dac4d90460f92b005ac5b0d5dc5 PCI: Add quirk to prevent calling shutdown mehtod
+/b8f68471bf981fd0798f7db5f872e9b50be30bd2
+ b8f68471bf981fd0798f7db5f872e9b50be30bd2 PCI: Add quirk to prevent calling shutdown mehtod
 
-/495514de6233d59ef131bc5c44acd40d3c1b4742
- 495514de6233d59ef131bc5c44acd40d3c1b4742 hid/multitouch: Add support for surface pro type cover tablet switch
+/b14cef94678b5ab493ba7d476db900f17fa37b5d
+ b14cef94678b5ab493ba7d476db900f17fa37b5d hid/multitouch: Add support for surface pro type cover tablet switch
 
-/173e699caea6ec836e7cdceaa8e3231f827bd011
- 173e699caea6ec836e7cdceaa8e3231f827bd011 hid/multitouch: Turn off Type Cover keyboard backlight when suspending
+/4b962c650c066d9072e786d64f5c07faaf822e53
+ 4b962c650c066d9072e786d64f5c07faaf822e53 hid/multitouch: Turn off Type Cover keyboard backlight when suspending
 
-/8fd9d877a0ba95d38075d00c1fe7056418ca2dd8
- 8fd9d877a0ba95d38075d00c1fe7056418ca2dd8 USB: quirks: Add USB_QUIRK_DELAY_INIT for Surface Go 3 Type-Cover
+/cda1b03af6d3545a6d25df57dfbb55f22fdc6b47
+ cda1b03af6d3545a6d25df57dfbb55f22fdc6b47 USB: quirks: Add USB_QUIRK_DELAY_INIT for Surface Go 3 Type-Cover
 
-/8aabe098825df2e27d9739e2fa0a26e783967985
- 8aabe098825df2e27d9739e2fa0a26e783967985 platform/surface: surfacepro3_button: don't load on amd variant
+/36fe0674e449315e77982d219a966322cd3763f7
+ 36fe0674e449315e77982d219a966322cd3763f7 platform/surface: surfacepro3_button: don't load on amd variant
 
-/6cbbf90fa97174cb0ba0b9f0fc5a254cf8dc937a
- 6cbbf90fa97174cb0ba0b9f0fc5a254cf8dc937a Input: soc_button_array - support AMD variant Surface devices
+/31672af85f0240be1dfa5a0d54cb8f14d1a46613
+ 31672af85f0240be1dfa5a0d54cb8f14d1a46613 Input: soc_button_array - support AMD variant Surface devices
 
-/3e231ff363d4402abe2a81bb657d9f33ba051d41
- 3e231ff363d4402abe2a81bb657d9f33ba051d41 platform/surface: Add driver for Surface Book 1 dGPU switch
+/de2ab55c99091dea857824aaa8e9a508fed65cce
+ de2ab55c99091dea857824aaa8e9a508fed65cce platform/surface: Add driver for Surface Book 1 dGPU switch
 
-/beb9b2c90809848f5f4aae1a6c329f8519e5d3e2
- beb9b2c90809848f5f4aae1a6c329f8519e5d3e2 i2c: acpi: Implement RawBytes read access
+/c3bef666b6725e38e172b0c1230fcfaa29b6cf04
+ c3bef666b6725e38e172b0c1230fcfaa29b6cf04 i2c: acpi: Implement RawBytes read access
 
-/1aee65f4de137129cb6e0426a58b8674e03c2b63
- 1aee65f4de137129cb6e0426a58b8674e03c2b63 hid: Add support for Intel Touch Host Controller
+/058813cfe5ff4c9847efb2d3165f4cfe54d51190
+ 058813cfe5ff4c9847efb2d3165f4cfe54d51190 hid: Add support for Intel Touch Host Controller
 
-/9724e81a64ab29c71c8b18322eda228f59cdbb16
- 9724e81a64ab29c71c8b18322eda228f59cdbb16 iommu: intel: Disable source id verification for ITHC
+/e17ae6628354e95eedd1dad85ab7d306feb8d374
+ e17ae6628354e95eedd1dad85ab7d306feb8d374 iommu: intel: Disable source id verification for ITHC
 
-/544d17ce3b0c993a6304ef8442b5dcbec5836c2d
- 544d17ce3b0c993a6304ef8442b5dcbec5836c2d hid: Add support for Intel Precise Touch and Stylus
+/1ad56681032afbf00a141fc713daad6b5dc5f525
+ 1ad56681032afbf00a141fc713daad6b5dc5f525 hid: Add support for Intel Precise Touch and Stylus
 
-/6b5b40716251bee60df18814142d214bf959681e
- 6b5b40716251bee60df18814142d214bf959681e iommu: Use IOMMU passthrough mode for IPTS
+/de61f55e69273084147aa39d55a4593ff4f9c02e
+ de61f55e69273084147aa39d55a4593ff4f9c02e iommu: Use IOMMU passthrough mode for IPTS
 
-/29c4a0418560721127c54e97e3e596391abb8ae0
- 29c4a0418560721127c54e97e3e596391abb8ae0 mei: me: Add Icelake device ID for iTouch
+/ea4f1a285516d00f36f046af20e36fdc06a8d5f7
+ ea4f1a285516d00f36f046af20e36fdc06a8d5f7 mei: me: Add Icelake device ID for iTouch
 
-/43a8fdbcc51f90e4d96ade5a67fa4f28adcdb001
- 43a8fdbcc51f90e4d96ade5a67fa4f28adcdb001 ath10k: Add module parameters to override board files
+/d7b87af990a01adcffeb212984a3dfcbdb6c81e4
+ d7b87af990a01adcffeb212984a3dfcbdb6c81e4 ath10k: Add module parameters to override board files
 
-/f85e9397de6f3e1b3c1e910d2de365c7fc0c6910
- f85e9397de6f3e1b3c1e910d2de365c7fc0c6910 Bluetooth: btusb: Lower passive lescan interval on Marvell 88W8897
+/16d675707251b1a037bed6996fed862a214350a5
+ 16d675707251b1a037bed6996fed862a214350a5 Bluetooth: btusb: Lower passive lescan interval on Marvell 88W8897
 
-/5bf850be203ee011b5a0eeb4f48c15b5e2299432
- 5bf850be203ee011b5a0eeb4f48c15b5e2299432 mwifiex: pcie: disable bridge_d3 for Surface gen4+
+/938a55eb0d52ef6004e6e42646058c8156802878
+ 938a55eb0d52ef6004e6e42646058c8156802878 mwifiex: pcie: disable bridge_d3 for Surface gen4+
 
-/9e33400ffc85472f1b9fe4cbf1936e82a50bbd47
- 9e33400ffc85472f1b9fe4cbf1936e82a50bbd47 mwifiex: Add quirk resetting the PCI bridge on MS Surface devices
+/efe47662057fbb7c6ea80f2b75c5e0449d004fcc
+ efe47662057fbb7c6ea80f2b75c5e0449d004fcc mwifiex: Add quirk resetting the PCI bridge on MS Surface devices
 
-/f0094f3b6d32d4bf14420cfce0cbc2db20ad9850
- f0094f3b6d32d4bf14420cfce0cbc2db20ad9850 (surface3-oemb) add DMI matches for Surface 3 with broken DMI table
+/67036e6821e71b76b54d0d3cb670cbee4fca91c8
+ 67036e6821e71b76b54d0d3cb670cbee4fca91c8 (surface3-oemb) add DMI matches for Surface 3 with broken DMI table
 
-/862c514badc921002c5093d1b3cd904be8290727
- 862c514badc921002c5093d1b3cd904be8290727 Revert "efi/x86: Set the PE/COFF header's NX compat flag unconditionally"
+/a9c6527979f30d254d1d7f3f9124e46ffdc44b57
+ a9c6527979f30d254d1d7f3f9124e46ffdc44b57 Revert "efi/x86: Set the PE/COFF header's NX compat flag unconditionally"
 
-/09406b259b1504475fb15bcdd88ff143c819b152
- 09406b259b1504475fb15bcdd88ff143c819b152 [NA] add dev tools
+/13ea0f01c10fea32aee4ef407a156e37dcb4dd69
+ 13ea0f01c10fea32aee4ef407a156e37dcb4dd69 scsi: sd: remove unused warning inherited from fedora
+
+/da31bcd0f09ad9314b7d8520b20043669461ee72
+ da31bcd0f09ad9314b7d8520b20043669461ee72 [NA] add dev tools
 
 /5fa16f2c7c24a728beccde52592c57719ec41fca
  5fa16f2c7c24a728beccde52592c57719ec41fca usb: typec: ucsi: Handle incorrect num_connectors capability

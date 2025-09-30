@@ -12,7 +12,7 @@ the latest in handheld compatibility patches (OneXPlayer, ROG Ally,
 Steam Deck LCD/OLED, Surface devices) and stability fixes.
 
 Those patches are applied directly on top of the Fedora patchset
-`here <./handheld.patch>`__, after being rebased on top of the ARK
+`here <./patch-handheld.patch>`__, after being rebased on top of the ARK
 kernel tree in the patchwork
 `repo <https://github.com/hhd-dev/patchwork>`__.
 
