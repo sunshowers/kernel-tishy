@@ -1,0 +1,187 @@
+name: Build Bazzite Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      arm:
+        description: 'Build arm version only'
+        type: boolean
+        default: false
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build_kernel:
+    environment: prod
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ github.event.inputs.arm == 'true' && fromJSON('["aarch64"]') || fromJSON('["aarch64", "x86_64"]') }}
+        fedora_version: [42, 43]
+        # exclude:
+        #   - arch: aarch64
+        #     fedora_version: 41
+    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+
+    steps:
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@v9
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore ccache
+        # Don't use cache on releases as github does not allow it
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ccache
+          key: ccache-${{ matrix.arch }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ matrix.arch }}
+
+      - name: Create Build Environment
+        run: |
+          FEDORA_VERSION="${{ matrix.fedora_version }}"
+          sudo podman build . --tag 'fedora_builder' \
+            --build-arg UID=$(id -u) --build-arg GID=$(id -g) \
+            --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
+      - name: Write Changelog
+        run: |
+          sudo podman run --rm -v $(pwd):/workspace fedora_builder \
+            python3 release_changelog.py
+      - name: Compile Kernel
+        run: |
+          FEDORA_VERSION="${{ matrix.fedora_version }}"
+          ARCH="${{ matrix.arch }}"
+          DISABLE_ARG="${{ startsWith(github.ref, 'refs/tags/') && '--env CCACHE_DISABLE=true' || '' }}"
+          sudo podman run --rm -v $(pwd):/workspace $DISABLE_ARG \
+            --env CCACHE_DIR=/workspace/ccache \
+            --env CCACHE_MAXSIZE=5G \
+            --env CCACHE_COMPRESS=1 \
+            fedora_builder fedpkg \
+            --name kernel --namespace rpms --release "f${FEDORA_VERSION:-41}" \
+            local --arch ${ARCH:-x86_64} --with bazzite \
+            --builddir build --buildrootdir buildroot
+      
+      - name: Print ccache stats
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          sudo apt install -y ccache
+          ccache -s
+
+      - name: Separate debuginfo into different folder
+        run: |
+          mkdir -p debuginfo
+          mv ${{ matrix.arch }}/kernel-debuginfo-*.rpm debuginfo/
+
+      - name: Upload Kernel to action
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-f${{ matrix.fedora_version}}-${{ matrix.arch }}
+          path: |
+            .build-*.log
+            ${{ matrix.arch }}/kernel-*.rpm
+          compression-level: 7
+
+      - name: Upload Kernel debuginfo to action
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-f${{ matrix.fedora_version}}-${{ matrix.arch }}-debuginfo
+          path: |
+            .build-*.log
+            debuginfo/*.rpm
+          compression-level: 7
+      
+      - name: Convert to Arch
+        if: matrix.arch == 'x86_64' && matrix.fedora_version == 43 #arch_fedora
+        run: |
+          # Grab kernel ver from the log
+          KERNEL_VER=$(ls -a | grep .build | head -n 1 | sed 's/.build-//' | sed 's/.log//')
+          ARCH_VER=$(echo $KERNEL_VER | sed 's/-/./g')
+          # Place in PKGBUILD
+          cat PKGBUILD-ACTION | \
+            sed "s/VERSION_FEDORA/${KERNEL_VER}.x86_64/" | \
+            sed "s/VERSION_TAG/${ARCH_VER}/" \
+            > x86_64/PKGBUILD
+          sudo podman build . -f Dockerfile-arch --tag 'arch_builder' --build-arg UID=$(id -u) --build-arg GID=$(id -g) 
+          sudo podman run --rm -v $(pwd)/x86_64:/workspace arch_builder makepkg -s
+
+      - name: Upload Kernel arch package to action
+        uses: actions/upload-artifact@v4
+        if: matrix.arch == 'x86_64' && matrix.fedora_version == 43 #arch_fedora
+        with:
+          name: linux-f${{ matrix.fedora_version }}-arch
+          path: |
+            x86_64/linux-*.pkg.tar.zst
+          compression-level: 7
+
+      - name: Upload Kernel to release
+        if: github.event_name == 'release'
+        uses: Wandalen/wretry.action@v3.8.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          attempt_limit: 3
+          attempt_delay: 15000
+          action: softprops/action-gh-release@v2
+          with: |
+            files: |
+              ${{ matrix.arch }}/kernel-*.rpm
+              x86_64/linux-*.pkg.tar.zst
+              x86_64/linux-*.pkg.tar.zst.sig
+            fail_on_unmatched_files: false
+            make_latest: false
+
+      # We always want to save the newest ccache
+      - name: Backup ccache
+        # Don't use cache on releases as github does not allow it
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache/save@v4
+        with:
+          path: ccache
+          key: ccache-${{ matrix.arch }}-${{ github.sha }}
+
+  # Trigger ublue-os/akmods build/kernel cache
+  post_release:
+    runs-on: ubuntu-24.04
+    needs: build_kernel
+    if: github.event_name == 'release'
+    steps:
+      - name: Make release latest
+        if: github.event.release.prerelease == false
+        uses: Wandalen/wretry.action@v3.8.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          attempt_limit: 3
+          attempt_delay: 15000
+          action: softprops/action-gh-release@v2
+          with: |
+            make_latest: true
+
+      - name: Trigger Kernel Cache
+        run: |
+          repo_owner="ublue-os"
+          repo_name="akmods"
+          event_type="bazzite-kernel-build" 
+          release_tag="${{ github.event.release.tag_name }}"
+  
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.UBLUE_PAT }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/$repo_owner/$repo_name/dispatches \
+            -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"release_tag\": \"$release_tag\"}}"
+  update_aur:
+    uses: ./.github/workflows/publish-aur.yml
+    needs: build_kernel
+    secrets: inherit
+    if: github.event_name == 'release' && github.event.release.prerelease == false
+    with:
+      relver: ${{ github.event.release.tag_name }}
+      fedora_version: 42 #arch_fedora
