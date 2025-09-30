@@ -4525,7 +4525,6 @@ fi\
 - amd/display: Increased DP Alt mode timeout from 200ms to 500ms. SWDEV-358114 (Swapnil Patel)
 - drm/amd/display: keep eDP Vdd on when eDP stream is already enabled (Zhan Liu)
 - mmc: core: add safe_trim_quirk attribute (Andres Rodriguez)
-- drm: Add GPU reset sysfs event full series (Shashank Sharma)
 - [HACK] Add 2s delay before enabling DP link for dock (Swapnil Patel)
 - fixup! [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS (Robert Beckett)
 - [NOT-FOR-UPSTREAM] ASoC: nau8821: Reset 8821 clock on start (Ethan Geller)
