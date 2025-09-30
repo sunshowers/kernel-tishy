@@ -49,6 +49,14 @@ jobs:
           sudo podman build . --tag 'fedora_builder' \
             --build-arg UID=$(id -u) --build-arg GID=$(id -g) \
             --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
+      
+      - name: Fixup kernel source
+        run: |
+          # Get the tarfile_release value from the spec file and download it
+          TARFILE_RELEASE=$(sed -n 's/^%define[[:space:]]\+tarfile_release[[:space:]]\+//p' kernel.spec)
+          echo "TARFILE_RELEASE is $TARFILE_RELEASE"
+          curl -L -o "linux-${TARFILE_RELEASE}.tar.xz" "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${TARFILE_RELEASE}.tar.xz"
+      
       - name: Compile Kernel
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
