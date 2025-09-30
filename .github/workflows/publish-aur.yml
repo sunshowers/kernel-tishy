@@ -67,7 +67,7 @@ jobs:
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: update to release ${{ env.relver }}
+          commit_message: update to release ${{ inputs.relver }}
           allow_empty_commits: false
           ssh_keyscan_types: rsa,ecdsa,ed25519
           updpkgsums: true

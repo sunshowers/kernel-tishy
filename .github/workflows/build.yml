@@ -49,10 +49,6 @@ jobs:
           sudo podman build . --tag 'fedora_builder' \
             --build-arg UID=$(id -u) --build-arg GID=$(id -g) \
             --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
-      - name: Write Changelog
-        run: |
-          sudo podman run --rm -v $(pwd):/workspace fedora_builder \
-            python3 release_changelog.py
       - name: Compile Kernel
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
