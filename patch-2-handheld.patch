@@ -52312,238 +52312,6 @@ index d7cfdbb28e83..896fb11af696 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Mon, 27 Jan 2025 00:44:21 +0100
-Subject: CI: add kmod downloader
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/Kconfig            |   2 +
- drivers/Makefile           |   2 +
- drivers/custom/.gitignore  |  17 +++++
- drivers/custom/Kconfig     |   0
- drivers/custom/Makefile    |   0
- drivers/custom/download.sh | 146 +++++++++++++++++++++++++++++++++++++
- 6 files changed, 167 insertions(+)
- create mode 100644 drivers/custom/.gitignore
- create mode 100644 drivers/custom/Kconfig
- create mode 100644 drivers/custom/Makefile
- create mode 100755 drivers/custom/download.sh
-
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 4915a63866b0..f3796a10e278 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -17,6 +17,8 @@ config PC104
- 	  selection and configuration. Enable this option if your target
- 	  machine has a PC/104 bus.
- 
-+source "drivers/custom/Kconfig"
-+
- source "drivers/base/Kconfig"
- 
- source "drivers/bus/Kconfig"
-diff --git a/drivers/Makefile b/drivers/Makefile
-index b5749cf67044..fdeefef6c11f 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -6,6 +6,8 @@
- # Rewritten to use lists instead of if-statements.
- #
- 
-+obj-y				+= custom/
-+
- obj-y				+= cache/
- obj-y				+= irqchip/
- obj-y				+= bus/
-diff --git a/drivers/custom/.gitignore b/drivers/custom/.gitignore
-new file mode 100644
-index 000000000000..a641013d0a52
---- /dev/null
-+++ b/drivers/custom/.gitignore
-@@ -0,0 +1,17 @@
-+**/*
-+!*/
-+!Makefile
-+!Kconfig
-+!**/Makefile
-+!**/Kconfig
-+# Fragments for nvidia-open
-+!nvidia_open/.Kbuild
-+!**/*.Kbuild
-+# hals for wifi drifers
-+!**/hal/**
-+**/hal/**/*.cmd
-+**/hal/**/*.o
-+!**/*.c
-+**/*.mod.c
-+!**/*.h
-+!download.sh
-\ No newline at end of file
-diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
-new file mode 100644
-index 000000000000..e69de29bb2d1
-diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
-new file mode 100644
-index 000000000000..e69de29bb2d1
-diff --git a/drivers/custom/download.sh b/drivers/custom/download.sh
-new file mode 100755
-index 000000000000..4e6b3e0c383c
---- /dev/null
-+++ b/drivers/custom/download.sh
-@@ -0,0 +1,146 @@
-+#!/bin/sh
-+
-+# Get script directory
-+DIR=$(dirname $0)
-+
-+download_mod() {
-+    # $1 is name, $2 is url
-+
-+    # Download the module
-+    echo ""
-+    echo "##### Downloading $1"
-+
-+    # Check if the module is already downloaded
-+    if [ -d $DIR/$1 ]; then
-+        echo "$1 is already downloaded"
-+        rm -rf $DIR/$1
-+    fi
-+
-+    if [ -z "$3" ]; then
-+        git clone --depth=1 $2 $DIR/$1
-+    else
-+        git clone --depth=200 $2 $DIR/$1
-+        git -C $DIR/$1 checkout $3
-+    fi
-+
-+    # Get short sha of the module
-+    SHA=$(git -C $DIR/$1 rev-parse --short HEAD)
-+
-+    if [ "$1" = "kvfm" ] || [ "$1" = "evdi" ]; then
-+        # kvfm/evdi is inside module folder
-+        mv $DIR/$1 $DIR/other
-+        mv $DIR/other/module $DIR/$1
-+        rm -rf $DIR/other
-+    fi
-+
-+    if [ "$1" = "xpadneo" ]; then
-+         # xpadneo is inside module folder
-+        mv $DIR/$1 $DIR/other
-+        mv $DIR/other/hid-xpadneo $DIR/$1
-+        rm -rf $DIR/other
-+    fi
-+
-+    if [ "$1" = "openrazer" ]; then
-+         # openrazer is inside module folder
-+        mv $DIR/$1 $DIR/other
-+        mv $DIR/other/driver $DIR/$1
-+        rm -rf $DIR/other
-+    fi
-+
-+    # Remove files to minimize diff
-+    rm -rf $DIR/$1/.git \
-+        $DIR/$1/.gitignore \
-+        $DIR/$1/.gitmodules \
-+        $DIR/$1/.github \
-+        $DIR/$1/*.spec \
-+        $DIR/$1/*.md \
-+        $DIR/$1/*.rst \
-+        $DIR/$1/VERSION \
-+        $DIR/$1/docs \
-+        $DIR/$1/android \
-+        $DIR/$1/pylib \
-+        $DIR/$1/daemon \
-+        $DIR/$1/tests \
-+        $DIR/$1/.builds \
-+        $DIR/$1/dkms.conf
-+
-+    # Add the module to Makefile
-+    echo "obj-\$(CONFIG_${1^^}) += $1/" >> $DIR/Makefile
-+    # echo "obj-m += $1/" >> $DIR/Makefile
-+
-+    # Handle kconfig
-+    if [ -f $DIR/$1/Kconfig ]; then
-+        echo "source \"drivers/custom/$1/Kconfig\"" >> $DIR/Kconfig
-+    else
-+        echo "config ${1^^}" >> $DIR/Kconfig
-+        echo "    tristate \"$1\"" >> $DIR/Kconfig
-+        echo "    help" >> $DIR/Kconfig
-+        echo "        $1 driver. For more information see:" >> $DIR/Kconfig
-+        echo "        $2" >> $DIR/Kconfig
-+    fi
-+    echo "" >> $DIR/Kconfig
-+
-+    # If there is no Makefile, create one based on Kbuild (xone)
-+    if [ ! -f $DIR/$1/Makefile ]; then
-+        cp $DIR/$1/Kbuild $DIR/$1/Makefile
-+    fi
-+
-+    # Commit the changes
-+    git add $DIR/$1 $DIR/Makefile $DIR/Kconfig
-+    git commit -m "modules: Add $1 ($SHA)"
-+}
-+
-+# Get current hash
-+HASH=$(git rev-parse --short HEAD)
-+
-+# Switch to akmods branch
-+git branch -D akmods &>/dev/null || true
-+git checkout -b akmods
-+
-+# Build modules only for x86
-+echo "ifneq (\$(ARCH),arm64)" > $DIR/Makefile
-+git add $DIR/Makefile
-+git commit -m "modules: start arch check"
-+
-+# Download modules
-+download_mod "ayn_platform"     "https://github.com/KyleGospo/ayn-platform"
-+download_mod "ayaneo_platform"  "https://github.com/KyleGospo/ayaneo-platform.git"
-+download_mod "bmi260"           "https://github.com/KyleGospo/bmi260.git"
-+download_mod "framework_laptop" "https://github.com/KyleGospo/framework-laptop-kmod.git"
-+download_mod "xonedo"           "https://github.com/KyleGospo/xonedo.git"
-+download_mod "xpadneo"          "https://github.com/atar-axis/xpadneo"
-+download_mod "new_lg4ff"        "https://github.com/berarma/new-lg4ff.git"
-+download_mod "88xxau"           "https://github.com/morrownr/8814au"
-+download_mod "rtl8814au"        "https://github.com/aircrack-ng/rtl8812au"
-+download_mod "nct6687d"         "https://github.com/ublue-os/nct6687d.git"
-+download_mod "zenergy"          "https://github.com/KyleGospo/zenergy.git"
-+download_mod "openrazer"        "https://github.com/ublue-os/openrazer.git"
-+download_mod "gpd_fan"          "https://github.com/KyleGospo/gpd-fan-driver.git"
-+download_mod "gcadapter_oc"     "https://github.com/hannesmann/gcadapter-oc-kmod"
-+download_mod "system76"         "https://github.com/pop-os/system76-dkms"
-+download_mod "system76_io"      "https://github.com/pop-os/system76-io-dkms"
-+download_mod "kvfm"             "https://github.com/gnif/LookingGlass"
-+download_mod "drm_evdi"         "https://github.com/DisplayLink/evdi"
-+download_mod "v4l2loopback"     "https://github.com/umlaeute/v4l2loopback"
-+download_mod "facetimehd"       "https://github.com/patjak/facetimehd/"
-+
-+echo "endif" >> $DIR/Makefile
-+git add $DIR/Makefile
-+git commit -m "modules: finish arch check"
-+
-+# CROS_EC=y # for framework kmod
-+# CONFIG_AYN_PLATFORM=m
-+# CONFIG_AYANEO_PLATFORM=m
-+# CONFIG_BMI260=m
-+# CONFIG_FRAMEWORK_LAPTOP=m
-+# CONFIG_XONEDO=m
-+# CONFIG_NEW_LG4FF=m
-+# CONFIG_RTL8814AU=m
-+# CONFIG_88XXAU=m
-+# CONFIG_NCT6687D=m
-+# CONFIG_ZENERGY=m
-+# CONFIG_OPENRAZER=m
-+# CONFIG_GPD_FAN=m
-+
-+# Pretty print the changes to the file $1 or 0000-akmods.patch if it is not provided
-+git format-patch --stdout --zero-commit -k $HASH > ${1:-0000-akmods.patch}
-\ No newline at end of file
--- 
-2.51.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sun, 23 Feb 2025 22:39:04 +0100
 Subject: drm/amd: Lower logging level of overdrive warning to err
 
@@ -55703,6 +55471,520 @@ index f32474af90b3..478b9b846a13 100644
  		ret = smu_v14_0_set_power_limit(smu, limit_type, msg_limit);
  		if (ret)
  			return ret;
+-- 
+2.51.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 1 Oct 2025 03:34:27 +0200
+Subject: remove invalid module
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/custom/ayaneo_platform | 1 +
+ drivers/custom/ayn_platform    | 1 +
+ drivers/custom/bmi260          | 1 +
+ drivers/custom/evdi            | 1 +
+ drivers/custom/facetimehd      | 1 +
+ drivers/custom/framework       | 1 +
+ drivers/custom/gcadapter_oc    | 1 +
+ drivers/custom/gpdfan          | 1 +
+ drivers/custom/kvfm            | 1 +
+ drivers/custom/lg4ff           | 1 +
+ drivers/custom/nct6687d        | 1 +
+ drivers/custom/razer           | 1 +
+ drivers/custom/system76        | 1 +
+ drivers/custom/system76_io     | 1 +
+ drivers/custom/v4l2loopback    | 1 +
+ drivers/custom/xonedo          | 1 +
+ drivers/custom/xpadneo         | 1 +
+ drivers/custom/zenergy         | 1 +
+ drivers/power/supply/Makefile  | 1 -
+ 19 files changed, 18 insertions(+), 1 deletion(-)
+ create mode 160000 drivers/custom/ayaneo_platform
+ create mode 160000 drivers/custom/ayn_platform
+ create mode 160000 drivers/custom/bmi260
+ create mode 160000 drivers/custom/evdi
+ create mode 160000 drivers/custom/facetimehd
+ create mode 160000 drivers/custom/framework
+ create mode 160000 drivers/custom/gcadapter_oc
+ create mode 160000 drivers/custom/gpdfan
+ create mode 160000 drivers/custom/kvfm
+ create mode 160000 drivers/custom/lg4ff
+ create mode 160000 drivers/custom/nct6687d
+ create mode 160000 drivers/custom/razer
+ create mode 160000 drivers/custom/system76
+ create mode 160000 drivers/custom/system76_io
+ create mode 160000 drivers/custom/v4l2loopback
+ create mode 160000 drivers/custom/xonedo
+ create mode 160000 drivers/custom/xpadneo
+ create mode 160000 drivers/custom/zenergy
+
+diff --git a/drivers/custom/ayaneo_platform b/drivers/custom/ayaneo_platform
+new file mode 160000
+index 000000000000..bccb4ad32269
+--- /dev/null
++++ b/drivers/custom/ayaneo_platform
+@@ -0,0 +1 @@
++Subproject commit bccb4ad322695557d6a1bbfffd2f175304dd8f14
+diff --git a/drivers/custom/ayn_platform b/drivers/custom/ayn_platform
+new file mode 160000
+index 000000000000..fee1bab81d4e
+--- /dev/null
++++ b/drivers/custom/ayn_platform
+@@ -0,0 +1 @@
++Subproject commit fee1bab81d4ef7dc8f9c5695f5081ace26a58ea0
+diff --git a/drivers/custom/bmi260 b/drivers/custom/bmi260
+new file mode 160000
+index 000000000000..2d764db2bd69
+--- /dev/null
++++ b/drivers/custom/bmi260
+@@ -0,0 +1 @@
++Subproject commit 2d764db2bd69f2922d7fad6cb162136e32f357a2
+diff --git a/drivers/custom/evdi b/drivers/custom/evdi
+new file mode 160000
+index 000000000000..34da6e302a44
+--- /dev/null
++++ b/drivers/custom/evdi
+@@ -0,0 +1 @@
++Subproject commit 34da6e302a44e569e3fb7692fa1fb796b7146606
+diff --git a/drivers/custom/facetimehd b/drivers/custom/facetimehd
+new file mode 160000
+index 000000000000..1bd87461d3d1
+--- /dev/null
++++ b/drivers/custom/facetimehd
+@@ -0,0 +1 @@
++Subproject commit 1bd87461d3d1a59e89ace855dcaabb7c96750335
+diff --git a/drivers/custom/framework b/drivers/custom/framework
+new file mode 160000
+index 000000000000..6164bc3dec24
+--- /dev/null
++++ b/drivers/custom/framework
+@@ -0,0 +1 @@
++Subproject commit 6164bc3dec24b6bb2806eedd269df6a170bcc930
+diff --git a/drivers/custom/gcadapter_oc b/drivers/custom/gcadapter_oc
+new file mode 160000
+index 000000000000..0a7d7027d0dc
+--- /dev/null
++++ b/drivers/custom/gcadapter_oc
+@@ -0,0 +1 @@
++Subproject commit 0a7d7027d0dc5c0701b5c6f8664dfcb020e4a1cf
+diff --git a/drivers/custom/gpdfan b/drivers/custom/gpdfan
+new file mode 160000
+index 000000000000..a678a9314a40
+--- /dev/null
++++ b/drivers/custom/gpdfan
+@@ -0,0 +1 @@
++Subproject commit a678a9314a401b765ddf86e221c7a23c1e43c5ff
+diff --git a/drivers/custom/kvfm b/drivers/custom/kvfm
+new file mode 160000
+index 000000000000..fddcb7f2d43e
+--- /dev/null
++++ b/drivers/custom/kvfm
+@@ -0,0 +1 @@
++Subproject commit fddcb7f2d43ef752804af759f2c2194da8c8e9c5
+diff --git a/drivers/custom/lg4ff b/drivers/custom/lg4ff
+new file mode 160000
+index 000000000000..2092db19f7b4
+--- /dev/null
++++ b/drivers/custom/lg4ff
+@@ -0,0 +1 @@
++Subproject commit 2092db19f7b40854e0427a1b2e39eda9f8d0c3cd
+diff --git a/drivers/custom/nct6687d b/drivers/custom/nct6687d
+new file mode 160000
+index 000000000000..80dc037bb5e1
+--- /dev/null
++++ b/drivers/custom/nct6687d
+@@ -0,0 +1 @@
++Subproject commit 80dc037bb5e1c354ec05040f69d6144f79725ef4
+diff --git a/drivers/custom/razer b/drivers/custom/razer
+new file mode 160000
+index 000000000000..0663c556e527
+--- /dev/null
++++ b/drivers/custom/razer
+@@ -0,0 +1 @@
++Subproject commit 0663c556e5272062d2d76c68b11e496c821b8731
+diff --git a/drivers/custom/system76 b/drivers/custom/system76
+new file mode 160000
+index 000000000000..d3d9ce28c65c
+--- /dev/null
++++ b/drivers/custom/system76
+@@ -0,0 +1 @@
++Subproject commit d3d9ce28c65c315e123ff72d552776d1495f02e6
+diff --git a/drivers/custom/system76_io b/drivers/custom/system76_io
+new file mode 160000
+index 000000000000..fc71f154ab8d
+--- /dev/null
++++ b/drivers/custom/system76_io
+@@ -0,0 +1 @@
++Subproject commit fc71f154ab8d9810f960ba171479c68c44737649
+diff --git a/drivers/custom/v4l2loopback b/drivers/custom/v4l2loopback
+new file mode 160000
+index 000000000000..5eaa59e7c41d
+--- /dev/null
++++ b/drivers/custom/v4l2loopback
+@@ -0,0 +1 @@
++Subproject commit 5eaa59e7c41d0e6f35a6c14c3b756d94d25f58ed
+diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
+new file mode 160000
+index 000000000000..874f38003217
+--- /dev/null
++++ b/drivers/custom/xonedo
+@@ -0,0 +1 @@
++Subproject commit 874f3800321722ba42c3c0875b374df0fa9b4849
+diff --git a/drivers/custom/xpadneo b/drivers/custom/xpadneo
+new file mode 160000
+index 000000000000..a16acb03e7be
+--- /dev/null
++++ b/drivers/custom/xpadneo
+@@ -0,0 +1 @@
++Subproject commit a16acb03e7be191d47ebfbc8ca1d5223422dac3e
+diff --git a/drivers/custom/zenergy b/drivers/custom/zenergy
+new file mode 160000
+index 000000000000..7c45aec2dba4
+--- /dev/null
++++ b/drivers/custom/zenergy
+@@ -0,0 +1 @@
++Subproject commit 7c45aec2dba426c7d322bab478e6d01a10ceddca
+diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
+index 6eb1b02fe92d..dc6e2fb2a058 100644
+--- a/drivers/power/supply/Makefile
++++ b/drivers/power/supply/Makefile
+@@ -121,7 +121,6 @@ obj-$(CONFIG_BATTERY_SURFACE)	+= surface_battery.o
+ obj-$(CONFIG_CHARGER_SURFACE)	+= surface_charger.o
+ obj-$(CONFIG_BATTERY_UG3105)	+= ug3105_battery.o
+ obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_smbx.o
+-obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_pmi8998_charger.o
+ obj-$(CONFIG_CHARGER_QCOM_SMB5)	+= qcom_pm8150b_charger.o
+ obj-$(CONFIG_BATTERY_QCOM_FG)	+= qcom_fg.o
+ obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
+-- 
+2.51.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 30 Sep 2025 23:45:34 +0200
+Subject: CI: add akmod modules
+
+---
+ .gitmodules                      |  57 ++++++++++++++++
+ drivers/Kconfig                  |   2 +
+ drivers/Makefile                 |   2 +
+ drivers/custom/.gitignore        |   0
+ drivers/custom/Kconfig           | 109 +++++++++++++++++++++++++++++++
+ drivers/custom/Makefile          |  42 ++++++++++++
+ drivers/custom/cdemu             |   1 +
+ drivers/custom/modprobe.conf     |   1 +
+ drivers/custom/modules-load.conf |   4 ++
+ drivers/custom/xonedo            |   2 +-
+ drivers/custom/zenergy           |   2 +-
+ 11 files changed, 220 insertions(+), 2 deletions(-)
+ create mode 100644 .gitmodules
+ create mode 100644 drivers/custom/.gitignore
+ create mode 100644 drivers/custom/Kconfig
+ create mode 100644 drivers/custom/Makefile
+ create mode 160000 drivers/custom/cdemu
+ create mode 100644 drivers/custom/modprobe.conf
+ create mode 100644 drivers/custom/modules-load.conf
+
+diff --git a/.gitmodules b/.gitmodules
+new file mode 100644
+index 000000000000..ad55adb21565
+--- /dev/null
++++ b/.gitmodules
+@@ -0,0 +1,57 @@
++[submodule "drivers/custom/ayn_platform"]
++	path = drivers/custom/ayn_platform
++	url = https://github.com/bazzite-org/ayn-platform
++[submodule "drivers/custom/ayaneo_platform"]
++	path = drivers/custom/ayaneo_platform
++	url = https://github.com/bazzite-org/ayaneo-platform
++[submodule "drivers/custom/framework"]
++	path = drivers/custom/framework
++	url = https://github.com/bazzite-org/framework-laptop-kmod
++[submodule "drivers/custom/bmi260"]
++	path = drivers/custom/bmi260
++	url = https://github.com/hhd-dev/bmi260
++[submodule "drivers/custom/xonedo"]
++	path = drivers/custom/xonedo
++	url = https://github.com/bazzite-org/xonedo
++[submodule "drivers/custom/xpadneo"]
++	path = drivers/custom/xpadneo
++	url = https://github.com/atar-axis/xpadneo
++[submodule "drivers/custom/kvfm"]
++	path = drivers/custom/kvfm
++	url = https://github.com/gnif/LookingGlass
++[submodule "drivers/custom/razer"]
++	path = drivers/custom/razer
++	url = https://github.com/ublue-os/openrazer.git
++[submodule "drivers/custom/v4l2loopback"]
++	path = drivers/custom/v4l2loopback
++	url = https://github.com/umlaeute/v4l2loopback
++[submodule "drivers/custom/evdi"]
++	path = drivers/custom/evdi
++	url = https://github.com/DisplayLink/evdi
++[submodule "drivers/custom/gcadapter_oc"]
++	path = drivers/custom/gcadapter_oc
++	url = https://github.com/hannesmann/gcadapter-oc-kmod
++[submodule "drivers/custom/zenergy"]
++	path = drivers/custom/zenergy
++	url = https://github.com/bazzite-org/zenergy.git
++[submodule "drivers/custom/nct6687d"]
++	path = drivers/custom/nct6687d
++	url = https://github.com/ublue-os/nct6687d.git
++[submodule "drivers/custom/gpdfan"]
++	path = drivers/custom/gpdfan
++	url = https://github.com/bazzite-org/gpd-fan-driver
++[submodule "drivers/custom/lg4ff"]
++	path = drivers/custom/lg4ff
++	url = https://github.com/berarma/new-lg4ff
++[submodule "drivers/custom/system76"]
++	path = drivers/custom/system76
++	url = https://github.com/pop-os/system76-dkms
++[submodule "drivers/custom/system76_io"]
++	path = drivers/custom/system76_io
++	url = https://github.com/pop-os/system76-io-dkms
++[submodule "drivers/custom/facetimehd"]
++	path = drivers/custom/facetimehd
++	url = https://github.com/patjak/facetimehd/
++[submodule "drivers/custom/cdemu"]
++	path = drivers/custom/cdemu
++	url = https://github.com/cdemu/cdemu
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 4915a63866b0..f3796a10e278 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -17,6 +17,8 @@ config PC104
+ 	  selection and configuration. Enable this option if your target
+ 	  machine has a PC/104 bus.
+ 
++source "drivers/custom/Kconfig"
++
+ source "drivers/base/Kconfig"
+ 
+ source "drivers/bus/Kconfig"
+diff --git a/drivers/Makefile b/drivers/Makefile
+index b5749cf67044..fdeefef6c11f 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -6,6 +6,8 @@
+ # Rewritten to use lists instead of if-statements.
+ #
+ 
++obj-y				+= custom/
++
+ obj-y				+= cache/
+ obj-y				+= irqchip/
+ obj-y				+= bus/
+diff --git a/drivers/custom/.gitignore b/drivers/custom/.gitignore
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
+new file mode 100644
+index 000000000000..2134fa840172
+--- /dev/null
++++ b/drivers/custom/Kconfig
+@@ -0,0 +1,109 @@
++config AYN
++    tristate "AYN Platform Driver"
++    help
++        AYN platform driver for Linux. Link:
++        https://github.com/bazzite-org/ayn-platform
++
++config AYANEO
++    tristate "AYANEO Legacy Platform Driver"
++    help
++        AYANEO Legacy platform driver for Linux. Link:
++        https://github.com/bazzite-org/ayaneo-platform
++
++config BMI260
++    tristate "BMI260 Legacy Driver"
++    help
++        BMI260 driver for Linux. Link:
++        https://github.com/hhd-dev/bmi260
++
++config GPDFAN
++    tristate "GPD Fan Driver"
++    help
++        GPD Fan driver for Linux. Link:
++        https://github.com/bazzite-org/gpd-fan-driver
++
++config XONEDO
++    tristate "XONEDO Driver"
++    help
++        XONEDO driver for Linux. Link:
++        https://github.com/bazzite-org/xonedo
++
++config XPADNEO
++    tristate "Xpadneo Driver"
++    help
++        Xpadneo driver for Linux. Link:
++        https://github.com/atar-axis/xpadneo
++
++config LG4FF
++    tristate "New LG4FF Driver"
++    help
++        New LG4FF driver for Linux. Link:
++        https://github.com/berarma/new-lg4ff
++
++config GCAOC
++    tristate "GCAdapter OC Driver"
++    help
++        GCAdapter OC driver for Linux. Link:
++        https://github.com/hannesmann/gcadapter-oc-kmod
++
++config RAZER
++    tristate "OpenRazer Driver"
++    help
++        OpenRazer driver for Linux. Link:
++        https://openrazer.github.io/
++
++config NCT6687D
++    tristate "NCT6687D Driver"
++    help
++        NCT6687D driver for Linux. Link:
++        https://github.com/ublue-os/nct6687d.git
++
++
++config FWOOT
++    tristate "Framework Laptop Driver"
++    help
++        Framework Laptop driver for Linux. Link:
++        https://github.com/bazzite-org/framework-laptop-kmod
++
++config S76
++    tristate "System76 Driver"
++    help
++        System76 driver for Linux. Link:
++        https://github.com/pop-os/system76-dkms
++
++config S76IO
++    tristate "System76 IO Driver"
++    help
++        System76 IO driver for Linux. Link:
++        https://github.com/pop-os/system76-io-dkms
++
++config ZENERGY
++    tristate "Zenergy Driver"
++    help
++        Zenergy driver for Linux. Link:
++        https://github.com/bazzite-org/zenergy.git
++
++config KVFM
++    tristate "KVFM Driver"
++    help
++        KVFM driver for Linux. Link:
++
++source "drivers/custom/evdi/module/Kconfig"
++
++config V4L2LOOP
++    tristate "V4L2Loopback Driver"
++    help
++        V4L2Loopback driver for Linux. Link:
++        https://github.com/umlaeute/v4l2loopback
++
++config VHBA
++    tristate "CDEMU VHBA Driver"
++    help
++        CDEMU VHBA driver for Linux. Link:
++        https://github.com/cdemu/cdemu
++
++config FACETIMEHD
++    tristate "FacetimeHD Driver"
++    help
++        FacetimeHD driver for Linux. Link:
++        
+\ No newline at end of file
+diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
+new file mode 100644
+index 000000000000..6736228083af
+--- /dev/null
++++ b/drivers/custom/Makefile
+@@ -0,0 +1,42 @@
++ifneq ($(ARCH),arm64)
++obj-$(CONFIG_AYN) += ayn_platform/
++obj-$(CONFIG_AYANEO) += ayaneo_platform/
++obj-$(CONFIG_BMI260) += bmi260/
++obj-$(CONFIG_GPDFAN) += gpdfan/
++
++obj-$(CONFIG_XONEDO) += xonedo/
++obj-$(CONFIG_XPADNEO) += xpadneo/hid-xpadneo/src/
++obj-$(CONFIG_LG4FF) += lg4ff/
++obj-$(CONFIG_GCAOC) += gcadapter_oc/
++obj-$(CONFIG_RAZER) += razer/driver/
++
++obj-$(CONFIG_NCT6687D) += nct6687d/
++
++obj-$(CONFIG_FWOOT) += framework/
++obj-$(CONFIG_S76) += system76/
++obj-$(CONFIG_S76IO) += system76_io/
++
++obj-$(CONFIG_ZENERGY) += zenergy/
++obj-$(CONFIG_KVFM) += kvfm/module/
++# evdi incorrectly picks those variables up
++CFLAGS :=
++export CFLAGS
++obj-$(CONFIG_DRM_EVDI) += evdi/module/
++obj-$(CONFIG_V4L2LOOP) += v4l2loopback/
++obj-$(CONFIG_VHBA) += cdemu/vhba-module/
++obj-$(CONFIG_FACETIMEHD) += facetimehd/
++endif
++
++# Install common files from all modules
++install:
++	install -D modules-load.conf $(INSTALL_DIR)/usr/lib/modules-load.d/20-akmods.conf
++	install -D modprobe.conf $(INSTALL_DIR)/usr/lib/modprobe.d/20-akmods.conf
++
++	install -D razer/install_files/udev/99-razer.rules $(INSTALL_DIR)/usr/lib/udev/rules.d/70-razer.rules
++	install -D -m 0755 razer/install_files/udev/razer_mount $(INSTALL_DIR)/usr/lib/udev/razer_mount
++
++	install -D cdemu/vhba-module/debian/vhba-dkms.udev $(INSTALL_DIR)/usr/lib/udev/rules.d/70-vhba.rules
++	install -D xonedo/install/modprobe.conf $(INSTALL_DIR)/usr/lib/modprobe.d/xone.conf
++
++	make -C v4l2loopback/utils/
++	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
+\ No newline at end of file
+diff --git a/drivers/custom/cdemu b/drivers/custom/cdemu
+new file mode 160000
+index 000000000000..d00300615639
+--- /dev/null
++++ b/drivers/custom/cdemu
+@@ -0,0 +1 @@
++Subproject commit d00300615639d7e973ae51a6c922b89e527d5735
+diff --git a/drivers/custom/modprobe.conf b/drivers/custom/modprobe.conf
+new file mode 100644
+index 000000000000..de440a13a784
+--- /dev/null
++++ b/drivers/custom/modprobe.conf
+@@ -0,0 +1 @@
++options v4l2loopback exclusive_caps=1 card_label="OBS Virtual Camera"
+diff --git a/drivers/custom/modules-load.conf b/drivers/custom/modules-load.conf
+new file mode 100644
+index 000000000000..4a6df9065371
+--- /dev/null
++++ b/drivers/custom/modules-load.conf
+@@ -0,0 +1,4 @@
++gcadapter_oc
++kvmfr
++nct6687
++vhba
+\ No newline at end of file
+diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
+index 874f38003217..b1cd46868954 160000
+--- a/drivers/custom/xonedo
++++ b/drivers/custom/xonedo
+@@ -1 +1 @@
+-Subproject commit 874f3800321722ba42c3c0875b374df0fa9b4849
++Subproject commit b1cd46868954d2b1331611890322d54e5fcb0c49
+diff --git a/drivers/custom/zenergy b/drivers/custom/zenergy
+index 7c45aec2dba4..310ed88b13c6 160000
+--- a/drivers/custom/zenergy
++++ b/drivers/custom/zenergy
+@@ -1 +1 @@
+-Subproject commit 7c45aec2dba426c7d322bab478e6d01a10ceddca
++Subproject commit 310ed88b13c6c46ea8b4e89c120690eb319816a9
 -- 
 2.51.0
 

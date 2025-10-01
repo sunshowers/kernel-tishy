@@ -265,6 +265,8 @@ Summary: The Linux kernel
 #
 # Additional options for user-friendly one-off kernel building:
 #
+# Build for bazzite (--with bazzite):
+%define with_bazzite  %{?_with_bazzite:     1} %{?!_with_bazzite:     0}
 # Only build the base kernel (--with baseonly):
 %define with_baseonly  %{?_with_baseonly:     1} %{?!_with_baseonly:     0}
 # Only build the debug variants (--with dbgonly):
@@ -389,6 +391,20 @@ Summary: The Linux kernel
 # Needed because we override almost everything involving build-ids
 # and debuginfo generation. Currently we rely on the old alldebug setting.
 %global _build_id_links alldebug
+
+%if %{with_bazzite}
+%define with_tools 1
+%define with_debug 0
+%define with_realtime 0
+%define with_realtime_arm64_64k 0
+%define with_vdso_install 0
+%define with_perf 0
+%define with_libperf 0
+%define with_kernel_abi_stablelists 0
+%define with_selftests 0
+%define with_efiuki 0
+%define with_automotive 0
+%endif
 
 # if requested, only build base kernel
 %if %{with_baseonly}
@@ -1101,9 +1117,6 @@ Source212: Module.kabi_dup_s390x
 Source213: Module.kabi_dup_x86_64
 Source214: Module.kabi_dup_riscv64
 
-Source300: kernel-abi-stablelists-%{kabiversion}.tar.xz
-Source301: kernel-kabi-dw-%{kabiversion}.tar.xz
-
 %if 0%{include_rt}
 %if 0%{include_rhel}
 Source474: %{name}-aarch64-rt-rhel.config
@@ -1160,8 +1173,9 @@ Source4002: gating.yaml
 
 %if !%{nopatches}
 
-Patch1: patch-redhat.patch
-Patch2: patch-handheld.patch
+Patch1: patch-1-redhat.patch
+Patch2: patch-2-handheld.patch
+Patch3: patch-3-akmods.patch
 %endif
 
 # empty final patch to facilitate testing of kernel patches
@@ -1337,6 +1351,12 @@ This package provides debug information for the libperf package.
 %{expand:%%global _find_debuginfo_opts %{?_find_debuginfo_opts} -p '.*%%{_libdir}/libperf.so.*(\.debug)?|XXX' -o libperf-debuginfo.list}
 # with_libperf
 %endif
+
+%package -n %{package_name}-common
+Summary: Files of OOT modules that would belong in common packages
+%description -n %{package_name}-common
+This package contains files of out-of-tree modules that would belong
+in common packages.
 
 %if %{with_tools}
 %package -n %{package_name}-tools
@@ -2010,8 +2030,9 @@ cp -a %{SOURCE1} .
 %{log_msg "Start of patch applications"}
 %if !%{nopatches}
 
-ApplyOptionalPatch patch-redhat.patch
-ApplyOptionalPatch patch-handheld.patch
+ApplyOptionalPatch patch-1-redhat.patch
+ApplyOptionalPatch patch-2-handheld.patch
+ApplyOptionalPatch patch-3-akmods.patch
 %endif
 
 ApplyOptionalPatch linux-kernel-test.patch
@@ -3519,6 +3540,12 @@ rm -rf %{buildroot}%{_libdir}/traceevent
 rm -rf %{buildroot}%{_libdir}/libperf.a
 %endif
 
+# setup common files
+%{log_msg "Setup common package files"}
+pushd drivers/custom
+%{make} INSTALL_DIR=%{buildroot} install
+popd
+
 %if %{with_tools}
 %ifarch %{cpupowerarchs}
 %{make} -C tools/power/cpupower DESTDIR=$RPM_BUILD_ROOT libdir=%{_libdir} libexecdir=%{_libexecdir} mandir=%{_mandir} unitdir=%{_unitdir} CPUFREQ_BENCH=false install
@@ -4110,6 +4137,14 @@ fi\
 # with_libperf
 %endif
 
+%files -n %{package_name}-common
+/usr/lib/modules-load.d/20-akmods.conf
+/usr/lib/modprobe.d/20-akmods.conf
+/usr/lib/udev/rules.d/70-razer.rules
+/usr/lib/udev/razer_mount
+/usr/lib/udev/rules.d/70-vhba.rules
+/usr/lib/modprobe.d/xone.conf
+/usr/bin/v4l2loopback-ctl
 
 %if %{with_tools}
 %ifnarch %{cpupowerarchs}
@@ -4177,6 +4212,7 @@ fi\
 # libcpupower Python bindings
 %{python3_sitearch}/_raw_pylibcpupower.so
 %{python3_sitearch}/raw_pylibcpupower.py
+%{python3_sitearch}/__pycache__/raw_pylibcpupower.*.pyc
 %endif
 %if %{with_ynl}
 %{_libdir}/libynl*
@@ -4385,7 +4421,9 @@ fi\
 #
 #
 %changelog
-* Tue Sep 30 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-1.bazzite]
+* Wed Oct 01 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-1.bazzite]
+- CI: add akmod modules (Antheas Kapenekakis)
+- remove invalid module (Antheas Kapenekakis)
 - drm/amdgpu: defer overdrive taint until used (Antheas Kapenekakis)
 - drm/amdgpu: enable override by default for APUs (Antheas Kapenekakis)
 - lower sleep interval to avoid waking up too long (Antheas Kapenekakis)
@@ -4421,7 +4459,6 @@ fi\
 - drm/amd: Use suspend and hibernate post freeze notifications (Mario Limonciello)
 - PM: Add suspend and hibernate notifications for after freeze (Mario Limonciello)
 - drm/amd: Lower logging level of overdrive warning to err (Antheas Kapenekakis)
-- CI: add kmod downloader (Antheas Kapenekakis)
 - platform/x86: msi-wmi-platform: Restore fan curves on PWM disable and unload (Antheas Kapenekakis)
 - platform/x86: msi-wmi-platform: Update header text (Antheas Kapenekakis)
 - platform/x86: msi-wmi-platform: Drop excess fans in dual fan devices (Antheas Kapenekakis)
