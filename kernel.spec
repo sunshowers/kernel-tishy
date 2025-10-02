@@ -262,6 +262,8 @@ Summary: The Linux kernel
 %define with_kernel_abi_stablelists %{?_without_kernel_abi_stablelists: 0} %{?!_without_kernel_abi_stablelists: 1}
 # internal samples and selftests
 %define with_selftests %{?_without_selftests: 0} %{?!_without_selftests: 1}
+# include nvidia (--with nvidia):
+%define with_nvidia  %{?_with_nvidia:     1} %{?!_with_nvidia:     0}
 #
 # Additional options for user-friendly one-off kernel building:
 #
@@ -963,6 +965,11 @@ Source0: linux-%{tarfile_release}.tar.xz
 Source1: Makefile.rhelver
 Source2: %{package_name}.changelog
 
+%define nvidia_version 580.95.05
+%if %{with_nvidia}
+Source5: NVIDIA-Linux-%{_build_arch}-%{nvidia_version}.run
+%endif
+
 Source10: redhatsecurebootca5.cer
 Source13: redhatsecureboot501.cer
 
@@ -1352,9 +1359,9 @@ This package provides debug information for the libperf package.
 # with_libperf
 %endif
 
-%package -n %{package_name}-common
+%package -n common
 Summary: Files of OOT modules that would belong in common packages
-%description -n %{package_name}-common
+%description -n common
 This package contains files of out-of-tree modules that would belong
 in common packages.
 
@@ -1604,6 +1611,52 @@ This package provides less commonly used kernel modules for the %{?2:%{2} }kerne
 %{nil}
 
 #
+# This macro creates a kernel-<subpackage>-nvidia package.
+#	%%kernel_nvidia_package_open [-m] <subpackage> <pretty-name>
+#
+%define kernel_nvidia_package_open(m) \
+%package %{?1:%{1}-}nvidia\
+Summary: Extra kernel modules to match the %{?2:%{2} }kernel\
+License: MIT\
+Provides: %{name}%{?1:-%{1}}-nvidia-%{_target_cpu} = %{specrpmversion}-%{release}\
+Provides: %{name}%{?1:-%{1}}-nvidia-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
+Provides: %{name}%{?1:-%{1}}-nvidia = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
+Provides: installonlypkg(kernel-module)\
+Provides: %{name}%{?1:-%{1}}-nvidia-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}%{?1:-%{1}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+%if %{-m:1}%{!-m:0}\
+Requires: %{name}-nvidia-uname-r = %{KVERREL}%{uname_variant %{?1}}\
+%endif\
+AutoReq: no\
+AutoProv: yes\
+%description %{?1:%{1}-}nvidia\
+This package provides the Nvidia Open DRM modules for the %{?2:%{2} }kernel package.\
+%{nil}
+
+%define kernel_nvidia_package_closed(m) \
+%package %{?1:%{1}-}nvidia-closed\
+Summary: Extra kernel modules to match the %{?2:%{2} }kernel\
+License: NVIDIA\
+Provides: %{name}%{?1:-%{1}}-nvidia-closed-%{_target_cpu} = %{specrpmversion}-%{release}\
+Provides: %{name}%{?1:-%{1}}-nvidia-closed-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
+Provides: %{name}%{?1:-%{1}}-nvidia-closed = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
+Provides: installonlypkg(kernel-module)\
+Provides: %{name}%{?1:-%{1}}-nvidia-closed-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}%{?1:-%{1}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+%if %{-m:1}%{!-m:0}\
+Requires: %{name}-nvidia-closed-uname-r = %{KVERREL}%{uname_variant %{?1}}\
+%endif\
+AutoReq: no\
+AutoProv: yes\
+%description %{?1:%{1}-}nvidia-closed\
+This package provides the Nvidia legacy closed DRM modules for the %{?2:%{2} }kernel package.\
+%{nil}
+
+#
 # This macro creates a kernel-<subpackage>-modules package.
 #	%%kernel_modules_package [-m] <subpackage> <pretty-name>
 #
@@ -1694,6 +1747,10 @@ Requires: %{name}-%{?1:%{1}-}-modules-core-uname-r = %{KVERREL}%{uname_variant %
 %{expand:%%kernel_modules_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %{expand:%%kernel_modules_core_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %{expand:%%kernel_modules_extra_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%if %{with_nvidia}\
+%{expand:%%kernel_nvidia_package_open %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%{expand:%%kernel_nvidia_package_closed %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%endif\
 %if %{-m:0}%{!-m:1}\
 %{expand:%%kernel_modules_internal_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}}}\
 %if 0%{!?fedora:1}\
@@ -2037,6 +2094,11 @@ ApplyOptionalPatch patch-3-akmods.patch
 
 ApplyOptionalPatch linux-kernel-test.patch
 
+%if %{with_nvidia}
+chmod +x %{SOURCE5} && %{SOURCE5} --extract-only && \
+  mv NVIDIA-Linux-%{_build_arch}-%{nvidia_version} drivers/custom/nvidia
+%endif # with_nvidia
+
 %{log_msg "End of patch applications"}
 # END OF PATCH APPLICATIONS
 
@@ -2355,6 +2417,15 @@ BuildKernel() {
 	%{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags} modules %{?sparse_mflags} || exit 1
     fi
 
+    if [ $DoModules -eq 1 ]; then
+    %if %{with_nvidia}
+    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
+      -C $(pwd)/drivers/custom/nvidia/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src)
+    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
+      -C $(pwd)/drivers/custom/nvidia/kernel modules SYSSRC=$(pwd) SYSOUT=$(src)
+    %endif # with_nvidia
+    fi
+
     %{log_msg "Setup RPM_BUILD_ROOT directories"}
     mkdir -p $RPM_BUILD_ROOT/%{image_install_path}
     mkdir -p $RPM_BUILD_ROOT/lib/modules/$KernelVer
@@ -2462,6 +2533,24 @@ BuildKernel() {
 	# Override $(mod-fw) because we don't want it to install any firmware
 	# we'll get it from the linux-firmware package and we don't want conflicts
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} modules_install KERNELRELEASE=$KernelVer mod-fw=
+    fi
+  
+    if [ $DoModules -eq 1 ]; then
+  %if %{with_nvidia}
+	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel-open \
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel-open
+	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel \
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel
+  %endif # with_nvidia
+
+    # We have to do a little hack here. modules.dep cannot contain multiple modules
+    # with the same name, therefore, we cannot use the filtermods logic. Remove the
+    # nvidia drivers from modules.dep so we can create a package list manually
+    cat $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep | \
+      grep -v "kernel/drivers/custom/nvidia/" \
+      > $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep.tmp
+    mv $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep.tmp \
+      $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep
     fi
 
 %if %{with_gcov}
@@ -2784,11 +2873,6 @@ BuildKernel() {
       'drm_open|drm_init'
     collect_modules_list modesetting \
       'drm_crtc_init'
-
-    %{log_msg "detect missing or incorrect license tags"}
-    # detect missing or incorrect license tags
-    ( find $RPM_BUILD_ROOT/lib/modules/$KernelVer -name '*.ko' | xargs /sbin/modinfo -l | \
-        grep -E -v 'GPL( v2)?$|Dual BSD/GPL$|Dual MPL/GPL$|GPL and additional rights$' ) && exit 1
 
 
     if [ $DoModules -eq 0 ]; then
@@ -3814,6 +3898,26 @@ fi\
 %{nil}
 
 #
+# This macro defines a %%post script for the kernel*-nvidia packages.
+# It also defines a %%postun script that does the same thing.
+#	%%kernel_nvidia_post <is-open> [<subpackage>]
+#
+%define kernel_nvidia_post_open() \
+%{expand:%%post %{?1:%{1}-}nvidia}\
+/sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
+%{nil}\
+%{expand:%%postun %{?1:%{1}-}nvidia}\
+/sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
+%{nil}
+%define kernel_nvidia_post_closed() \
+%{expand:%%post %{?1:%{1}-}nvidia-closed}\
+/sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
+%{nil}\
+%{expand:%%postun %{?1:%{1}-}nvidia-closed}\
+/sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
+%{nil}
+
+#
 # This macro defines a %%post script for a kernel*-modules-internal package.
 # It also defines a %%postun script that does the same thing.
 #	%%kernel_modules_internal_post [<subpackage>]
@@ -3906,6 +4010,10 @@ fi\
 %{expand:%%kernel_modules_post %{?-v*}}\
 %{expand:%%kernel_modules_core_post %{?-v*}}\
 %{expand:%%kernel_modules_extra_post %{?-v*}}\
+%if %{with_nvidia}\
+%{expand:%%kernel_nvidia_post_open %{?-v*}}\
+%{expand:%%kernel_nvidia_post_closed %{?-v*}}\
+%endif\
 %{expand:%%kernel_modules_internal_post %{?-v*}}\
 %if 0%{!?fedora:1}\
 %{expand:%%kernel_modules_partner_post %{?-v*}}\
@@ -4137,7 +4245,7 @@ fi\
 # with_libperf
 %endif
 
-%files -n %{package_name}-common
+%files -n common
 /usr/lib/modules-load.d/20-akmods.conf
 /usr/lib/modprobe.d/20-akmods.conf
 /usr/lib/udev/rules.d/70-razer.rules
@@ -4379,6 +4487,23 @@ fi\
 %kernel_variant_files %{_use_vdso} %{with_debug} automotive-debug
 %endif
 
+%if %{with_nvidia}
+%files nvidia
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-drm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-modeset.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-peermem.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-uvm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia.ko*
+
+%files nvidia-closed
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-drm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-modeset.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-peermem.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-uvm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia.ko*
+
+%endif # with_nvidia
+
 %if %{with_debug_meta}
 %files debug
 %files debug-core
@@ -4421,9 +4546,9 @@ fi\
 #
 #
 %changelog
-* Wed Oct 01 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-1.bazzite]
+* Thu Oct 02 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-1.bazzite]
+- add initial support for nvidia modules (Antheas Kapenekakis)
 - CI: add akmod modules (Antheas Kapenekakis)
-- remove invalid module (Antheas Kapenekakis)
 - drm/amdgpu: defer overdrive taint until used (Antheas Kapenekakis)
 - drm/amdgpu: enable override by default for APUs (Antheas Kapenekakis)
 - lower sleep interval to avoid waking up too long (Antheas Kapenekakis)

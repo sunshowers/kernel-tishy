@@ -13227,9 +13227,9 @@ Subject: power: supply: Driver for Qualcomm SMB5
 
 ---
  drivers/power/supply/Kconfig                |   9 +
- drivers/power/supply/Makefile               |   2 +
+ drivers/power/supply/Makefile               |   1 +
  drivers/power/supply/qcom_pm8150b_charger.c | 940 ++++++++++++++++++++
- 3 files changed, 951 insertions(+)
+ 3 files changed, 950 insertions(+)
  create mode 100644 drivers/power/supply/qcom_pm8150b_charger.c
 
 diff --git a/drivers/power/supply/Kconfig b/drivers/power/supply/Kconfig
@@ -13253,14 +13253,13 @@ index 79ddb006e2da..bb9bbd326d08 100644
  	tristate "Mitsumi MM8013 fuel gauge driver"
  	depends on I2C
 diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
-index f943c9150b32..baf6cf69c2eb 100644
+index f943c9150b32..6f640abbf714 100644
 --- a/drivers/power/supply/Makefile
 +++ b/drivers/power/supply/Makefile
-@@ -121,4 +121,6 @@ obj-$(CONFIG_BATTERY_SURFACE)	+= surface_battery.o
+@@ -121,4 +121,5 @@ obj-$(CONFIG_BATTERY_SURFACE)	+= surface_battery.o
  obj-$(CONFIG_CHARGER_SURFACE)	+= surface_charger.o
  obj-$(CONFIG_BATTERY_UG3105)	+= ug3105_battery.o
  obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_smbx.o
-+obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_pmi8998_charger.o
 +obj-$(CONFIG_CHARGER_QCOM_SMB5)	+= qcom_pm8150b_charger.o
  obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
 diff --git a/drivers/power/supply/qcom_pm8150b_charger.c b/drivers/power/supply/qcom_pm8150b_charger.c
@@ -14247,12 +14246,12 @@ index bb9bbd326d08..8b18bbe78e3a 100644
  	tristate "Mitsumi MM8013 fuel gauge driver"
  	depends on I2C
 diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
-index baf6cf69c2eb..6eb1b02fe92d 100644
+index 6f640abbf714..dc6e2fb2a058 100644
 --- a/drivers/power/supply/Makefile
 +++ b/drivers/power/supply/Makefile
-@@ -123,4 +123,5 @@ obj-$(CONFIG_BATTERY_UG3105)	+= ug3105_battery.o
+@@ -122,4 +122,5 @@ obj-$(CONFIG_CHARGER_SURFACE)	+= surface_charger.o
+ obj-$(CONFIG_BATTERY_UG3105)	+= ug3105_battery.o
  obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_smbx.o
- obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_pmi8998_charger.o
  obj-$(CONFIG_CHARGER_QCOM_SMB5)	+= qcom_pm8150b_charger.o
 +obj-$(CONFIG_BATTERY_QCOM_FG)	+= qcom_fg.o
  obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
@@ -55478,33 +55477,47 @@ index f32474af90b3..478b9b846a13 100644
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Wed, 1 Oct 2025 03:34:27 +0200
-Subject: remove invalid module
+Subject: CI: add akmod modules
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/custom/ayaneo_platform | 1 +
- drivers/custom/ayn_platform    | 1 +
- drivers/custom/bmi260          | 1 +
- drivers/custom/evdi            | 1 +
- drivers/custom/facetimehd      | 1 +
- drivers/custom/framework       | 1 +
- drivers/custom/gcadapter_oc    | 1 +
- drivers/custom/gpdfan          | 1 +
- drivers/custom/kvfm            | 1 +
- drivers/custom/lg4ff           | 1 +
- drivers/custom/nct6687d        | 1 +
- drivers/custom/razer           | 1 +
- drivers/custom/system76        | 1 +
- drivers/custom/system76_io     | 1 +
- drivers/custom/v4l2loopback    | 1 +
- drivers/custom/xonedo          | 1 +
- drivers/custom/xpadneo         | 1 +
- drivers/custom/zenergy         | 1 +
- drivers/power/supply/Makefile  | 1 -
- 19 files changed, 18 insertions(+), 1 deletion(-)
+ .gitmodules                               |  57 +++++
+ drivers/Kconfig                           |   2 +
+ drivers/Makefile                          |   2 +
+ drivers/custom/.gitignore                 |   3 +
+ drivers/custom/Kconfig                    | 109 ++++++++++
+ drivers/custom/Makefile                   |  42 ++++
+ drivers/custom/ayaneo_platform            |   1 +
+ drivers/custom/ayn_platform               |   1 +
+ drivers/custom/bmi260                     |   1 +
+ drivers/custom/cdemu                      |   1 +
+ drivers/custom/evdi                       |   1 +
+ drivers/custom/facetimehd                 |   1 +
+ drivers/custom/framework                  |   1 +
+ drivers/custom/gcadapter_oc               |   1 +
+ drivers/custom/gpdfan                     |   1 +
+ drivers/custom/kvfm                       |   1 +
+ drivers/custom/lg4ff                      |   1 +
+ drivers/custom/modprobe.conf              |   1 +
+ drivers/custom/modules-load.conf          |   4 +
+ drivers/custom/nct6687d                   |   1 +
+ drivers/custom/nvidia-separate-drivers.py | 248 ++++++++++++++++++++++
+ drivers/custom/razer                      |   1 +
+ drivers/custom/system76                   |   1 +
+ drivers/custom/system76_io                |   1 +
+ drivers/custom/v4l2loopback               |   1 +
+ drivers/custom/xonedo                     |   1 +
+ drivers/custom/xpadneo                    |   1 +
+ drivers/custom/zenergy                    |   1 +
+ 28 files changed, 487 insertions(+)
+ create mode 100644 .gitmodules
+ create mode 100644 drivers/custom/.gitignore
+ create mode 100644 drivers/custom/Kconfig
+ create mode 100644 drivers/custom/Makefile
  create mode 160000 drivers/custom/ayaneo_platform
  create mode 160000 drivers/custom/ayn_platform
  create mode 160000 drivers/custom/bmi260
+ create mode 160000 drivers/custom/cdemu
  create mode 160000 drivers/custom/evdi
  create mode 160000 drivers/custom/facetimehd
  create mode 160000 drivers/custom/framework
@@ -55512,7 +55525,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  create mode 160000 drivers/custom/gpdfan
  create mode 160000 drivers/custom/kvfm
  create mode 160000 drivers/custom/lg4ff
+ create mode 100644 drivers/custom/modprobe.conf
+ create mode 100644 drivers/custom/modules-load.conf
  create mode 160000 drivers/custom/nct6687d
+ create mode 100644 drivers/custom/nvidia-separate-drivers.py
  create mode 160000 drivers/custom/razer
  create mode 160000 drivers/custom/system76
  create mode 160000 drivers/custom/system76_io
@@ -55520,174 +55536,6 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  create mode 160000 drivers/custom/xonedo
  create mode 160000 drivers/custom/xpadneo
  create mode 160000 drivers/custom/zenergy
-
-diff --git a/drivers/custom/ayaneo_platform b/drivers/custom/ayaneo_platform
-new file mode 160000
-index 000000000000..bccb4ad32269
---- /dev/null
-+++ b/drivers/custom/ayaneo_platform
-@@ -0,0 +1 @@
-+Subproject commit bccb4ad322695557d6a1bbfffd2f175304dd8f14
-diff --git a/drivers/custom/ayn_platform b/drivers/custom/ayn_platform
-new file mode 160000
-index 000000000000..fee1bab81d4e
---- /dev/null
-+++ b/drivers/custom/ayn_platform
-@@ -0,0 +1 @@
-+Subproject commit fee1bab81d4ef7dc8f9c5695f5081ace26a58ea0
-diff --git a/drivers/custom/bmi260 b/drivers/custom/bmi260
-new file mode 160000
-index 000000000000..2d764db2bd69
---- /dev/null
-+++ b/drivers/custom/bmi260
-@@ -0,0 +1 @@
-+Subproject commit 2d764db2bd69f2922d7fad6cb162136e32f357a2
-diff --git a/drivers/custom/evdi b/drivers/custom/evdi
-new file mode 160000
-index 000000000000..34da6e302a44
---- /dev/null
-+++ b/drivers/custom/evdi
-@@ -0,0 +1 @@
-+Subproject commit 34da6e302a44e569e3fb7692fa1fb796b7146606
-diff --git a/drivers/custom/facetimehd b/drivers/custom/facetimehd
-new file mode 160000
-index 000000000000..1bd87461d3d1
---- /dev/null
-+++ b/drivers/custom/facetimehd
-@@ -0,0 +1 @@
-+Subproject commit 1bd87461d3d1a59e89ace855dcaabb7c96750335
-diff --git a/drivers/custom/framework b/drivers/custom/framework
-new file mode 160000
-index 000000000000..6164bc3dec24
---- /dev/null
-+++ b/drivers/custom/framework
-@@ -0,0 +1 @@
-+Subproject commit 6164bc3dec24b6bb2806eedd269df6a170bcc930
-diff --git a/drivers/custom/gcadapter_oc b/drivers/custom/gcadapter_oc
-new file mode 160000
-index 000000000000..0a7d7027d0dc
---- /dev/null
-+++ b/drivers/custom/gcadapter_oc
-@@ -0,0 +1 @@
-+Subproject commit 0a7d7027d0dc5c0701b5c6f8664dfcb020e4a1cf
-diff --git a/drivers/custom/gpdfan b/drivers/custom/gpdfan
-new file mode 160000
-index 000000000000..a678a9314a40
---- /dev/null
-+++ b/drivers/custom/gpdfan
-@@ -0,0 +1 @@
-+Subproject commit a678a9314a401b765ddf86e221c7a23c1e43c5ff
-diff --git a/drivers/custom/kvfm b/drivers/custom/kvfm
-new file mode 160000
-index 000000000000..fddcb7f2d43e
---- /dev/null
-+++ b/drivers/custom/kvfm
-@@ -0,0 +1 @@
-+Subproject commit fddcb7f2d43ef752804af759f2c2194da8c8e9c5
-diff --git a/drivers/custom/lg4ff b/drivers/custom/lg4ff
-new file mode 160000
-index 000000000000..2092db19f7b4
---- /dev/null
-+++ b/drivers/custom/lg4ff
-@@ -0,0 +1 @@
-+Subproject commit 2092db19f7b40854e0427a1b2e39eda9f8d0c3cd
-diff --git a/drivers/custom/nct6687d b/drivers/custom/nct6687d
-new file mode 160000
-index 000000000000..80dc037bb5e1
---- /dev/null
-+++ b/drivers/custom/nct6687d
-@@ -0,0 +1 @@
-+Subproject commit 80dc037bb5e1c354ec05040f69d6144f79725ef4
-diff --git a/drivers/custom/razer b/drivers/custom/razer
-new file mode 160000
-index 000000000000..0663c556e527
---- /dev/null
-+++ b/drivers/custom/razer
-@@ -0,0 +1 @@
-+Subproject commit 0663c556e5272062d2d76c68b11e496c821b8731
-diff --git a/drivers/custom/system76 b/drivers/custom/system76
-new file mode 160000
-index 000000000000..d3d9ce28c65c
---- /dev/null
-+++ b/drivers/custom/system76
-@@ -0,0 +1 @@
-+Subproject commit d3d9ce28c65c315e123ff72d552776d1495f02e6
-diff --git a/drivers/custom/system76_io b/drivers/custom/system76_io
-new file mode 160000
-index 000000000000..fc71f154ab8d
---- /dev/null
-+++ b/drivers/custom/system76_io
-@@ -0,0 +1 @@
-+Subproject commit fc71f154ab8d9810f960ba171479c68c44737649
-diff --git a/drivers/custom/v4l2loopback b/drivers/custom/v4l2loopback
-new file mode 160000
-index 000000000000..5eaa59e7c41d
---- /dev/null
-+++ b/drivers/custom/v4l2loopback
-@@ -0,0 +1 @@
-+Subproject commit 5eaa59e7c41d0e6f35a6c14c3b756d94d25f58ed
-diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
-new file mode 160000
-index 000000000000..874f38003217
---- /dev/null
-+++ b/drivers/custom/xonedo
-@@ -0,0 +1 @@
-+Subproject commit 874f3800321722ba42c3c0875b374df0fa9b4849
-diff --git a/drivers/custom/xpadneo b/drivers/custom/xpadneo
-new file mode 160000
-index 000000000000..a16acb03e7be
---- /dev/null
-+++ b/drivers/custom/xpadneo
-@@ -0,0 +1 @@
-+Subproject commit a16acb03e7be191d47ebfbc8ca1d5223422dac3e
-diff --git a/drivers/custom/zenergy b/drivers/custom/zenergy
-new file mode 160000
-index 000000000000..7c45aec2dba4
---- /dev/null
-+++ b/drivers/custom/zenergy
-@@ -0,0 +1 @@
-+Subproject commit 7c45aec2dba426c7d322bab478e6d01a10ceddca
-diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
-index 6eb1b02fe92d..dc6e2fb2a058 100644
---- a/drivers/power/supply/Makefile
-+++ b/drivers/power/supply/Makefile
-@@ -121,7 +121,6 @@ obj-$(CONFIG_BATTERY_SURFACE)	+= surface_battery.o
- obj-$(CONFIG_CHARGER_SURFACE)	+= surface_charger.o
- obj-$(CONFIG_BATTERY_UG3105)	+= ug3105_battery.o
- obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_smbx.o
--obj-$(CONFIG_CHARGER_QCOM_SMB2)	+= qcom_pmi8998_charger.o
- obj-$(CONFIG_CHARGER_QCOM_SMB5)	+= qcom_pm8150b_charger.o
- obj-$(CONFIG_BATTERY_QCOM_FG)	+= qcom_fg.o
- obj-$(CONFIG_FUEL_GAUGE_MM8013)	+= mm8013.o
--- 
-2.51.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 30 Sep 2025 23:45:34 +0200
-Subject: CI: add akmod modules
-
----
- .gitmodules                      |  57 ++++++++++++++++
- drivers/Kconfig                  |   2 +
- drivers/Makefile                 |   2 +
- drivers/custom/.gitignore        |   0
- drivers/custom/Kconfig           | 109 +++++++++++++++++++++++++++++++
- drivers/custom/Makefile          |  42 ++++++++++++
- drivers/custom/cdemu             |   1 +
- drivers/custom/modprobe.conf     |   1 +
- drivers/custom/modules-load.conf |   4 ++
- drivers/custom/xonedo            |   2 +-
- drivers/custom/zenergy           |   2 +-
- 11 files changed, 220 insertions(+), 2 deletions(-)
- create mode 100644 .gitmodules
- create mode 100644 drivers/custom/.gitignore
- create mode 100644 drivers/custom/Kconfig
- create mode 100644 drivers/custom/Makefile
- create mode 160000 drivers/custom/cdemu
- create mode 100644 drivers/custom/modprobe.conf
- create mode 100644 drivers/custom/modules-load.conf
 
 diff --git a/.gitmodules b/.gitmodules
 new file mode 100644
@@ -55780,7 +55628,14 @@ index b5749cf67044..fdeefef6c11f 100644
  obj-y				+= bus/
 diff --git a/drivers/custom/.gitignore b/drivers/custom/.gitignore
 new file mode 100644
-index 000000000000..e69de29bb2d1
+index 000000000000..b9adbda1674e
+--- /dev/null
++++ b/drivers/custom/.gitignore
+@@ -0,0 +1,3 @@
++NVIDIA-Linux-*
++nvidia
++zfs
+\ No newline at end of file
 diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
 new file mode 100644
 index 000000000000..2134fa840172
@@ -55946,6 +55801,27 @@ index 000000000000..6736228083af
 +	make -C v4l2loopback/utils/
 +	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
 \ No newline at end of file
+diff --git a/drivers/custom/ayaneo_platform b/drivers/custom/ayaneo_platform
+new file mode 160000
+index 000000000000..bccb4ad32269
+--- /dev/null
++++ b/drivers/custom/ayaneo_platform
+@@ -0,0 +1 @@
++Subproject commit bccb4ad322695557d6a1bbfffd2f175304dd8f14
+diff --git a/drivers/custom/ayn_platform b/drivers/custom/ayn_platform
+new file mode 160000
+index 000000000000..fee1bab81d4e
+--- /dev/null
++++ b/drivers/custom/ayn_platform
+@@ -0,0 +1 @@
++Subproject commit fee1bab81d4ef7dc8f9c5695f5081ace26a58ea0
+diff --git a/drivers/custom/bmi260 b/drivers/custom/bmi260
+new file mode 160000
+index 000000000000..2d764db2bd69
+--- /dev/null
++++ b/drivers/custom/bmi260
+@@ -0,0 +1 @@
++Subproject commit 2d764db2bd69f2922d7fad6cb162136e32f357a2
 diff --git a/drivers/custom/cdemu b/drivers/custom/cdemu
 new file mode 160000
 index 000000000000..d00300615639
@@ -55953,6 +55829,55 @@ index 000000000000..d00300615639
 +++ b/drivers/custom/cdemu
 @@ -0,0 +1 @@
 +Subproject commit d00300615639d7e973ae51a6c922b89e527d5735
+diff --git a/drivers/custom/evdi b/drivers/custom/evdi
+new file mode 160000
+index 000000000000..34da6e302a44
+--- /dev/null
++++ b/drivers/custom/evdi
+@@ -0,0 +1 @@
++Subproject commit 34da6e302a44e569e3fb7692fa1fb796b7146606
+diff --git a/drivers/custom/facetimehd b/drivers/custom/facetimehd
+new file mode 160000
+index 000000000000..1bd87461d3d1
+--- /dev/null
++++ b/drivers/custom/facetimehd
+@@ -0,0 +1 @@
++Subproject commit 1bd87461d3d1a59e89ace855dcaabb7c96750335
+diff --git a/drivers/custom/framework b/drivers/custom/framework
+new file mode 160000
+index 000000000000..6164bc3dec24
+--- /dev/null
++++ b/drivers/custom/framework
+@@ -0,0 +1 @@
++Subproject commit 6164bc3dec24b6bb2806eedd269df6a170bcc930
+diff --git a/drivers/custom/gcadapter_oc b/drivers/custom/gcadapter_oc
+new file mode 160000
+index 000000000000..0a7d7027d0dc
+--- /dev/null
++++ b/drivers/custom/gcadapter_oc
+@@ -0,0 +1 @@
++Subproject commit 0a7d7027d0dc5c0701b5c6f8664dfcb020e4a1cf
+diff --git a/drivers/custom/gpdfan b/drivers/custom/gpdfan
+new file mode 160000
+index 000000000000..a678a9314a40
+--- /dev/null
++++ b/drivers/custom/gpdfan
+@@ -0,0 +1 @@
++Subproject commit a678a9314a401b765ddf86e221c7a23c1e43c5ff
+diff --git a/drivers/custom/kvfm b/drivers/custom/kvfm
+new file mode 160000
+index 000000000000..fddcb7f2d43e
+--- /dev/null
++++ b/drivers/custom/kvfm
+@@ -0,0 +1 @@
++Subproject commit fddcb7f2d43ef752804af759f2c2194da8c8e9c5
+diff --git a/drivers/custom/lg4ff b/drivers/custom/lg4ff
+new file mode 160000
+index 000000000000..2092db19f7b4
+--- /dev/null
++++ b/drivers/custom/lg4ff
+@@ -0,0 +1 @@
++Subproject commit 2092db19f7b40854e0427a1b2e39eda9f8d0c3cd
 diff --git a/drivers/custom/modprobe.conf b/drivers/custom/modprobe.conf
 new file mode 100644
 index 000000000000..de440a13a784
@@ -55971,19 +55896,315 @@ index 000000000000..4a6df9065371
 +nct6687
 +vhba
 \ No newline at end of file
+diff --git a/drivers/custom/nct6687d b/drivers/custom/nct6687d
+new file mode 160000
+index 000000000000..80dc037bb5e1
+--- /dev/null
++++ b/drivers/custom/nct6687d
+@@ -0,0 +1 @@
++Subproject commit 80dc037bb5e1c354ec05040f69d6144f79725ef4
+diff --git a/drivers/custom/nvidia-separate-drivers.py b/drivers/custom/nvidia-separate-drivers.py
+new file mode 100644
+index 000000000000..a3c0253d2408
+--- /dev/null
++++ b/drivers/custom/nvidia-separate-drivers.py
+@@ -0,0 +1,248 @@
++#!/usr/bin/python3
++# -*- coding: utf-8 -*-
++#
++# Copyright (C) 2025 Simone Caronni <negativo17@gmail.com>
++# Copyright (C) 2025 Antheas Kapenekakis <negativo17@gmail.com>
++# Licensed under the GNU General Public License Version or later
++
++import argparse
++import json
++import re
++import os
++import shutil
++import sys
++
++
++def generate_pci_entries(gpu_list, open: bool = False):
++    entries = []
++    # Add GPU entries
++    for gpu in gpu_list:
++        for cls in ["PCI_CLASS_DISPLAY_VGA", "PCI_CLASS_DISPLAY_3D"]:
++            # VGA controller entry
++            entries.append(
++                f"""    {{
++            .vendor      = PCI_VENDOR_ID_NVIDIA,
++            .device      = 0x{gpu},
++            .subvendor   = PCI_ANY_ID,
++            .subdevice   = PCI_ANY_ID,
++            .class       = ({cls} << 8),
++            .class_mask  = ~0
++        }},"""
++            )
++
++    # Add NVSwitch entries
++    for switch in devids_nvswitch:
++        entries.append(
++            f"""    {{
++        .vendor      = PCI_VENDOR_ID_NVIDIA,
++        .device      = 0x{switch},
++        .subvendor   = PCI_ANY_ID,
++        .subdevice   = PCI_ANY_ID,
++        .class       = (PCI_CLASS_BRIDGE << 8),
++        .class_mask  = ~0
++    }},"""
++        )
++
++    # Add terminating empty entry
++    entries.append("    { }")
++    return entries
++
++
++def patch_pci_table_file(header, filepath, gpu_list):
++    with open(filepath, "r") as f:
++        content = f.read()
++
++    # Find and patch nv_pci_table
++    table_pattern = r"struct pci_device_id nv_pci_table\[\] = \{(.*?)\};"
++    match = re.search(table_pattern, content, re.DOTALL)
++    if not match:
++        print(f"Warning: Could not find nv_pci_table in {filepath}")
++        return False
++
++    # Generate new table entries
++    new_entries = generate_pci_entries(gpu_list)
++    new_table = (
++        "struct pci_device_id nv_pci_table[] = {\n" + "\n".join(new_entries) + "\n};"
++    )
++
++    # Replace the old table with the new one
++    content = re.sub(table_pattern, new_table, content, flags=re.DOTALL)
++
++    # Find and patch nv_module_device_table
++    module_table_pattern = (
++        r"struct pci_device_id nv_module_device_table\[\d+\] = \{(.*?)\};"
++    )
++    module_header_pattern = (
++        r"extern struct pci_device_id nv_module_device_table\[\d+\];"
++    )
++    match = re.search(module_table_pattern, content, re.DOTALL)
++    if not match:
++        print(f"Warning: Could not find nv_module_device_table in {filepath}")
++        return False
++
++    # Check if PCI_CLASS_BRIDGE_OTHER entry exists in the original
++    bridge_other_pattern = r"{\s*\.vendor\s*=\s*PCI_VENDOR_ID_NVIDIA,\s*\.device\s*=\s*PCI_ANY_ID,\s*\.subvendor\s*=\s*PCI_ANY_ID,\s*\.subdevice\s*=\s*PCI_ANY_ID,\s*\.class\s*=\s*\(PCI_CLASS_BRIDGE_OTHER\s*<<\s*8\),\s*\.class_mask\s*=\s*~0\s*},"
++    bridge_other_match = re.search(bridge_other_pattern, match.group(1), re.DOTALL)
++    has_bridge_other = bridge_other_match is not None
++
++    # Create the new module table entries
++    module_entries = new_entries[:-1]  # Remove the terminator
++
++    # Add properly formatted PCI_CLASS_BRIDGE_OTHER entry if it existed in original
++    if has_bridge_other:
++        bridge_other_entry = """    {
++        .vendor      = PCI_VENDOR_ID_NVIDIA,
++        .device      = PCI_ANY_ID,
++        .subvendor   = PCI_ANY_ID,
++        .subdevice   = PCI_ANY_ID,
++        .class       = (PCI_CLASS_BRIDGE_OTHER << 8),
++        .class_mask  = ~0
++    },"""
++        module_entries.append(bridge_other_entry)
++
++    module_entries.append("    { }")  # Add back the terminator
++
++    # Calculate the size needed for the module table
++    table_size = len(module_entries)
++    new_module_table = (
++        f"struct pci_device_id nv_module_device_table[{table_size}] = {{\n"
++        + "\n".join(module_entries)
++        + "\n};"
++    )
++    new_module_header = (
++        f"extern struct pci_device_id nv_module_device_table[{table_size}];"
++    )
++
++    # Replace the old module table with the new one
++    content = re.sub(module_table_pattern, new_module_table, content, flags=re.DOTALL)
++
++    # Write the modified content back to the file
++    with open(filepath, "w") as f:
++        f.write(content)
++
++    # Ensure the header file has the extern declaration
++    with open(header, "r") as f:
++        header_content = f.read()
++
++    header_content = re.sub(
++        module_header_pattern, new_module_header, header_content, flags=re.DOTALL
++    )
++
++    with open(header, "w") as f:
++        f.write(header_content)
++
++    return True
++
++
++if __name__ == "__main__":
++    parser = argparse.ArgumentParser(
++        description="Parse a supported-gpus.json file and patch PCI device table files."
++    )
++    parser.add_argument(
++        "--json",
++        dest="INPUT_JSON",
++        help="The JSON file to be parsed (default: supported-gpus/supported-gpus.json)",
++        type=str,
++        default="supported-gpus/supported-gpus.json",
++    )
++    parser.add_argument(
++        "--nvswitch",
++        dest="NVSWITCH_C",
++        help="The src/common/nvswitch/kernel/nvswitch.c file from the Open GPU kernel modules to parse for additional IDs",
++        type=str,
++    )
++    parser.add_argument(
++        "basedir",
++        help="The base directory where the kernel and kernel-open folders are located",
++        type=str,
++        default=".",
++    )
++    args = parser.parse_args()
++
++    b = args.basedir
++    with open(os.path.join(b, args.INPUT_JSON), "r") as f:
++        gpus_raw = json.load(f)
++
++    devids_gpu_closed = []
++    devids_gpu_open = []
++    devids_nvswitch = []
++    names = {}
++    nvswitch_ids = {}
++
++    for product in gpus_raw["chips"]:
++        gpu = product["devid"].replace("0x", "")
++
++        # For closed modules: exclude legacy branch and kernelopen GPUs
++        if not ("legacybranch" in product or "kernelopen" in product["features"]):
++            if not gpu in devids_gpu_closed:
++                devids_gpu_closed.append(gpu)
++                names[gpu] = product["name"]  # Store the GPU name
++
++        # For open modules: include only kernelopen GPUs
++        if "kernelopen" in product["features"]:
++            if not gpu in devids_gpu_open:
++                devids_gpu_open.append(gpu)
++                names[gpu] = product["name"]  # Store the GPU name
++
++    # Read and parse nvswitch.c for device IDs if provided
++    if args.NVSWITCH_C:
++        with open(os.path.join(b, args.NVSWITCH_C), "r") as f:
++            nvswitch_content = f.read()
++
++        # Pattern to match device ID arrays like: nvswitch_lr10_device_ids[] = { 0x1AE8, ... };
++        id_patterns = re.finditer(
++            r"nvswitch_(\w+)_device_ids\[\]\s*=\s*{([^}]+)}", nvswitch_content
++        )
++        for match in id_patterns:
++            gen_name = match.group(1).upper()  # lr10 -> LR10
++            # Extract hex numbers and convert to lowercase without 0x prefix
++            ids = re.findall(r"0x([0-9A-Fa-f]+)", match.group(2))
++            for device_id in ids:
++                device_id = device_id.lower()
++                devids_nvswitch.append(device_id)
++                names[device_id] = f"NVIDIA NVSwitch {gen_name}"
++                nvswitch_ids[device_id] = True
++
++    # Patch kernel files with closed module GPUs
++    driver_type = ["kernel", "kernel-open"]
++
++    header_paths = [
++        "nvidia/nv-pci-table.h",
++        "nvidia-drm/nv-pci-table.h",
++    ]
++    list_paths = [
++        "nvidia/nv-pci-table.c",
++        "nvidia-drm/nv-pci-table.c",
++    ]
++
++    print(
++        f"Found {len(devids_gpu_closed)} closed module GPUs and {len(devids_gpu_open)} open module GPUs"
++    )
++
++    for ktype in driver_type:
++        for hname, cname in zip(header_paths, list_paths):
++            hname = os.path.join(b, ktype, hname)
++            cname = os.path.join(b, ktype, cname)
++
++            for n in [hname, cname]:
++                if os.path.exists(n + ".orig"):
++                    shutil.copyfile(n + ".orig", n)
++                elif os.path.exists(n):
++                    shutil.copyfile(n, n + ".orig")
++                else:
++                    print(f"Error: Could not find {n}")
++                    sys.exit(1)
++
++            if ktype == "kernel":
++                devs = devids_gpu_closed
++                type_desc = "closed module"
++            else:
++                devs = devids_gpu_open
++                type_desc = "open module"
++            if patch_pci_table_file(hname, cname, devs):
++                print(
++                    f"-> Successfully patched {cname} with {len(devs)} {type_desc} GPUs"
++                )
++            else:
++                print(f"Failed to patch {cname}")
++                sys.exit(1)
+diff --git a/drivers/custom/razer b/drivers/custom/razer
+new file mode 160000
+index 000000000000..0663c556e527
+--- /dev/null
++++ b/drivers/custom/razer
+@@ -0,0 +1 @@
++Subproject commit 0663c556e5272062d2d76c68b11e496c821b8731
+diff --git a/drivers/custom/system76 b/drivers/custom/system76
+new file mode 160000
+index 000000000000..d3d9ce28c65c
+--- /dev/null
++++ b/drivers/custom/system76
+@@ -0,0 +1 @@
++Subproject commit d3d9ce28c65c315e123ff72d552776d1495f02e6
+diff --git a/drivers/custom/system76_io b/drivers/custom/system76_io
+new file mode 160000
+index 000000000000..fc71f154ab8d
+--- /dev/null
++++ b/drivers/custom/system76_io
+@@ -0,0 +1 @@
++Subproject commit fc71f154ab8d9810f960ba171479c68c44737649
+diff --git a/drivers/custom/v4l2loopback b/drivers/custom/v4l2loopback
+new file mode 160000
+index 000000000000..5eaa59e7c41d
+--- /dev/null
++++ b/drivers/custom/v4l2loopback
+@@ -0,0 +1 @@
++Subproject commit 5eaa59e7c41d0e6f35a6c14c3b756d94d25f58ed
 diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
-index 874f38003217..b1cd46868954 160000
---- a/drivers/custom/xonedo
+new file mode 160000
+index 000000000000..b1cd46868954
+--- /dev/null
 +++ b/drivers/custom/xonedo
-@@ -1 +1 @@
--Subproject commit 874f3800321722ba42c3c0875b374df0fa9b4849
+@@ -0,0 +1 @@
 +Subproject commit b1cd46868954d2b1331611890322d54e5fcb0c49
+diff --git a/drivers/custom/xpadneo b/drivers/custom/xpadneo
+new file mode 160000
+index 000000000000..a16acb03e7be
+--- /dev/null
++++ b/drivers/custom/xpadneo
+@@ -0,0 +1 @@
++Subproject commit a16acb03e7be191d47ebfbc8ca1d5223422dac3e
 diff --git a/drivers/custom/zenergy b/drivers/custom/zenergy
-index 7c45aec2dba4..310ed88b13c6 160000
---- a/drivers/custom/zenergy
+new file mode 160000
+index 000000000000..310ed88b13c6
+--- /dev/null
 +++ b/drivers/custom/zenergy
-@@ -1 +1 @@
--Subproject commit 7c45aec2dba426c7d322bab478e6d01a10ceddca
+@@ -0,0 +1 @@
 +Subproject commit 310ed88b13c6c46ea8b4e89c120690eb319816a9
 -- 
 2.51.0
