@@ -2566,7 +2566,7 @@ BuildKernel() {
     if [ $DoModules -eq 1 ]; then    
     %if %{with_zfs}
     %{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} \
-      -C $(pwd)/drivers/custom/zfs/module modules_install mod-fw=
+      -C $(pwd)/drivers/custom/zfs/module modules_install mod-fw= INSTALL_MOD_DIR=kernel/drivers/custom/zfs
     %endif # with_zfs
 
   %if %{with_nvidia}
