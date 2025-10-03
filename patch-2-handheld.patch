@@ -3355,12 +3355,14 @@ Subject: [NA] add dev tools
 ---
  README       |  18 ---------
  README.md    |  21 +++++++++++
+ localversion |   0
  sync-arch.sh |  22 +++++++++++
  sync-ko.sh   |  25 ++++++++++++
  sync.sh      | 105 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 173 insertions(+), 18 deletions(-)
+ 6 files changed, 173 insertions(+), 18 deletions(-)
  delete mode 100644 README
  create mode 100644 README.md
+ create mode 100644 localversion
  create mode 100755 sync-arch.sh
  create mode 100755 sync-ko.sh
  create mode 100755 sync.sh
@@ -3417,6 +3419,9 @@ index 000000000000..0e73296bfb6c
 +> [!WARNING]
 +> Do not open Pull Requests or issues in this repository!! They will be closed.
 \ No newline at end of file
+diff --git a/localversion b/localversion
+new file mode 100644
+index 000000000000..e69de29bb2d1
 diff --git a/sync-arch.sh b/sync-arch.sh
 new file mode 100755
 index 000000000000..9a9c605bfee9
