@@ -33,16 +33,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Restore ccache
-        # Don't use cache on releases as github does not allow it
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ccache
-          key: ccache-${{ matrix.arch }}-${{ github.sha }}
-          restore-keys: |
-            ccache-${{ matrix.arch }}
-
       - name: Create Build Environment
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
@@ -75,23 +65,13 @@ jobs:
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
           ARCH="${{ matrix.arch }}"
-          DISABLE_ARG="${{ startsWith(github.ref, 'refs/tags/') && '--env CCACHE_DISABLE=true' || '' }}"
           sudo podman run --rm -v $(pwd):/workspace $DISABLE_ARG \
-            --env CCACHE_DIR=/workspace/ccache \
-            --env CCACHE_MAXSIZE=5G \
-            --env CCACHE_COMPRESS=1 \
             fedora_builder fedpkg \
             --name kernel --namespace rpms --release "f${FEDORA_VERSION:-41}" \
             local --arch ${ARCH:-x86_64} --with bazzite --with nvidia --with zfs \
             --builddir build --buildrootdir buildroot \
              | grep -v "nvidia.o: warning: objtool:"
       
-      - name: Print ccache stats
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        run: |
-          sudo apt install -y ccache
-          ccache -s
-
       - name: Separate debuginfo into different folder
         run: |
           mkdir -p debuginfo
@@ -154,15 +134,6 @@ jobs:
               x86_64/linux-*.pkg.tar.zst.sig
             fail_on_unmatched_files: false
             make_latest: false
-
-      # We always want to save the newest ccache
-      - name: Backup ccache
-        # Don't use cache on releases as github does not allow it
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        uses: actions/cache/save@v4
-        with:
-          path: ccache
-          key: ccache-${{ matrix.arch }}-${{ github.sha }}
 
   # Trigger ublue-os/akmods build/kernel cache
   post_release:
