@@ -9,3 +9,4 @@ cache
 x86_64
 ccache
 NVIDIA-Linux*
+*.tar.gz

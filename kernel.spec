@@ -264,6 +264,8 @@ Summary: The Linux kernel
 %define with_selftests %{?_without_selftests: 0} %{?!_without_selftests: 1}
 # include nvidia (--with nvidia):
 %define with_nvidia  %{?_with_nvidia:     1} %{?!_with_nvidia:     0}
+# include zfs (--with zfs):
+%define with_zfs  %{?_with_zfs:     1} %{?!_with_zfs:     0}
 #
 # Additional options for user-friendly one-off kernel building:
 #
@@ -965,12 +967,18 @@ Source0: linux-%{tarfile_release}.tar.xz
 Source1: Makefile.rhelver
 Source2: %{package_name}.changelog
 
+%define evdi_version 1.14.11
 %define nvidia_version 580.95.05
 %define nvidia_version_lts 580.95.05
 %define nvidia_epoch 3
 %if %{with_nvidia}
 Source5: NVIDIA-Linux-%{_build_arch}-%{nvidia_version}.run
 Source6: NVIDIA-Linux-%{_build_arch}-%{nvidia_version_lts}.run
+%endif
+
+%define zfs_version 2.4.0-rc2
+%if %{with_zfs}
+Source7: zfs-%{zfs_version}.tar.gz
 %endif
 
 Source10: redhatsecurebootca5.cer
@@ -1663,6 +1671,7 @@ Provides: %{name}-modules-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_s
 Provides: %{name}-modules = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
 Provides: installonlypkg(kernel-module)\
 Provides: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Provides: evdi-kmod = %{evdi_version}\
 Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
 Requires: %{name}%{?1:-%{1}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
 %if %{-m:1}%{!-m:0}\
@@ -2098,6 +2107,12 @@ chmod +x %{SOURCE56} && %{SOURCE6} --extract-only && \
   mv NVIDIA-Linux-%{_build_arch}-%{nvidia_version_lts} drivers/custom/nvidia-lts
 %endif # with_nvidia
 
+%if %{with_zfs}
+tar xzf %{SOURCE7}
+rm -rf drivers/custom/zfs
+mv zfs-%{zfs_version} drivers/custom/zfs
+%endif
+
 %{log_msg "End of patch applications"}
 # END OF PATCH APPLICATIONS
 
@@ -2427,6 +2442,16 @@ BuildKernel() {
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
       -C $(pwd)/drivers/custom/nvidia-lts/kernel modules SYSSRC=$(pwd) SYSOUT=$(src)
     %endif # with_nvidia
+
+    %if %{with_zfs}
+    %{log_msg "Build ZFS modules"}
+    pushd drivers/custom/zfs
+    sh autogen.sh
+    ./configure --with-linux=../../../ --with-linux-obj=../../../
+    popd
+    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
+      -C $(pwd)/drivers/custom/zfs %{?_smp_mflags} modules || exit 1
+    %endif # with_zfs
     fi
 
     %{log_msg "Setup RPM_BUILD_ROOT directories"}
@@ -2558,6 +2583,11 @@ BuildKernel() {
       > $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep.tmp
     mv $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep.tmp \
       $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep
+    
+    %if %{with_zfs}
+    %{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} \
+      -C $(pwd)/drivers/custom/zfs/module modules_install mod-fw=
+    %endif # with_zfs
     fi
 
 %if %{with_gcov}
@@ -4563,6 +4593,8 @@ fi\
 #
 %changelog
 * Fri Oct 03 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-1.bazzite]
+- CI: add ZFS module (Antheas Kapenekakis)
+- CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
 - CI: add akmod modules (Antheas Kapenekakis)
 - drm/amdgpu: defer overdrive taint until used (Antheas Kapenekakis)
 - drm/amdgpu: enable override by default for APUs (Antheas Kapenekakis)
@@ -4734,7 +4766,6 @@ fi\
 - arm64: dts: qcom: pm8150b: Add a FG (Teguh Sobirin)
 - arm64: dts: qcom: pm8150b: Add a charger (Teguh Sobirin)
 - power: supply: Driver for Qualcomm FG (Teguh Sobirin)
-- power: supply: Driver for Qualcomm SMB5 (Teguh Sobirin)
 - Input: driver for AYN Odin2 Gamepad (Teguh Sobirin)
 - drm: panel: Add DDIC CH13726A panel (Teguh Sobirin)
 - arm64: dts: qcom: sm8250: add uart16 (Teguh Sobirin)

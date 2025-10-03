@@ -1,518 +1,515 @@
-https://github.com/bazzite-org/patchwork/commit/48275e22637a2c6575af7b0c337ef93f4ee736a2
- 48275e22637a2c6575af7b0c337ef93f4ee736a2 CI: add akmod modules
+https://github.com/bazzite-org/patchwork/commit/c2359134c36df9296c22ddda800003698081a48d
+ c2359134c36df9296c22ddda800003698081a48d CI: add akmod modules
 
-https://github.com/bazzite-org/patchwork/commit/1021fe2bdb95f982651309701158c94017ba0b8c
- 1021fe2bdb95f982651309701158c94017ba0b8c drm/amdgpu: defer overdrive taint until used
+https://github.com/bazzite-org/patchwork/commit/e17bbd66db9ede00ebe0d180e30dfb02a51003f8
+ e17bbd66db9ede00ebe0d180e30dfb02a51003f8 drm/amdgpu: defer overdrive taint until used
 
-https://github.com/bazzite-org/patchwork/commit/b92a4a49e5897da0113f0d7755ec019a7db2e779
- b92a4a49e5897da0113f0d7755ec019a7db2e779 drm/amdgpu: enable override by default for APUs
+https://github.com/bazzite-org/patchwork/commit/4d870811028c7b1d473a66bb5a776c85d552ae4d
+ 4d870811028c7b1d473a66bb5a776c85d552ae4d drm/amdgpu: enable override by default for APUs
 
-https://github.com/bazzite-org/patchwork/commit/aa60bcaf9db9492df2dfa6ea70ff2d93676d17aa
- aa60bcaf9db9492df2dfa6ea70ff2d93676d17aa lower sleep interval to avoid waking up too long
+https://github.com/bazzite-org/patchwork/commit/dbac0517655b7d5c6897b1903ab69499f95f7900
+ dbac0517655b7d5c6897b1903ab69499f95f7900 lower sleep interval to avoid waking up too long
 
-https://github.com/bazzite-org/patchwork/commit/6bc60d24c079c2b123850b42b44361b778e00283
- 6bc60d24c079c2b123850b42b44361b778e00283 panel quirks: add a2 pro
+https://github.com/bazzite-org/patchwork/commit/a1f797dc775018c7cab235e9ce96217264ddd8bd
+ a1f797dc775018c7cab235e9ce96217264ddd8bd panel quirks: add a2 pro
 
-https://github.com/bazzite-org/patchwork/commit/4a38e90c03f1a4782cfea6825583c8db8feb096f
- 4a38e90c03f1a4782cfea6825583c8db8feb096f oxpec: add a2 pro
+https://github.com/bazzite-org/patchwork/commit/3517b1b84dc4118a9a30d36f8a17538baf5d3372
+ 3517b1b84dc4118a9a30d36f8a17538baf5d3372 oxpec: add a2 pro
 
-https://github.com/bazzite-org/patchwork/commit/ef071efa3737bbde73850a776585c61ea2f73ab8
- ef071efa3737bbde73850a776585c61ea2f73ab8 tmp: add MSI Center button event to msi-wmi
+https://github.com/bazzite-org/patchwork/commit/1ec2882bd955e717b73c6f91ff2046c0640bbdd9
+ 1ec2882bd955e717b73c6f91ff2046c0640bbdd9 tmp: add MSI Center button event to msi-wmi
 
-https://github.com/bazzite-org/patchwork/commit/eda0db8ed94f631a9bb95a16b026a788e321e54a
- eda0db8ed94f631a9bb95a16b026a788e321e54a add orientation for x1z
+https://github.com/bazzite-org/patchwork/commit/67398eb19bb3b925bd89a6b10f910ac8b02fc39b
+ 67398eb19bb3b925bd89a6b10f910ac8b02fc39b add orientation for x1z
 
-https://github.com/bazzite-org/patchwork/commit/05c5e19f2e3abda20a76bced0a9249fb809a05d5
- 05c5e19f2e3abda20a76bced0a9249fb809a05d5 platform/x86: oxpec: Add support for OneXPlayer X1z
+https://github.com/bazzite-org/patchwork/commit/dc3bed6cae97d4fe73cbe72eec5a4255e054ac56
+ dc3bed6cae97d4fe73cbe72eec5a4255e054ac56 platform/x86: oxpec: Add support for OneXPlayer X1z
 
-https://github.com/bazzite-org/patchwork/commit/2d9bfe2d1411d4beae5b688f3d99cf8f6f29fef8
- 2d9bfe2d1411d4beae5b688f3d99cf8f6f29fef8 add suiplay
+https://github.com/bazzite-org/patchwork/commit/cc69d06da4d7b3c0c57a578426049d49f0dbb95f
+ cc69d06da4d7b3c0c57a578426049d49f0dbb95f add suiplay
 
-https://github.com/bazzite-org/patchwork/commit/1a103921d242c0ac53b5bfa81769d6d1bd52474b
- 1a103921d242c0ac53b5bfa81769d6d1bd52474b drm: panel-orientation-quirks: add SuiPlay0X1
+https://github.com/bazzite-org/patchwork/commit/bea782679da3dd76686949e9bad2b31e3aff1d3b
+ bea782679da3dd76686949e9bad2b31e3aff1d3b drm: panel-orientation-quirks: add SuiPlay0X1
 
-https://github.com/bazzite-org/patchwork/commit/6267f80be7368b522038350c853fa4d113c3507b
- 6267f80be7368b522038350c853fa4d113c3507b disable custom brightness curve for now
+https://github.com/bazzite-org/patchwork/commit/9c4cc31d51e2b4669d7780e609830d9214533fdb
+ 9c4cc31d51e2b4669d7780e609830d9214533fdb disable custom brightness curve for now
 
-https://github.com/bazzite-org/patchwork/commit/266cb9a5bd07c3be3ba3cf8470d7b578b66e1480
- 266cb9a5bd07c3be3ba3cf8470d7b578b66e1480 drm/amd/display: enable private color API universally
+https://github.com/bazzite-org/patchwork/commit/ba1352714259213f0e86376c62ffc6e9cc2698ac
+ ba1352714259213f0e86376c62ffc6e9cc2698ac drm/amd/display: enable private color API universally
 
-https://github.com/bazzite-org/patchwork/commit/5201247b5828b8f310ec6b4e072e1d3cc6129294
- 5201247b5828b8f310ec6b4e072e1d3cc6129294 drm: re-allow no-op changes on non-primary planes in async flips
+https://github.com/bazzite-org/patchwork/commit/803efd890458bbada64f62062b31e87e5f4b0977
+ 803efd890458bbada64f62062b31e87e5f4b0977 drm: re-allow no-op changes on non-primary planes in async flips
 
-https://github.com/bazzite-org/patchwork/commit/0e1f3a0a35396e38b6924479d0e697cc43f7fda8
- 0e1f3a0a35396e38b6924479d0e697cc43f7fda8 drm/amdgpu: tweak min and max clocks of cyan_skillfish
+https://github.com/bazzite-org/patchwork/commit/fb143646432444b3177ed142348b78042a79c69c
+ fb143646432444b3177ed142348b78042a79c69c drm/amdgpu: tweak min and max clocks of cyan_skillfish
 
-https://github.com/bazzite-org/patchwork/commit/c5019dfc47c4b3d70ad62ff8ab15b735b170ec9d
- c5019dfc47c4b3d70ad62ff8ab15b735b170ec9d drm: panel-backlight-quirks: Add Steam Decks
+https://github.com/bazzite-org/patchwork/commit/241f3a3b03dfd2ce7b60072a4fd4637088b4e751
+ 241f3a3b03dfd2ce7b60072a4fd4637088b4e751 drm: panel-backlight-quirks: Add Steam Decks
 
-https://github.com/bazzite-org/patchwork/commit/56a7f0d4cf0a615f44fa2c5729ade4c01e6efa74
- 56a7f0d4cf0a615f44fa2c5729ade4c01e6efa74 drm: panel-backlight-quirks: Add brightness mask quirk
+https://github.com/bazzite-org/patchwork/commit/5cd24e9f97b9eaf5a88651b5bb0f539f8ff0ef72
+ 5cd24e9f97b9eaf5a88651b5bb0f539f8ff0ef72 drm: panel-backlight-quirks: Add brightness mask quirk
 
-https://github.com/bazzite-org/patchwork/commit/26b15b453578794ba21c69b96460a34afdbeebab
- 26b15b453578794ba21c69b96460a34afdbeebab drm: panel-backlight-quirks: Add secondary DMI match
+https://github.com/bazzite-org/patchwork/commit/743325e5ccc33701cf23a7e936cc2243cfc0d675
+ 743325e5ccc33701cf23a7e936cc2243cfc0d675 drm: panel-backlight-quirks: Add secondary DMI match
 
-https://github.com/bazzite-org/patchwork/commit/0ba95c753f676820ba06e429410761a285fe44ff
- 0ba95c753f676820ba06e429410761a285fe44ff drm: panel-backlight-quirks: Convert brightness quirk to generic structure
+https://github.com/bazzite-org/patchwork/commit/0d06c07891602ad4552589f16b551b96dde35dc4
+ 0d06c07891602ad4552589f16b551b96dde35dc4 drm: panel-backlight-quirks: Convert brightness quirk to generic structure
 
-https://github.com/bazzite-org/patchwork/commit/802c8f70dfa2dd4a0ee7965345b09a049f1804d5
- 802c8f70dfa2dd4a0ee7965345b09a049f1804d5 drm: panel-backlight-quirks: Make ident optional
+https://github.com/bazzite-org/patchwork/commit/c994e72d6e0ba04821a0d1b33853a29a79ee5b09
+ c994e72d6e0ba04821a0d1b33853a29a79ee5b09 drm: panel-backlight-quirks: Make ident optional
 
-https://github.com/bazzite-org/patchwork/commit/165b49fa3fa026dcc455b58cd314b54aa68ddf03
- 165b49fa3fa026dcc455b58cd314b54aa68ddf03 drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
+https://github.com/bazzite-org/patchwork/commit/9cd228d2c064c00db36711c24b017159e8c780c6
+ 9cd228d2c064c00db36711c24b017159e8c780c6 drm/amdgpu/vpe: increase VPE_IDLE_TIMEOUT to fix hang on Strix Halo
 
-https://github.com/bazzite-org/patchwork/commit/117443061d376083d62bfbf8f4209bf543b3d674
- 117443061d376083d62bfbf8f4209bf543b3d674 ACPI: EC: Set ec_no_wakeup for MSI Claw A8
+https://github.com/bazzite-org/patchwork/commit/57cf7cd2e5c0b96e68d0535b985fb40d5fd63dca
+ 57cf7cd2e5c0b96e68d0535b985fb40d5fd63dca ACPI: EC: Set ec_no_wakeup for MSI Claw A8
 
-https://github.com/bazzite-org/patchwork/commit/4b3ea23f10e194fc52178d6143ff3273222a4ec1
- 4b3ea23f10e194fc52178d6143ff3273222a4ec1 [TMP] platform/x86: ayaneo-ec: Remove charge inhibition for other devices
+https://github.com/bazzite-org/patchwork/commit/df9107b27f18dc40442092aa808fdf6ba57d051d
+ df9107b27f18dc40442092aa808fdf6ba57d051d [TMP] platform/x86: ayaneo-ec: Remove charge inhibition for other devices
 
-https://github.com/bazzite-org/patchwork/commit/fde493224b0c938bf8399ebe27ee3bde9ee7cf1c
- fde493224b0c938bf8399ebe27ee3bde9ee7cf1c platform/x86: ayaneo-ec: Move Ayaneo devices from oxpec to ayaneo-ec
+https://github.com/bazzite-org/patchwork/commit/0e77af5e5ce07068547587761588422741b18113
+ 0e77af5e5ce07068547587761588422741b18113 platform/x86: ayaneo-ec: Move Ayaneo devices from oxpec to ayaneo-ec
 
-https://github.com/bazzite-org/patchwork/commit/14458edeb2e9b00ac23004951aa37fbbbda0269f
- 14458edeb2e9b00ac23004951aa37fbbbda0269f platform/x86: ayaneo-ec: Add controller power and modules attributes
+https://github.com/bazzite-org/patchwork/commit/02029005b395c1b7a76ef7a72e20ebcd0df5a903
+ 02029005b395c1b7a76ef7a72e20ebcd0df5a903 platform/x86: ayaneo-ec: Add controller power and modules attributes
 
-https://github.com/bazzite-org/patchwork/commit/fa1d8049d2ada7178f6f4f46f5142e818015f236
- fa1d8049d2ada7178f6f4f46f5142e818015f236 platform/x86: ayaneo-ec: Add charge control support
+https://github.com/bazzite-org/patchwork/commit/3c3c22ef522feaccc2a1ce84b59cd0a11139b4ab
+ 3c3c22ef522feaccc2a1ce84b59cd0a11139b4ab platform/x86: ayaneo-ec: Add charge control support
 
-https://github.com/bazzite-org/patchwork/commit/2a945a1300bd41b340c5b6e05deb577e05638ca1
- 2a945a1300bd41b340c5b6e05deb577e05638ca1 platform/x86: ayaneo-ec: Add hwmon support
+https://github.com/bazzite-org/patchwork/commit/68cddd7a9d356ebb995f0b9a349631b56e0a90a4
+ 68cddd7a9d356ebb995f0b9a349631b56e0a90a4 platform/x86: ayaneo-ec: Add hwmon support
 
-https://github.com/bazzite-org/patchwork/commit/a212eea076b90645500ea682e7673fb272b4fe0d
- a212eea076b90645500ea682e7673fb272b4fe0d platform/x86: ayaneo-ec: Add Ayaneo Embedded Controller platform driver
+https://github.com/bazzite-org/patchwork/commit/8403a3033d3b8a5c07880f1ffa14b07d55b5b313
+ 8403a3033d3b8a5c07880f1ffa14b07d55b5b313 platform/x86: ayaneo-ec: Add Ayaneo Embedded Controller platform driver
 
-https://github.com/bazzite-org/patchwork/commit/456eb21199dba77889378febb04bc35d524d930d
- 456eb21199dba77889378febb04bc35d524d930d HID: hid-steam: keep evdev connected while steam is active
+https://github.com/bazzite-org/patchwork/commit/dd066f59426e2d14b51d8124d296096838720075
+ dd066f59426e2d14b51d8124d296096838720075 HID: hid-steam: keep evdev connected while steam is active
 
-https://github.com/bazzite-org/patchwork/commit/e1a913fbe1b8ed1185a4bec8e7d1a3082c67da48
- e1a913fbe1b8ed1185a4bec8e7d1a3082c67da48 watchdog: reduce error message level to maintain plymouth
+https://github.com/bazzite-org/patchwork/commit/1cb28a05b7897688027055da0f01b66b6efb9d6b
+ 1cb28a05b7897688027055da0f01b66b6efb9d6b watchdog: reduce error message level to maintain plymouth
 
-https://github.com/bazzite-org/patchwork/commit/e2c7a2b84d199a78a5f704ae7fcddabc184d93c9
- e2c7a2b84d199a78a5f704ae7fcddabc184d93c9 Input: evdev - allow releasing keys on grab
+https://github.com/bazzite-org/patchwork/commit/ffbbb3958ce0b75a48eed44455ff7015d82ce9c0
+ ffbbb3958ce0b75a48eed44455ff7015d82ce9c0 Input: evdev - allow releasing keys on grab
 
-https://github.com/bazzite-org/patchwork/commit/ad1fd054c1b9dfa3aa5228d6a3c926c746b68709
- ad1fd054c1b9dfa3aa5228d6a3c926c746b68709 Input: xpad - add new ID for Lenovo Legion Go controllers
+https://github.com/bazzite-org/patchwork/commit/5cea674accdaa81bbb8abfe237415d999dcae003
+ 5cea674accdaa81bbb8abfe237415d999dcae003 Input: xpad - add new ID for Lenovo Legion Go controllers
 
-https://github.com/bazzite-org/patchwork/commit/7cca7389c18435ba53da104414c59c16b4f1e681
- 7cca7389c18435ba53da104414c59c16b4f1e681 HID: asus: add Zenbook Duo Keyboard
+https://github.com/bazzite-org/patchwork/commit/993eedb9125365aa28049a677ef72bd4c0e293b0
+ 993eedb9125365aa28049a677ef72bd4c0e293b0 HID: asus: add Zenbook Duo Keyboard
 
-https://github.com/bazzite-org/patchwork/commit/9b0d7e2964721ad44848cdf8a8625b3c395db2b6
- 9b0d7e2964721ad44848cdf8a8625b3c395db2b6 drm/amd: Use suspend and hibernate post freeze notifications
+https://github.com/bazzite-org/patchwork/commit/742df24ffc1d1f5a49dcaccb83303ae8754d61b1
+ 742df24ffc1d1f5a49dcaccb83303ae8754d61b1 drm/amd: Use suspend and hibernate post freeze notifications
 
-https://github.com/bazzite-org/patchwork/commit/81baa20a23b1b3dc8266e23b63e35aeec6d30ae4
- 81baa20a23b1b3dc8266e23b63e35aeec6d30ae4 PM: Add suspend and hibernate notifications for after freeze
+https://github.com/bazzite-org/patchwork/commit/984cca0bc8ee211ad36d80ac669fa79c1e0d97a1
+ 984cca0bc8ee211ad36d80ac669fa79c1e0d97a1 PM: Add suspend and hibernate notifications for after freeze
 
-https://github.com/bazzite-org/patchwork/commit/d2dffd52836742ef09cf7ba4d11695b22f38a965
- d2dffd52836742ef09cf7ba4d11695b22f38a965 drm/amd: Lower logging level of overdrive warning to err
+https://github.com/bazzite-org/patchwork/commit/420f8f026d859780872cc531408d23a0feae06f1
+ 420f8f026d859780872cc531408d23a0feae06f1 drm/amd: Lower logging level of overdrive warning to err
 
-https://github.com/bazzite-org/patchwork/commit/0f02be47e24c12275e15bc98c5e7d1fe8d021ce4
- 0f02be47e24c12275e15bc98c5e7d1fe8d021ce4 platform/x86: msi-wmi-platform: Restore fan curves on PWM disable and unload
+https://github.com/bazzite-org/patchwork/commit/456c4e9f89496b6ad819b6c97ec2d6915f10e56a
+ 456c4e9f89496b6ad819b6c97ec2d6915f10e56a platform/x86: msi-wmi-platform: Restore fan curves on PWM disable and unload
 
-https://github.com/bazzite-org/patchwork/commit/d48120833ac226b90ebf18e0fa9140cd08b8b840
- d48120833ac226b90ebf18e0fa9140cd08b8b840 platform/x86: msi-wmi-platform: Update header text
+https://github.com/bazzite-org/patchwork/commit/ff321560b1212edaf7891bf474eb5004a50a5b81
+ ff321560b1212edaf7891bf474eb5004a50a5b81 platform/x86: msi-wmi-platform: Update header text
 
-https://github.com/bazzite-org/patchwork/commit/6eb17e88f56f423ea22424dbd385abdbff012249
- 6eb17e88f56f423ea22424dbd385abdbff012249 platform/x86: msi-wmi-platform: Drop excess fans in dual fan devices
+https://github.com/bazzite-org/patchwork/commit/60de94e97d846e4bbb39c0feb130031184a62190
+ 60de94e97d846e4bbb39c0feb130031184a62190 platform/x86: msi-wmi-platform: Drop excess fans in dual fan devices
 
-https://github.com/bazzite-org/patchwork/commit/3e703ed9ea4c7a0a5a49a9711c9eb3f6b8d5d757
- 3e703ed9ea4c7a0a5a49a9711c9eb3f6b8d5d757 platform/x86: msi-wmi-platform: Add charge_threshold support
+https://github.com/bazzite-org/patchwork/commit/9f68cc7a6715d719231cfd166f54507dc656df15
+ 9f68cc7a6715d719231cfd166f54507dc656df15 platform/x86: msi-wmi-platform: Add charge_threshold support
 
-https://github.com/bazzite-org/patchwork/commit/995a3e795a6d8c692a15e2378eb520120ee149fb
- 995a3e795a6d8c692a15e2378eb520120ee149fb platform/x86: msi-wmi-platform: Add tunable support via firmware attributes
+https://github.com/bazzite-org/patchwork/commit/beb5c02950702055b0f2479e9ddee2589bedb409
+ beb5c02950702055b0f2479e9ddee2589bedb409 platform/x86: msi-wmi-platform: Add tunable support via firmware attributes
 
-https://github.com/bazzite-org/patchwork/commit/726727270e51e638461286f50a0b6ea976198eea
- 726727270e51e638461286f50a0b6ea976198eea platform/x86: msi-wmi-platform: Add platform profile through shift mode
+https://github.com/bazzite-org/patchwork/commit/84959b67550b35cde29d928c63b857b560f8c5da
+ 84959b67550b35cde29d928c63b857b560f8c5da platform/x86: msi-wmi-platform: Add platform profile through shift mode
 
-https://github.com/bazzite-org/patchwork/commit/b3caa3438231dd026ea1f8706fd8d745806da19a
- b3caa3438231dd026ea1f8706fd8d745806da19a platform/x86: msi-wmi-platform: Add support for fan control
+https://github.com/bazzite-org/patchwork/commit/b1f6465d200a438b6ae0822cf9e9394809b1ae0e
+ b1f6465d200a438b6ae0822cf9e9394809b1ae0e platform/x86: msi-wmi-platform: Add support for fan control
 
-https://github.com/bazzite-org/patchwork/commit/7ee673434908f51590b5321846f66a6b01d7a343
- 7ee673434908f51590b5321846f66a6b01d7a343 platform/x86: msi-wmi-platform: Add quirk system
+https://github.com/bazzite-org/patchwork/commit/19c3b2fc11b8f5cba52d1919aaf112fa9d689617
+ 19c3b2fc11b8f5cba52d1919aaf112fa9d689617 platform/x86: msi-wmi-platform: Add quirk system
 
-https://github.com/bazzite-org/patchwork/commit/0de7f7aabc5fc004caf7ffd8fff30aec2071cfa0
- 0de7f7aabc5fc004caf7ffd8fff30aec2071cfa0 platform/x86: msi-wmi-platform: Add unlocked msi_wmi_platform_query
+https://github.com/bazzite-org/patchwork/commit/e42dfa754b12b2e58c4bbbb9ada544bab7136534
+ e42dfa754b12b2e58c4bbbb9ada544bab7136534 platform/x86: msi-wmi-platform: Add unlocked msi_wmi_platform_query
 
-https://github.com/bazzite-org/patchwork/commit/f755524e8bb04f86f2479cb75e3b4a365d754b4b
- f755524e8bb04f86f2479cb75e3b4a365d754b4b platform/x86: msi-wmi-platform: Use input buffer for returning result
+https://github.com/bazzite-org/patchwork/commit/066387cdd05afca959d8f8f915f7db0e1d5785a6
+ 066387cdd05afca959d8f8f915f7db0e1d5785a6 platform/x86: msi-wmi-platform: Use input buffer for returning result
 
-https://github.com/bazzite-org/patchwork/commit/0043a411350fd6f64e3bc3a8736f7fcf74439918
- 0043a411350fd6f64e3bc3a8736f7fcf74439918 [HACK] ACPI: s2idle: Trigger _WAK as part of exiting s2idle
+https://github.com/bazzite-org/patchwork/commit/239be66f86b9504b6bee7335102fd935ce122639
+ 239be66f86b9504b6bee7335102fd935ce122639 [HACK] ACPI: s2idle: Trigger _WAK as part of exiting s2idle
 
-https://github.com/bazzite-org/patchwork/commit/4be4b49c81ad6f5e058eaabf8c9c111be1eabad7
- 4be4b49c81ad6f5e058eaabf8c9c111be1eabad7 PM: standby: Add sysfs attribute for modern standby transitions
+https://github.com/bazzite-org/patchwork/commit/f55e59830a4d1a62d8f4b3423200ea11b255a513
+ f55e59830a4d1a62d8f4b3423200ea11b255a513 PM: standby: Add sysfs attribute for modern standby transitions
 
-https://github.com/bazzite-org/patchwork/commit/47d41f668cff27071ad0a4ea0ab3a72c463f38ac
- 47d41f668cff27071ad0a4ea0ab3a72c463f38ac PM: hibernate: Enter s2idle sleep state before hibernation
+https://github.com/bazzite-org/patchwork/commit/cbad284c67f1ad9a3c189667b638e6f5dab2339d
+ cbad284c67f1ad9a3c189667b638e6f5dab2339d PM: hibernate: Enter s2idle sleep state before hibernation
 
-https://github.com/bazzite-org/patchwork/commit/c0c837d658a51490a9154ee8615034d1a2b757b9
- c0c837d658a51490a9154ee8615034d1a2b757b9 platform/x86: asus-wmi: remove Ally (1st gen) and Ally X suspend quirk
+https://github.com/bazzite-org/patchwork/commit/cb47694a9437740412e3b1959d849bcefd3d2664
+ cb47694a9437740412e3b1959d849bcefd3d2664 platform/x86: asus-wmi: remove Ally (1st gen) and Ally X suspend quirk
 
-https://github.com/bazzite-org/patchwork/commit/ae64f9bd44299459e1b747bb65637384009099cb
- ae64f9bd44299459e1b747bb65637384009099cb acpi/x86: s2idle: allow adding a delay before suspend sequence
+https://github.com/bazzite-org/patchwork/commit/1092d7ad054db11ab4bcb162479ad138d2274e86
+ 1092d7ad054db11ab4bcb162479ad138d2274e86 acpi/x86: s2idle: allow adding a delay before suspend sequence
 
-https://github.com/bazzite-org/patchwork/commit/62e1a950afe9500bc8e269602ed9eabb608be7c0
- 62e1a950afe9500bc8e269602ed9eabb608be7c0 acpi/x86: s2idle: Add AC/DC burst wakeup support
+https://github.com/bazzite-org/patchwork/commit/65c93056f02cd7bd2fe9dde2d84f936ba320df84
+ 65c93056f02cd7bd2fe9dde2d84f936ba320df84 acpi/x86: s2idle: Add AC/DC burst wakeup support
 
-https://github.com/bazzite-org/patchwork/commit/6afc253fad6b69558dcddc2fc518efb0589b4dbc
- 6afc253fad6b69558dcddc2fc518efb0589b4dbc acpi/x86: s2idle: add quirk table for modern standby delays
+https://github.com/bazzite-org/patchwork/commit/43886b0eba1ca0c6a7f328f652d208d2d829927e
+ 43886b0eba1ca0c6a7f328f652d208d2d829927e acpi/x86: s2idle: add quirk table for modern standby delays
 
-https://github.com/bazzite-org/patchwork/commit/6f3097d4cd005bf1ec87d4a8101d7b1a84aecce9
- 6f3097d4cd005bf1ec87d4a8101d7b1a84aecce9 acpi/x86: s2idle: add Turn On Display and call as part of callback
+https://github.com/bazzite-org/patchwork/commit/81c6e6e5625432d3f9121f6c56521c206307b1b7
+ 81c6e6e5625432d3f9121f6c56521c206307b1b7 acpi/x86: s2idle: add Turn On Display and call as part of callback
 
-https://github.com/bazzite-org/patchwork/commit/ca90afeff1d8776544ae77b0d109fa9af00613b1
- ca90afeff1d8776544ae77b0d109fa9af00613b1 acpi/x86: s2idle: call Sleep Entry/Exit as part of callbacks
+https://github.com/bazzite-org/patchwork/commit/1b2945c8cd4ad592c4e9d3b5c1db13408e00fd5e
+ 1b2945c8cd4ad592c4e9d3b5c1db13408e00fd5e acpi/x86: s2idle: call Sleep Entry/Exit as part of callbacks
 
-https://github.com/bazzite-org/patchwork/commit/b5292947fd343c92d2ed2c0ba72757aa48a2b26f
- b5292947fd343c92d2ed2c0ba72757aa48a2b26f acpi/x86: s2idle: rename MS Exit/Entry to Sleep Exit/Entry
+https://github.com/bazzite-org/patchwork/commit/69819a660682ffab3540c1a6ea61b8ca4c110704
+ 69819a660682ffab3540c1a6ea61b8ca4c110704 acpi/x86: s2idle: rename MS Exit/Entry to Sleep Exit/Entry
 
-https://github.com/bazzite-org/patchwork/commit/075de2476c0c2598f0683303fdc80555a9da2b68
- 075de2476c0c2598f0683303fdc80555a9da2b68 acpi/x86: s2idle: call Display On/Off as part of callbacks
+https://github.com/bazzite-org/patchwork/commit/d8b45d8b5932fb4c931195c30cd146cab374bbd0
+ d8b45d8b5932fb4c931195c30cd146cab374bbd0 acpi/x86: s2idle: call Display On/Off as part of callbacks
 
-https://github.com/bazzite-org/patchwork/commit/ceda12204d8e7f03dce49f0120b3b868377b6af1
- ceda12204d8e7f03dce49f0120b3b868377b6af1 acpi/x86: s2idle: rename Screen On/Off to Display On/Off
+https://github.com/bazzite-org/patchwork/commit/67e5df6d98714112845a87449ad5e4b53c990918
+ 67e5df6d98714112845a87449ad5e4b53c990918 acpi/x86: s2idle: rename Screen On/Off to Display On/Off
 
-https://github.com/bazzite-org/patchwork/commit/7e2bfdc30d2c045a559f564f2854c3bef9a50cfe
- 7e2bfdc30d2c045a559f564f2854c3bef9a50cfe acpi/x86: s2idle: add modern standby transition function
+https://github.com/bazzite-org/patchwork/commit/deb10156a1ebc0e1efff9bea5963548434b758c4
+ deb10156a1ebc0e1efff9bea5963548434b758c4 acpi/x86: s2idle: add modern standby transition function
 
-https://github.com/bazzite-org/patchwork/commit/58cf01e6f3fcfc615620977a056a6765d23de700
- 58cf01e6f3fcfc615620977a056a6765d23de700 acpi/x86: s2idle: add support for Turn On Display callback
+https://github.com/bazzite-org/patchwork/commit/e0937554dfaf9b65270ef1c56d65fee2152858af
+ e0937554dfaf9b65270ef1c56d65fee2152858af acpi/x86: s2idle: add support for Turn On Display callback
 
-https://github.com/bazzite-org/patchwork/commit/d879b820283c8d51e4099bc419381890b5408df7
- d879b820283c8d51e4099bc419381890b5408df7 acpi/x86: s2idle: add support for Sleep Entry and Sleep Exit callbacks
+https://github.com/bazzite-org/patchwork/commit/ba1b621f62d7cf3c2e9dd943296029121e2034b8
+ ba1b621f62d7cf3c2e9dd943296029121e2034b8 acpi/x86: s2idle: add support for Sleep Entry and Sleep Exit callbacks
 
-https://github.com/bazzite-org/patchwork/commit/24e5c0b0ca4f3c24a816310835205118d8cf5624
- 24e5c0b0ca4f3c24a816310835205118d8cf5624 acpi/x86: s2idle: add support for Display Off and Display On callbacks
+https://github.com/bazzite-org/patchwork/commit/2f1b8b92a4cca13ac2491c5d651bee4ccba6282b
+ 2f1b8b92a4cca13ac2491c5d651bee4ccba6282b acpi/x86: s2idle: add support for Display Off and Display On callbacks
 
-https://github.com/bazzite-org/patchwork/commit/2f2da9bfccca4f7f05d6c25980c908ba952cb209
- 2f2da9bfccca4f7f05d6c25980c908ba952cb209 Documentation: PM: Add documentation for S0ix Standby States
+https://github.com/bazzite-org/patchwork/commit/81c3d8015893f4d0ec884453fca41a58fa04a7e8
+ 81c3d8015893f4d0ec884453fca41a58fa04a7e8 Documentation: PM: Add documentation for S0ix Standby States
 
-https://github.com/bazzite-org/patchwork/commit/01b173d61d66cc902ad37d8376cfba32e983f4e0
- 01b173d61d66cc902ad37d8376cfba32e983f4e0 [TEMPORARY] remove bmi260 matches from bmi270 driver due to sleep issues
+https://github.com/bazzite-org/patchwork/commit/18625aca6b8c8e8aa11d2c35b8dece9faa002346
+ 18625aca6b8c8e8aa11d2c35b8dece9faa002346 [TEMPORARY] remove bmi260 matches from bmi270 driver due to sleep issues
 
-https://github.com/bazzite-org/patchwork/commit/68204a3468733dfe4542fce807a7da9b81edd7ea
- 68204a3468733dfe4542fce807a7da9b81edd7ea ALSA: hda/realtek: Use DMI matching for Ayaneo Geek, Ayaneo 2, and Ayn MiniPro
+https://github.com/bazzite-org/patchwork/commit/598344f801d3dcaad0897778179d99d3b64c2f52
+ 598344f801d3dcaad0897778179d99d3b64c2f52 ALSA: hda/realtek: Use DMI matching for Ayaneo Geek, Ayaneo 2, and Ayn MiniPro
 
-https://github.com/bazzite-org/patchwork/commit/f18a86da04758a42acef9b10386c3a5dca179491
- f18a86da04758a42acef9b10386c3a5dca179491 ALSA: hda/realtek: Add Ayaneo Air 1S audio quirk
+https://github.com/bazzite-org/patchwork/commit/7161395b248b41dd689ee865fc415205f604bb94
+ 7161395b248b41dd689ee865fc415205f604bb94 ALSA: hda/realtek: Add Ayaneo Air 1S audio quirk
 
-https://github.com/bazzite-org/patchwork/commit/d89d1955c47f8ff242209c4d06eaf6d3e2b9ecd1
- d89d1955c47f8ff242209c4d06eaf6d3e2b9ecd1 Codec: aw87xxx: add dmi match for handheld devices
+https://github.com/bazzite-org/patchwork/commit/f4c7976bb821997408bc20cac25fd48bace6f835
+ f4c7976bb821997408bc20cac25fd48bace6f835 Codec: aw87xxx: add dmi match for handheld devices
 
-https://github.com/bazzite-org/patchwork/commit/a6b17b1a908784956ddd870dbe9237cbd2f15a55
- a6b17b1a908784956ddd870dbe9237cbd2f15a55 Codec: Add aw87xxx codec with ACPI implementation
+https://github.com/bazzite-org/patchwork/commit/e69a42ac4735c54b160fa2dcb2b4d4ccbac12cbe
+ e69a42ac4735c54b160fa2dcb2b4d4ccbac12cbe Codec: Add aw87xxx codec with ACPI implementation
 
-https://github.com/bazzite-org/patchwork/commit/bfe1808ede99960102b943f9019b65178e7f7faf
- bfe1808ede99960102b943f9019b65178e7f7faf Input: goodix - add support for ACPI ID GDIX1003
+https://github.com/bazzite-org/patchwork/commit/f65175bb4bad65706b8e6ac49a60855d6d4ff37b
+ f65175bb4bad65706b8e6ac49a60855d6d4ff37b Input: goodix - add support for ACPI ID GDIX1003
 
-https://github.com/bazzite-org/patchwork/commit/235feb062cb24f5c4024c05d508096cde2bdac74
- 235feb062cb24f5c4024c05d508096cde2bdac74 drm: panel-orientation-quirks: Add OneXPlayer X1Pro EVA-2 quirk This is a special edition of the X1 that uses this year's Intel CPU.
+https://github.com/bazzite-org/patchwork/commit/1979e2dac224e7354628cd3104598e547042574f
+ 1979e2dac224e7354628cd3104598e547042574f drm: panel-orientation-quirks: Add OneXPlayer X1Pro EVA-2 quirk This is a special edition of the X1 that uses this year's Intel CPU.
 
-https://github.com/bazzite-org/patchwork/commit/5cc199d0483dd980c2f24d05dc3c009fd6eeeb20
- 5cc199d0483dd980c2f24d05dc3c009fd6eeeb20 drm: panel-orientation-quirks: Add Zeenix Pro
+https://github.com/bazzite-org/patchwork/commit/ac6e3c5599a64dcce625fa0c2c24aa6c6f7b3fef
+ ac6e3c5599a64dcce625fa0c2c24aa6c6f7b3fef drm: panel-orientation-quirks: Add Zeenix Pro
 
-https://github.com/bazzite-org/patchwork/commit/7abe597a5ca995cc78e9e705c992b4f197de48f6
- 7abe597a5ca995cc78e9e705c992b4f197de48f6 drm: panel-orientation-quirks: Add Ayaneo 3
+https://github.com/bazzite-org/patchwork/commit/7c063f04572b7b5197b7853731fa7e52d58c2796
+ 7c063f04572b7b5197b7853731fa7e52d58c2796 drm: panel-orientation-quirks: Add Ayaneo 3
 
-https://github.com/bazzite-org/patchwork/commit/066fe8fccfcc4077b160e896d65318bd81ad2657
- 066fe8fccfcc4077b160e896d65318bd81ad2657 drm: panel-orientation-quirks: Add Steamfork quirks
+https://github.com/bazzite-org/patchwork/commit/8b9885e0e6ceeb2219ebee0c1ec7f38091b0c81f
+ 8b9885e0e6ceeb2219ebee0c1ec7f38091b0c81f drm: panel-orientation-quirks: Add Steamfork quirks
 
-https://github.com/bazzite-org/patchwork/commit/824600d02f298c96c0aa7a20c4c883282ba8e0e5
- 824600d02f298c96c0aa7a20c4c883282ba8e0e5 drm: panel-orientation-quirks: Add GPD Win Max (2021)
+https://github.com/bazzite-org/patchwork/commit/7380e0b80f9f7ce4fd411188590b13fc1ae6d676
+ 7380e0b80f9f7ce4fd411188590b13fc1ae6d676 drm: panel-orientation-quirks: Add GPD Win Max (2021)
 
-https://github.com/bazzite-org/patchwork/commit/e1e1131cbe28850df737fe5fd35ddb4441d43ee4
- e1e1131cbe28850df737fe5fd35ddb4441d43ee4 drm: panel-orientation-quirks: Add OneXPlayer G1 Amd & Intel
+https://github.com/bazzite-org/patchwork/commit/f8d3b9329535bf53c446cb51d55a4100ab925188
+ f8d3b9329535bf53c446cb51d55a4100ab925188 drm: panel-orientation-quirks: Add OneXPlayer G1 Amd & Intel
 
-https://github.com/bazzite-org/patchwork/commit/7352d3a6bbcbd7fd3fbc3cd58996b51f5ff7fac5
- 7352d3a6bbcbd7fd3fbc3cd58996b51f5ff7fac5 drm: panel-orientation-quirks: Add OneXPlayer F1 Hawk Point
+https://github.com/bazzite-org/patchwork/commit/a4f0ae573e79ed5a323a5aadc6fbe02cf889f013
+ a4f0ae573e79ed5a323a5aadc6fbe02cf889f013 drm: panel-orientation-quirks: Add OneXPlayer F1 Hawk Point
 
-https://github.com/bazzite-org/patchwork/commit/299222400454b08d04138f8d9abdf9a9fa583129
- 299222400454b08d04138f8d9abdf9a9fa583129 drm: panel-orientation-quirks: Add Zotac Gaming Zone quirk
+https://github.com/bazzite-org/patchwork/commit/cf610d7a81feb80cebc91cd6e22ef4e3c6ada6f1
+ cf610d7a81feb80cebc91cd6e22ef4e3c6ada6f1 drm: panel-orientation-quirks: Add Zotac Gaming Zone quirk
 
-https://github.com/bazzite-org/patchwork/commit/9ef6cbee81c01e9781a2055e20b49b9e8dbd4304
- 9ef6cbee81c01e9781a2055e20b49b9e8dbd4304 HID: Add quirk to ignore the touchscreen battery on OneXPlayer X1
+https://github.com/bazzite-org/patchwork/commit/a4d3c592228a7a98ccd7bba579a6b0c9553772b0
+ a4d3c592228a7a98ccd7bba579a6b0c9553772b0 HID: Add quirk to ignore the touchscreen battery on OneXPlayer X1
 
-https://github.com/bazzite-org/patchwork/commit/55ac74abf934842cea855b8d5b30d83fa9c5d584
- 55ac74abf934842cea855b8d5b30d83fa9c5d584 drm: panel-orientation-quirks: Add OneXPlayer F1Pro quirk
+https://github.com/bazzite-org/patchwork/commit/2c9d3ce7ed26e5d4a4643d03a86d5ae01d8ee2de
+ 2c9d3ce7ed26e5d4a4643d03a86d5ae01d8ee2de drm: panel-orientation-quirks: Add OneXPlayer F1Pro quirk
 
-https://github.com/bazzite-org/patchwork/commit/d13fef050fe61c83be6a297ece25635fa1a27110
- d13fef050fe61c83be6a297ece25635fa1a27110 drm: panel-orientation-quirks: Add OneXPlayer X1Mini Pro quirk
+https://github.com/bazzite-org/patchwork/commit/e560ab21c2990e6a1dd00031c2e6c3a7fc6ea6c1
+ e560ab21c2990e6a1dd00031c2e6c3a7fc6ea6c1 drm: panel-orientation-quirks: Add OneXPlayer X1Mini Pro quirk
 
-https://github.com/bazzite-org/patchwork/commit/0f97e3a276b044fe84c8e20a047a42b6e07f62d6
- 0f97e3a276b044fe84c8e20a047a42b6e07f62d6 drm: panel-orientation-quirks: Add OneXPlayer X1 Mini (AMD) quirk
+https://github.com/bazzite-org/patchwork/commit/87ad5152dd3332f0648a8d01bbe67f450dada47c
+ 87ad5152dd3332f0648a8d01bbe67f450dada47c drm: panel-orientation-quirks: Add OneXPlayer X1 Mini (AMD) quirk
 
-https://github.com/bazzite-org/patchwork/commit/3d87488c224ad859f8007fcb7bae6ec5ec3c7f37
- 3d87488c224ad859f8007fcb7bae6ec5ec3c7f37 drm: panel-orientation-quirks: Add OneXPlayer X1 AMD and Intel quirk
+https://github.com/bazzite-org/patchwork/commit/f0617b1f177902a38bf76dcbe38b3df32c04c54e
+ f0617b1f177902a38bf76dcbe38b3df32c04c54e drm: panel-orientation-quirks: Add OneXPlayer X1 AMD and Intel quirk
 
-https://github.com/bazzite-org/patchwork/commit/e597d06928539b35e4865aa5d47bc250a38fd158
- e597d06928539b35e4865aa5d47bc250a38fd158 drm: panel-orientation-quirks: Add AYANEO FLIP DS quirk
+https://github.com/bazzite-org/patchwork/commit/8b663bb26b774b63c773f7e3ac6137a149cde460
+ 8b663bb26b774b63c773f7e3ac6137a149cde460 drm: panel-orientation-quirks: Add AYANEO FLIP DS quirk
 
-https://github.com/bazzite-org/patchwork/commit/c669e528524619415870000f2caae79b2c80667a
- c669e528524619415870000f2caae79b2c80667a drm: panel-orientation-quirks: Add Aya Neo 2S orientation quirk
+https://github.com/bazzite-org/patchwork/commit/3d1d7b2e357d96faaca4718d535ed38dadd0f8ae
+ 3d1d7b2e357d96faaca4718d535ed38dadd0f8ae drm: panel-orientation-quirks: Add Aya Neo 2S orientation quirk
 
-https://github.com/bazzite-org/patchwork/commit/10aceb7870be1f6f6e0f5bd73c5ea42dd1a6a749
- 10aceb7870be1f6f6e0f5bd73c5ea42dd1a6a749 hid-asus: Add MODULE_IMPORT_NS(ASUS_WMI)
+https://github.com/bazzite-org/patchwork/commit/aad746924d55696294be3a58be591d190c4eaa72
+ aad746924d55696294be3a58be591d190c4eaa72 hid-asus: Add MODULE_IMPORT_NS(ASUS_WMI)
 
-https://github.com/bazzite-org/patchwork/commit/45f106726c6c5f3f51a13e937d28a2e5ad0b5e09
- 45f106726c6c5f3f51a13e937d28a2e5ad0b5e09 platform/x86: asus-armoury: add core count control
+https://github.com/bazzite-org/patchwork/commit/d5f9ec68dc3a73e08b618036476b1b2bc4b836fc
+ d5f9ec68dc3a73e08b618036476b1b2bc4b836fc platform/x86: asus-armoury: add core count control
 
-https://github.com/bazzite-org/patchwork/commit/5ee667643f4d0beec72a6dfd9b78d82bba24c5ad
- 5ee667643f4d0beec72a6dfd9b78d82bba24c5ad platform/x86: asus-armoury: add apu-mem control support
+https://github.com/bazzite-org/patchwork/commit/985cc595508d55d9a13344cbca9194ac0346b1a6
+ 985cc595508d55d9a13344cbca9194ac0346b1a6 platform/x86: asus-armoury: add apu-mem control support
 
-https://github.com/bazzite-org/patchwork/commit/10c7a2f3fe22a8fed76e6bf4e98a6fea4b3304f4
- 10c7a2f3fe22a8fed76e6bf4e98a6fea4b3304f4 platform/x86: asus-armoury: add dgpu tgp control
+https://github.com/bazzite-org/patchwork/commit/fddcf2945e06dd46eabcec2d1c853d997932db04
+ fddcf2945e06dd46eabcec2d1c853d997932db04 platform/x86: asus-armoury: add dgpu tgp control
 
-https://github.com/bazzite-org/patchwork/commit/4687e45eab36fd402b2dfc136247b79764b68e71
- 4687e45eab36fd402b2dfc136247b79764b68e71 platform/x86: asus-armoury: add the ppt_* and nv_* tuning knobs
+https://github.com/bazzite-org/patchwork/commit/ed8e51acb1ab43c91cab7a0a9b5b20d10c652c3b
+ ed8e51acb1ab43c91cab7a0a9b5b20d10c652c3b platform/x86: asus-armoury: add the ppt_* and nv_* tuning knobs
 
-https://github.com/bazzite-org/patchwork/commit/b8e02fc9b190a641cf74c331613bd6541b631b3d
- b8e02fc9b190a641cf74c331613bd6541b631b3d platform/x86: asus-armoury: add panel_hd_mode attribute
+https://github.com/bazzite-org/patchwork/commit/ac61544283740bb9950c114a4a3b751505c998dd
+ ac61544283740bb9950c114a4a3b751505c998dd platform/x86: asus-armoury: add panel_hd_mode attribute
 
-https://github.com/bazzite-org/patchwork/commit/92d31f5df8226706179c748ba6c2424ee4bb182a
- 92d31f5df8226706179c748ba6c2424ee4bb182a platform/x86: asus-armoury: move existing tunings to asus-armoury module
+https://github.com/bazzite-org/patchwork/commit/082be508ca2de0f877d100f39516ab946bbfdfb0
+ 082be508ca2de0f877d100f39516ab946bbfdfb0 platform/x86: asus-armoury: move existing tunings to asus-armoury module
 
-https://github.com/bazzite-org/patchwork/commit/5b6d5fb4680f9ac2cb796798b0fc38c359fefe02
- 5b6d5fb4680f9ac2cb796798b0fc38c359fefe02 platform/x86: asus-wmi: export symbols used for read/write WMI
+https://github.com/bazzite-org/patchwork/commit/cba29b5eb7a002bff7da88fe33797defa2877c38
+ cba29b5eb7a002bff7da88fe33797defa2877c38 platform/x86: asus-wmi: export symbols used for read/write WMI
 
-https://github.com/bazzite-org/patchwork/commit/530c6376c2f8f48aee7b1219a62406acf19ecf5d
- 530c6376c2f8f48aee7b1219a62406acf19ecf5d platform/x86: asus-wmi: don't fail if platform_profile already registered
+https://github.com/bazzite-org/patchwork/commit/1d30e77d64249a4f379805eeb66e1f670eedab0b
+ 1d30e77d64249a4f379805eeb66e1f670eedab0b platform/x86: asus-wmi: don't fail if platform_profile already registered
 
-https://github.com/bazzite-org/patchwork/commit/0e8a560f06daadf795c2e5599580489d50ab185f
- 0e8a560f06daadf795c2e5599580489d50ab185f Revert "platform/x86: firmware_attributes_class: Drop lifecycle functions"
+https://github.com/bazzite-org/patchwork/commit/103dd8a738c5bde903061996cf3d8013b02ed3b0
+ 103dd8a738c5bde903061996cf3d8013b02ed3b0 Revert "platform/x86: firmware_attributes_class: Drop lifecycle functions"
 
-https://github.com/bazzite-org/patchwork/commit/b212ea19cdda68dbbc3bcf741d4717bf71c49f1a
- b212ea19cdda68dbbc3bcf741d4717bf71c49f1a [NOT FOR UPSTREAM] Add DSDT config for original Ally older BIOSes
+https://github.com/bazzite-org/patchwork/commit/1da9edc8ac9cd190d13d3ed8317a887d9aa48dea
+ 1da9edc8ac9cd190d13d3ed8317a887d9aa48dea [NOT FOR UPSTREAM] Add DSDT config for original Ally older BIOSes
 
-https://github.com/bazzite-org/patchwork/commit/67009824e316346e0f5dbca7f6506b1bc6b8c1d2
- 67009824e316346e0f5dbca7f6506b1bc6b8c1d2 [NOT FOR UPSTREAM] remove ally quirk from asus_hid
+https://github.com/bazzite-org/patchwork/commit/36c36ca6504c87edc16e3c6fbd2122e986f7c3bd
+ 36c36ca6504c87edc16e3c6fbd2122e986f7c3bd [NOT FOR UPSTREAM] remove ally quirk from asus_hid
 
-https://github.com/bazzite-org/patchwork/commit/93e2734597bdd73d4ac975cfe85307eaf3f1be23
- 93e2734597bdd73d4ac975cfe85307eaf3f1be23 Revert "hid-asus: check ROG Ally MCU version and warn"
+https://github.com/bazzite-org/patchwork/commit/6829af5d58c1a5256374f0514d1306228070545a
+ 6829af5d58c1a5256374f0514d1306228070545a Revert "hid-asus: check ROG Ally MCU version and warn"
 
-https://github.com/bazzite-org/patchwork/commit/8274040690828cf85036567d46626e4bb46160ac
- 8274040690828cf85036567d46626e4bb46160ac Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
+https://github.com/bazzite-org/patchwork/commit/e16420cc1f46f4cf9da90b69065795ee39632800
+ e16420cc1f46f4cf9da90b69065795ee39632800 Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
 
-https://github.com/bazzite-org/patchwork/commit/3ffcab44f64b574889e9aa881cb446415ab9d2ed
- 3ffcab44f64b574889e9aa881cb446415ab9d2ed Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
+https://github.com/bazzite-org/patchwork/commit/020c61161bd9d830c261f99bca4e6c5339123e72
+ 020c61161bd9d830c261f99bca4e6c5339123e72 Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume"
 
-https://github.com/bazzite-org/patchwork/commit/690e675d0b5ae512fbeb4ea10dbfeafc3c17167e
- 690e675d0b5ae512fbeb4ea10dbfeafc3c17167e add ROG Ally devices to nct6775
+https://github.com/bazzite-org/patchwork/commit/185199bb876265e38f63ac3303359a277af07806
+ 185199bb876265e38f63ac3303359a277af07806 add ROG Ally devices to nct6775
 
-https://github.com/bazzite-org/patchwork/commit/ed021923438b62c6124ab0400631a2075a83e83e
- ed021923438b62c6124ab0400631a2075a83e83e HID: asus: initialize LED endpoint early for old NKEY keyboards
+https://github.com/bazzite-org/patchwork/commit/1a9232a4fac3d9ef9a35eace64cd2d41b2872c65
+ 1a9232a4fac3d9ef9a35eace64cd2d41b2872c65 HID: asus: initialize LED endpoint early for old NKEY keyboards
 
-https://github.com/bazzite-org/patchwork/commit/3e3e803a1972d06bcabc8b9ab45c407477329d9c
- 3e3e803a1972d06bcabc8b9ab45c407477329d9c HID: asus: add RGB support to the ROG Ally units
+https://github.com/bazzite-org/patchwork/commit/01af485b20938970382273f661f5cdd4c0dc3aa0
+ 01af485b20938970382273f661f5cdd4c0dc3aa0 HID: asus: add RGB support to the ROG Ally units
 
-https://github.com/bazzite-org/patchwork/commit/6c362fc0f021720265e33fd934b8324cf5f09b50
- 6c362fc0f021720265e33fd934b8324cf5f09b50 HID: asus: add basic RGB support
+https://github.com/bazzite-org/patchwork/commit/d421440345ebd3825a2a8085de1777ce0eed77f5
+ d421440345ebd3825a2a8085de1777ce0eed77f5 HID: asus: add basic RGB support
 
-https://github.com/bazzite-org/patchwork/commit/20338c749ef9c246c13c0b713ead96cae9b5a02c
- 20338c749ef9c246c13c0b713ead96cae9b5a02c HID: asus: add support for the asus-wmi brightness handler
+https://github.com/bazzite-org/patchwork/commit/eeaf92000e884493b00a3956f4ee723a9d7e4f20
+ eeaf92000e884493b00a3956f4ee723a9d7e4f20 HID: asus: add support for the asus-wmi brightness handler
 
-https://github.com/bazzite-org/patchwork/commit/3864cba240633dfc03998060b940ae635c122518
- 3864cba240633dfc03998060b940ae635c122518 platform/x86: asus-wmi: add keyboard brightness event handler
+https://github.com/bazzite-org/patchwork/commit/1505447dc141248df121632706740c36734d834d
+ 1505447dc141248df121632706740c36734d834d platform/x86: asus-wmi: add keyboard brightness event handler
 
-https://github.com/bazzite-org/patchwork/commit/03619d4eba8bdcda976ce4a1867e8ec45c504be2
- 03619d4eba8bdcda976ce4a1867e8ec45c504be2 platform/x86: asus-wmi: remove unused keyboard backlight quirk
+https://github.com/bazzite-org/patchwork/commit/a5897e7354d372ee9be85594b014682c233de93d
+ a5897e7354d372ee9be85594b014682c233de93d platform/x86: asus-wmi: remove unused keyboard backlight quirk
 
-https://github.com/bazzite-org/patchwork/commit/615d28411f268d45d2d1a50e2cd474ea804bc7b8
- 615d28411f268d45d2d1a50e2cd474ea804bc7b8 HID: asus: listen to the asus-wmi brightness device instead of creating one
+https://github.com/bazzite-org/patchwork/commit/3cd3a4e40fbcfe1d63cf9876bfe7085be6348496
+ 3cd3a4e40fbcfe1d63cf9876bfe7085be6348496 HID: asus: listen to the asus-wmi brightness device instead of creating one
 
-https://github.com/bazzite-org/patchwork/commit/c1ce6cdfc8de1aa833d632705483bec65dff9552
- c1ce6cdfc8de1aa833d632705483bec65dff9552 platform/x86: asus-wmi: Add support for multiple kbd RGB handlers
+https://github.com/bazzite-org/patchwork/commit/c30f64aaf4357f2ffcc796b6a9a9304c9a77157c
+ c30f64aaf4357f2ffcc796b6a9a9304c9a77157c platform/x86: asus-wmi: Add support for multiple kbd RGB handlers
 
-https://github.com/bazzite-org/patchwork/commit/9cff291b5ebfd084533638cc4aef2e97e8c26589
- 9cff291b5ebfd084533638cc4aef2e97e8c26589 HID: asus: add Z13 folio to generic group for multitouch to work
+https://github.com/bazzite-org/patchwork/commit/97906735593f34f7d8cd2290f622a1f6297d3b29
+ 97906735593f34f7d8cd2290f622a1f6297d3b29 HID: asus: add Z13 folio to generic group for multitouch to work
 
-https://github.com/bazzite-org/patchwork/commit/49d5dba45e1a9e231b14f39f6370fefd875ddb8d
- 49d5dba45e1a9e231b14f39f6370fefd875ddb8d HID: asus: prevent binding to all HID devices on ROG
+https://github.com/bazzite-org/patchwork/commit/c7c8f77dfb9a9914e07eb4b837eb8ca8f2d49920
+ c7c8f77dfb9a9914e07eb4b837eb8ca8f2d49920 HID: asus: prevent binding to all HID devices on ROG
 
-https://github.com/bazzite-org/patchwork/commit/dba9a2f7032aab00927938012ec01048544f9f66
- dba9a2f7032aab00927938012ec01048544f9f66 HID: asus: refactor init sequence per spec
+https://github.com/bazzite-org/patchwork/commit/f673444e86d154769a3a0005027060e607ef6015
+ f673444e86d154769a3a0005027060e607ef6015 HID: asus: refactor init sequence per spec
 
-https://github.com/bazzite-org/patchwork/commit/060c5178cb78c861c5fd1e93205326c863318e78
- 060c5178cb78c861c5fd1e93205326c863318e78 drm/amdgpu: enable SI and CIK support by default
+https://github.com/bazzite-org/patchwork/commit/e203e166cf8ef0b2584e83889f7c325222dfdd17
+ e203e166cf8ef0b2584e83889f7c325222dfdd17 drm/amdgpu: enable SI and CIK support by default
 
-https://github.com/bazzite-org/patchwork/commit/83b3622d2509a83cdd4214f51a3104644f7b54db
- 83b3622d2509a83cdd4214f51a3104644f7b54db set ds controller bluetooth pollrate to 1 ms
+https://github.com/bazzite-org/patchwork/commit/1a6967a35308dc7db39f0e83c9e0974b6bf76688
+ 1a6967a35308dc7db39f0e83c9e0974b6bf76688 set ds controller bluetooth pollrate to 1 ms
 
-https://github.com/bazzite-org/patchwork/commit/82146fa2ab53064aefa2d2b5c1a22d7ebbd7ad3a
- 82146fa2ab53064aefa2d2b5c1a22d7ebbd7ad3a Allow to set custom USB pollrate for specific devices like so: usbcore.interrupt_interval_override=045e:00db:16,1bcf:0005:1
+https://github.com/bazzite-org/patchwork/commit/6f1ae8842a43d34dfac60decb232a73e74019ca4
+ 6f1ae8842a43d34dfac60decb232a73e74019ca4 Allow to set custom USB pollrate for specific devices like so: usbcore.interrupt_interval_override=045e:00db:16,1bcf:0005:1
 
-https://github.com/bazzite-org/patchwork/commit/3b6d2f58cb9f45d561948f1bef72c0b2a6643981
- 3b6d2f58cb9f45d561948f1bef72c0b2a6643981 Cachy: drm/amdgpu/pm: Allow override of min_power_limit with ignore_min_pcap
+https://github.com/bazzite-org/patchwork/commit/6b62b6d608277f54f7b37027b89303ccf0947275
+ 6b62b6d608277f54f7b37027b89303ccf0947275 Cachy: drm/amdgpu/pm: Allow override of min_power_limit with ignore_min_pcap
 
-https://github.com/bazzite-org/patchwork/commit/a2972acaccfd364fc08006f2f0cc206552ec7fdd
- a2972acaccfd364fc08006f2f0cc206552ec7fdd ACPI: processor_idle: Skip dummy wait for processors based on the Zen microarchitecture
+https://github.com/bazzite-org/patchwork/commit/2725306dde71fb2cdbd5b2b53c90da0d7e14637d
+ 2725306dde71fb2cdbd5b2b53c90da0d7e14637d ACPI: processor_idle: Skip dummy wait for processors based on the Zen microarchitecture
 
-https://github.com/bazzite-org/patchwork/commit/8019d89c24fbfe7f74eb3f1945a7bac03bce0f1e
- 8019d89c24fbfe7f74eb3f1945a7bac03bce0f1e Revert "PCI: Add a REBAR size quirk for Sapphire RX 5600 XT Pulse"
+https://github.com/bazzite-org/patchwork/commit/fb20aa6db9a49ced32f97d0cedeac52598f2130b
+ fb20aa6db9a49ced32f97d0cedeac52598f2130b Revert "PCI: Add a REBAR size quirk for Sapphire RX 5600 XT Pulse"
 
-https://github.com/bazzite-org/patchwork/commit/49500e28a1dceaf20fd073ed8e1448277e6c303b
- 49500e28a1dceaf20fd073ed8e1448277e6c303b Fix HAINAN amdgpu card not being bootable
+https://github.com/bazzite-org/patchwork/commit/660ef2d432000e9f9112718595ffa9c8306c8a71
+ 660ef2d432000e9f9112718595ffa9c8306c8a71 Fix HAINAN amdgpu card not being bootable
 
-https://github.com/bazzite-org/patchwork/commit/a8ca02affabf8f68815d0c06a3ea72c305c2362a
- a8ca02affabf8f68815d0c06a3ea72c305c2362a PCI: Have ACI override bail if no parameter is provided
+https://github.com/bazzite-org/patchwork/commit/fc3860f186b17229de50ebed147d30663ad8cc91
+ fc3860f186b17229de50ebed147d30663ad8cc91 PCI: Have ACI override bail if no parameter is provided
 
-https://github.com/bazzite-org/patchwork/commit/531b2268cac27f9f9a77e621d56af0b31c963378
- 531b2268cac27f9f9a77e621d56af0b31c963378 PCI: Add ACI override to allow GPU passthrough in older motherboards
+https://github.com/bazzite-org/patchwork/commit/db8c1991d671ca04b9c2265f600d9f81f663e316
+ db8c1991d671ca04b9c2265f600d9f81f663e316 PCI: Add ACI override to allow GPU passthrough in older motherboards
 
-https://github.com/bazzite-org/patchwork/commit/d54a29e74a520a3e36439ccb58fded7d4c75ce23
- d54a29e74a520a3e36439ccb58fded7d4c75ce23 Input: uinput - Add UI_SET_PHYS_STR and UI_SET_UNIQ_STR
+https://github.com/bazzite-org/patchwork/commit/1a9cd256e1611fd459b48045ab01095de2d6ebca
+ 1a9cd256e1611fd459b48045ab01095de2d6ebca Input: uinput - Add UI_SET_PHYS_STR and UI_SET_UNIQ_STR
 
-https://github.com/bazzite-org/patchwork/commit/f1b6741173fc920934cc017dffbd5422e60d25f7
- f1b6741173fc920934cc017dffbd5422e60d25f7 [NOT FOR UPSTREAM] remove stupid "No IRQ Handler for vector" message
+https://github.com/bazzite-org/patchwork/commit/3d2e57d682f0b456536237df48916ef7a509df32
+ 3d2e57d682f0b456536237df48916ef7a509df32 [NOT FOR UPSTREAM] remove stupid "No IRQ Handler for vector" message
 
-https://github.com/bazzite-org/patchwork/commit/12b83a84509fbecb5b39821e9b40a82e18009821
- 12b83a84509fbecb5b39821e9b40a82e18009821 [NOT FOR UPSTREAM] add acpi_call module
+https://github.com/bazzite-org/patchwork/commit/e06a0d0398c309e0908480240b9b0cd053610708
+ e06a0d0398c309e0908480240b9b0cd053610708 [NOT FOR UPSTREAM] add acpi_call module
 
-https://github.com/bazzite-org/patchwork/commit/ac7771042c64e1ef8a0c7deec27220c301639dcd
- ac7771042c64e1ef8a0c7deec27220c301639dcd drm/amd: use fixed dsc bits-per-pixel from edid
+https://github.com/bazzite-org/patchwork/commit/c1651be5a3b19b90a352319365a36f01916c8377
+ c1651be5a3b19b90a352319365a36f01916c8377 drm/amd: use fixed dsc bits-per-pixel from edid
 
-https://github.com/bazzite-org/patchwork/commit/27becbc48436872d9dc9b12d9b56690292471ea7
- 27becbc48436872d9dc9b12d9b56690292471ea7 drm/edid: parse DRM VESA dsc bpp target
+https://github.com/bazzite-org/patchwork/commit/08aabe696eff875a854b89ed34560fb628d5995f
+ 08aabe696eff875a854b89ed34560fb628d5995f drm/edid: parse DRM VESA dsc bpp target
 
-https://github.com/bazzite-org/patchwork/commit/a0471d847ec55c0bec0193044be841e7c95b0841
- a0471d847ec55c0bec0193044be841e7c95b0841 drivers/firmware: skip simpledrm if nvidia-drm.modeset=1 is set
+https://github.com/bazzite-org/patchwork/commit/ee967703ba177782824733d19dfbb68ec1e91f38
+ ee967703ba177782824733d19dfbb68ec1e91f38 drivers/firmware: skip simpledrm if nvidia-drm.modeset=1 is set
 
-https://github.com/bazzite-org/patchwork/commit/761093ead6f16d4b94a1154180cf2ca5ae22f329
- 761093ead6f16d4b94a1154180cf2ca5ae22f329 HID: quirks: Add Apple Magic Trackpad 2 to hid_have_special_driver list
+https://github.com/bazzite-org/patchwork/commit/a1a7a549fb8abe214f9ec2e6034fe7e9b58d079c
+ a1a7a549fb8abe214f9ec2e6034fe7e9b58d079c HID: quirks: Add Apple Magic Trackpad 2 to hid_have_special_driver list
 
-https://github.com/bazzite-org/patchwork/commit/e2188250b1c49b137b52ba969abc18ba4d0629f2
- e2188250b1c49b137b52ba969abc18ba4d0629f2 [NOT-FOR-UPSTREAM] ACPICA: Limit error message flood caused by firmware bug
+https://github.com/bazzite-org/patchwork/commit/ca86514d883a441505a410192427d76d5daa973c
+ ca86514d883a441505a410192427d76d5daa973c [NOT-FOR-UPSTREAM] ACPICA: Limit error message flood caused by firmware bug
 
-https://github.com/bazzite-org/patchwork/commit/249524e76fa8618aeb80043f06ffc25b56da14dd
- 249524e76fa8618aeb80043f06ffc25b56da14dd [NOT-FOR-UPSTREAM] drivers: video: backlight: Disable backlight notification events
+https://github.com/bazzite-org/patchwork/commit/7e5ad0ca8d061fd04dbc52ea3bfdb37111e424d9
+ 7e5ad0ca8d061fd04dbc52ea3bfdb37111e424d9 [NOT-FOR-UPSTREAM] drivers: video: backlight: Disable backlight notification events
 
-https://github.com/bazzite-org/patchwork/commit/3623fed5db39bfc41c9568e0db0bf22afed13d21
- 3623fed5db39bfc41c9568e0db0bf22afed13d21 [NOT-FOR-UPSTREAM] PM: suspend: Disable s2idle on Steam Decks
+https://github.com/bazzite-org/patchwork/commit/306b29da6b8bfb08574ba4ea0656d0029f144973
+ 306b29da6b8bfb08574ba4ea0656d0029f144973 [NOT-FOR-UPSTREAM] PM: suspend: Disable s2idle on Steam Decks
 
-https://github.com/bazzite-org/patchwork/commit/a816c74a71509bc49690f755ff55bc02689f76bd
- a816c74a71509bc49690f755ff55bc02689f76bd drm/amd/display: edp do not add non-edid timings
+https://github.com/bazzite-org/patchwork/commit/f3ed201931d0fa0564bfbaee282ae4fdc723b3ef
+ f3ed201931d0fa0564bfbaee282ae4fdc723b3ef drm/amd/display: edp do not add non-edid timings
 
-https://github.com/bazzite-org/patchwork/commit/b25f762af02706c085f486dc1936285f30c03274
- b25f762af02706c085f486dc1936285f30c03274 drm/amd/display: Don't limit YUV420 to HDMI
+https://github.com/bazzite-org/patchwork/commit/75a05a8d695f6f2ad6e462bbbc248343f6bea20c
+ 75a05a8d695f6f2ad6e462bbbc248343f6bea20c drm/amd/display: Don't limit YUV420 to HDMI
 
-https://github.com/bazzite-org/patchwork/commit/958fe9e5ef7983ca095e6e43d3c95199be408ad4
- 958fe9e5ef7983ca095e6e43d3c95199be408ad4 drm/amdgpu: Don't use doorbells for SDMA 5.2
+https://github.com/bazzite-org/patchwork/commit/7521115a3199167998ffc906a2f60c3cc818d940
+ 7521115a3199167998ffc906a2f60c3cc818d940 drm/amdgpu: Don't use doorbells for SDMA 5.2
 
-https://github.com/bazzite-org/patchwork/commit/94b4ec898249abec1326e0aa7f0462afa423a8e2
- 94b4ec898249abec1326e0aa7f0462afa423a8e2 drm: fix drm lastclose ignoring closed active fbs
+https://github.com/bazzite-org/patchwork/commit/2ba4acbc77fa91309558fb6040b4c923f430187b
+ 2ba4acbc77fa91309558fb6040b4c923f430187b drm: fix drm lastclose ignoring closed active fbs
 
-https://github.com/bazzite-org/patchwork/commit/5e3a5db1d96e043537d6423bdfc943a1b7135639
- 5e3a5db1d96e043537d6423bdfc943a1b7135639 drm/amd/display: Enable 3 overlay planes for Steam Deck
+https://github.com/bazzite-org/patchwork/commit/d6e2592d2fcb4c6401cbd3ac993b770bb34c7e0e
+ d6e2592d2fcb4c6401cbd3ac993b770bb34c7e0e drm/amd/display: Enable 3 overlay planes for Steam Deck
 
-https://github.com/bazzite-org/patchwork/commit/80f7ee289334a5e29550af60109f7e00ea48b3bf
- 80f7ee289334a5e29550af60109f7e00ea48b3bf Disable modes with >1200 MHz Pixel clocks when connected via dock
+https://github.com/bazzite-org/patchwork/commit/6c60dafa001a3eb5150a9322f744f909203a605a
+ 6c60dafa001a3eb5150a9322f744f909203a605a Disable modes with >1200 MHz Pixel clocks when connected via dock
 
-https://github.com/bazzite-org/patchwork/commit/7b7547a4920ca7bd61d685c73350a1ae36def058
- 7b7547a4920ca7bd61d685c73350a1ae36def058 amd/display: Increased DP Alt mode timeout from 200ms to 500ms. SWDEV-358114
+https://github.com/bazzite-org/patchwork/commit/430d90b023d2590f7ec7858ebb893fd9784acd38
+ 430d90b023d2590f7ec7858ebb893fd9784acd38 amd/display: Increased DP Alt mode timeout from 200ms to 500ms. SWDEV-358114
 
-https://github.com/bazzite-org/patchwork/commit/40657edfe8eba72e79859a1834ba651d0bb042bd
- 40657edfe8eba72e79859a1834ba651d0bb042bd drm/amd/display: keep eDP Vdd on when eDP stream is already enabled
+https://github.com/bazzite-org/patchwork/commit/a25a807580d385403828a0cc5caa75a0b4af670e
+ a25a807580d385403828a0cc5caa75a0b4af670e drm/amd/display: keep eDP Vdd on when eDP stream is already enabled
 
-https://github.com/bazzite-org/patchwork/commit/692dc926477a599345ffa22ea5f2be58f47aa95d
- 692dc926477a599345ffa22ea5f2be58f47aa95d mmc: core: add safe_trim_quirk attribute
+https://github.com/bazzite-org/patchwork/commit/47860f58976db0c4447e3aaa6d4ebdfd68da6fad
+ 47860f58976db0c4447e3aaa6d4ebdfd68da6fad mmc: core: add safe_trim_quirk attribute
 
-https://github.com/bazzite-org/patchwork/commit/dab3a708a1fee202aa07caf946567cf285629a18
- dab3a708a1fee202aa07caf946567cf285629a18 [HACK] Add 2s delay before enabling DP link for dock
+https://github.com/bazzite-org/patchwork/commit/b64b1503de869696bd0fae3ddf6527c1d17f8f9f
+ b64b1503de869696bd0fae3ddf6527c1d17f8f9f [HACK] Add 2s delay before enabling DP link for dock
 
-https://github.com/bazzite-org/patchwork/commit/efa20551c450b89da41f63ef52e0b6665895425b
- efa20551c450b89da41f63ef52e0b6665895425b fixup! [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
+https://github.com/bazzite-org/patchwork/commit/7682bafe18afb6da3eded344349c34c3ba55e5e6
+ 7682bafe18afb6da3eded344349c34c3ba55e5e6 fixup! [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
 
-https://github.com/bazzite-org/patchwork/commit/0481172f87d606b55156d574bd9818bbdf423174
- 0481172f87d606b55156d574bd9818bbdf423174 [NOT-FOR-UPSTREAM] ASoC: nau8821: Reset 8821 clock on start
+https://github.com/bazzite-org/patchwork/commit/4a28878750b0ad6791776406cf701895cc508a45
+ 4a28878750b0ad6791776406cf701895cc508a45 [NOT-FOR-UPSTREAM] ASoC: nau8821: Reset 8821 clock on start
 
-https://github.com/bazzite-org/patchwork/commit/f6a34d27b01270aa5cc60789ba4797e9b32e7965
- f6a34d27b01270aa5cc60789ba4797e9b32e7965 [NOT-FOR-UPSTREAM] ASoC: amd: acp: Use correct DAI link ID for BT codec
+https://github.com/bazzite-org/patchwork/commit/6b255468359606305606f0dacacc4f2bbcddb8be
+ 6b255468359606305606f0dacacc4f2bbcddb8be [NOT-FOR-UPSTREAM] ASoC: amd: acp: Use correct DAI link ID for BT codec
 
-https://github.com/bazzite-org/patchwork/commit/ae3405344e8e9e0f0626731702fda8654875ea26
- ae3405344e8e9e0f0626731702fda8654875ea26 [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
+https://github.com/bazzite-org/patchwork/commit/02b7f9fcdaf2bea780951f98aea0a52237b3355f
+ 02b7f9fcdaf2bea780951f98aea0a52237b3355f [FOR-UPSTREAM] Bluetooth: btrtl: add suspend handling to ignore BT_DIS
 
-https://github.com/bazzite-org/patchwork/commit/6de51e2a1bd96128009e179945589216d2260740
- 6de51e2a1bd96128009e179945589216d2260740 [FROM-QUECTEL] Bluetooth: hci_sync: Fix BLE devices turning wakeup on/off
+https://github.com/bazzite-org/patchwork/commit/864e3d31dd53ba54f577359f8b81da576f413dbd
+ 864e3d31dd53ba54f577359f8b81da576f413dbd [FROM-QUECTEL] Bluetooth: hci_sync: Fix BLE devices turning wakeup on/off
 
-https://github.com/bazzite-org/patchwork/commit/d94f7ff1159cdb9810e6dba672be07d5f5b07d49
- d94f7ff1159cdb9810e6dba672be07d5f5b07d49 [FROM-QUECTEL] Bluetooth: Fixed an issue where the Steam Deck could not into sleep because it continued advertizing after the Steam Controller was disconnected.
+https://github.com/bazzite-org/patchwork/commit/a2f50db947d8dd630fb9b47834d313555df5cde2
+ a2f50db947d8dd630fb9b47834d313555df5cde2 [FROM-QUECTEL] Bluetooth: Fixed an issue where the Steam Deck could not into sleep because it continued advertizing after the Steam Controller was disconnected.
 
-https://github.com/bazzite-org/patchwork/commit/e7757e41253c47589e8067921cf9be02636d71a7
- e7757e41253c47589e8067921cf9be02636d71a7 [QUECTEL/VALVE] acpi match based on Quanta's 11T09 bios
+https://github.com/bazzite-org/patchwork/commit/b26a845d0bcc06711e6d2923bc109f4996ba300c
+ b26a845d0bcc06711e6d2923bc109f4996ba300c [QUECTEL/VALVE] acpi match based on Quanta's 11T09 bios
 
-https://github.com/bazzite-org/patchwork/commit/ba5ae449e43843e886e602bbe64ba5646f6e09d3
- ba5ae449e43843e886e602bbe64ba5646f6e09d3 [QUECTEL/VALVE] Added in Quectel patches for bluetooth
+https://github.com/bazzite-org/patchwork/commit/849275e493464e9aa03725514ee30bce27149c20
+ 849275e493464e9aa03725514ee30bce27149c20 [QUECTEL/VALVE] Added in Quectel patches for bluetooth
 
-https://github.com/bazzite-org/patchwork/commit/eb527493a88e492ebd8a3b963d308783c39f54a6
- eb527493a88e492ebd8a3b963d308783c39f54a6 [WIP] ASoC: max98388: Fix power on when resuming from suspend
+https://github.com/bazzite-org/patchwork/commit/4c2dc9c5303300191767b406030841c6532338c4
+ 4c2dc9c5303300191767b406030841c6532338c4 [WIP] ASoC: max98388: Fix power on when resuming from suspend
 
-https://github.com/bazzite-org/patchwork/commit/9cd1b8538c7c222a553506dbc19f0f07b6293814
- 9cd1b8538c7c222a553506dbc19f0f07b6293814 media: platform: cros-ec: Add AMD Lilac to the match table
+https://github.com/bazzite-org/patchwork/commit/cfe11c9bdc830a111481429fe64cc2d1acdfddf1
+ cfe11c9bdc830a111481429fe64cc2d1acdfddf1 media: platform: cros-ec: Add AMD Lilac to the match table
 
-https://github.com/bazzite-org/patchwork/commit/c65478f8a32e3302d77e28ba47ca9020ed433aca
- c65478f8a32e3302d77e28ba47ca9020ed433aca usb: dwc3: Fix "linux,extcon-name"
+https://github.com/bazzite-org/patchwork/commit/395813919810e4159b3c5cb3bd268cf27032867e
+ 395813919810e4159b3c5cb3bd268cf27032867e usb: dwc3: Fix "linux,extcon-name"
 
-https://github.com/bazzite-org/patchwork/commit/12ff9bb6467204efc3c9212d0518a16c5a9aa79e
- 12ff9bb6467204efc3c9212d0518a16c5a9aa79e usb: dwc3: Drop "usb-role-swtich" from dwc3_pci_mr_properties
+https://github.com/bazzite-org/patchwork/commit/ebbd431c3017e3e2eafb97152c9626f1e1069851
+ ebbd431c3017e3e2eafb97152c9626f1e1069851 usb: dwc3: Drop "usb-role-swtich" from dwc3_pci_mr_properties
 
-https://github.com/bazzite-org/patchwork/commit/e127e13bf934b6227574a11966194c89fa6b2035
- e127e13bf934b6227574a11966194c89fa6b2035 usb: dwc3: Hardcode jupiter ACPI device as extcon name
+https://github.com/bazzite-org/patchwork/commit/9a152aa2cb677e1aa60e5a85325310d836cf1614
+ 9a152aa2cb677e1aa60e5a85325310d836cf1614 usb: dwc3: Hardcode jupiter ACPI device as extcon name
 
-https://github.com/bazzite-org/patchwork/commit/dafd538302ad37d5d79177f656397c154ca3403f
- dafd538302ad37d5d79177f656397c154ca3403f hwmon: steamdeck-hwmon: Add support for max battery level/rate
+https://github.com/bazzite-org/patchwork/commit/f42b7d29a71736a5e6f4247ca68c14f35f9294f6
+ f42b7d29a71736a5e6f4247ca68c14f35f9294f6 hwmon: steamdeck-hwmon: Add support for max battery level/rate
 
-https://github.com/bazzite-org/patchwork/commit/5c222056c746694da769e135f0153f76dba89060
- 5c222056c746694da769e135f0153f76dba89060 hwmon: Add driver for Steam Deck's EC sensors
+https://github.com/bazzite-org/patchwork/commit/0faf9ec89f2081630d2dec705d3e84051a7335ab
+ 0faf9ec89f2081630d2dec705d3e84051a7335ab hwmon: Add driver for Steam Deck's EC sensors
 
-https://github.com/bazzite-org/patchwork/commit/2a468347f509ee99712a632167f8ba4567aeb1e3
- 2a468347f509ee99712a632167f8ba4567aeb1e3 extcon: Add driver for Steam Deck
+https://github.com/bazzite-org/patchwork/commit/f1e6682afcfa4092678da2490790e59151d82285
+ f1e6682afcfa4092678da2490790e59151d82285 extcon: Add driver for Steam Deck
 
-https://github.com/bazzite-org/patchwork/commit/00fca273ebc7de2fa0202b4e8949a880ebfdb787
- 00fca273ebc7de2fa0202b4e8949a880ebfdb787 leds-steamdeck: Add support for LED birghtness multiplier
+https://github.com/bazzite-org/patchwork/commit/a1ae0b347298223603f631dc4e5ada5a4cd80de4
+ a1ae0b347298223603f631dc4e5ada5a4cd80de4 leds-steamdeck: Add support for LED birghtness multiplier
 
-https://github.com/bazzite-org/patchwork/commit/15d6f69c1712b51cd38e42ee6c6cdf0273ec4c27
- 15d6f69c1712b51cd38e42ee6c6cdf0273ec4c27 leds: steamdeck: Add support for Steam Deck LED
+https://github.com/bazzite-org/patchwork/commit/8f1e196008c19989e7e955ba557816e5b515a0ca
+ 8f1e196008c19989e7e955ba557816e5b515a0ca leds: steamdeck: Add support for Steam Deck LED
 
-https://github.com/bazzite-org/patchwork/commit/2c2392fd057f9e1c5f06396445f4907fc4952e04
- 2c2392fd057f9e1c5f06396445f4907fc4952e04 mfd: steamdeck: Expose controller board power in sysfs
+https://github.com/bazzite-org/patchwork/commit/4cb921ec2ca8a631fe4ccf04813eae7fea66309e
+ 4cb921ec2ca8a631fe4ccf04813eae7fea66309e mfd: steamdeck: Expose controller board power in sysfs
 
-https://github.com/bazzite-org/patchwork/commit/9b9658a5e87147734dad743ce003d1edba2172c9
- 9b9658a5e87147734dad743ce003d1edba2172c9 mfd: Add MFD core driver for Steam Deck
+https://github.com/bazzite-org/patchwork/commit/5d0fe6040aaba55a6dd584e6caf4900305fc28db
+ 5d0fe6040aaba55a6dd584e6caf4900305fc28db mfd: Add MFD core driver for Steam Deck
 
-https://github.com/bazzite-org/patchwork/commit/f078de76a881ae2866195639d46f6efabe9f2518
- f078de76a881ae2866195639d46f6efabe9f2518 HID: Add quirk to ignore the touchscreen battery on 8BitDo SN30 Pro Plus
+https://github.com/bazzite-org/patchwork/commit/0c2612e7381d20ffffc10e5b51f54cf7e6c5b7ec
+ 0c2612e7381d20ffffc10e5b51f54cf7e6c5b7ec HID: Add quirk to ignore the touchscreen battery on 8BitDo SN30 Pro Plus
 
-https://github.com/bazzite-org/patchwork/commit/c67651bd37889cb1797244b1e68294b172da2f28
- c67651bd37889cb1797244b1e68294b172da2f28 arm64: dts: qcom: Batocera specific changes
+https://github.com/bazzite-org/patchwork/commit/b0eeffa721aea643659e2cb667556d145c81ea07
+ b0eeffa721aea643659e2cb667556d145c81ea07 arm64: dts: qcom: Batocera specific changes
 
-https://github.com/bazzite-org/patchwork/commit/beb7ae878f2b26250dfdf98a62b3cc513942dcb8
- beb7ae878f2b26250dfdf98a62b3cc513942dcb8 arm64: dts: qcom: Set Gamepad ID for Retroid Pocket
+https://github.com/bazzite-org/patchwork/commit/28d19c5c9bbeefe0c653bea315b45143bb9602be
+ 28d19c5c9bbeefe0c653bea315b45143bb9602be arm64: dts: qcom: Set Gamepad ID for Retroid Pocket
 
-https://github.com/bazzite-org/patchwork/commit/d5972a31aba977687ef4bc3d5ed5930671d3731a
- d5972a31aba977687ef4bc3d5ed5930671d3731a Input: Odin2 Gamepad ability to set input id values from devicetree
+https://github.com/bazzite-org/patchwork/commit/c5c59f9091cd58d0960fa498e2ec19c571ba1935
+ c5c59f9091cd58d0960fa498e2ec19c571ba1935 Input: Odin2 Gamepad ability to set input id values from devicetree
 
-https://github.com/bazzite-org/patchwork/commit/3a2864dc56d74ae58cd004422271abe29968415c
- 3a2864dc56d74ae58cd004422271abe29968415c arm64: dts: qcom: Enable Retroid Pocket Joystick RGB LED
+https://github.com/bazzite-org/patchwork/commit/95eaef75395314688f59d03dc7aaedf9d2159411
+ 95eaef75395314688f59d03dc7aaedf9d2159411 arm64: dts: qcom: Enable Retroid Pocket Joystick RGB LED
 
-https://github.com/bazzite-org/patchwork/commit/c24044e7d2fb54c387327c072991db9e8a407add
- c24044e7d2fb54c387327c072991db9e8a407add pwm: htr3212: Add HEROIC HTR3212 support
+https://github.com/bazzite-org/patchwork/commit/1ede9208c65b56cf3a3992e5313395a6dd65cbaf
+ 1ede9208c65b56cf3a3992e5313395a6dd65cbaf pwm: htr3212: Add HEROIC HTR3212 support
 
-https://github.com/bazzite-org/patchwork/commit/f1af912dc23864ffbf0265bb1d7d3d05fe04d739
- f1af912dc23864ffbf0265bb1d7d3d05fe04d739 drm: panel: Add compatible CH13726A panel
+https://github.com/bazzite-org/patchwork/commit/bde028751d2e33714d7ae6032ad750003d2d309a
+ bde028751d2e33714d7ae6032ad750003d2d309a drm: panel: Add compatible CH13726A panel
 
-https://github.com/bazzite-org/patchwork/commit/a733f589292a5e3e9ea4c33c758c27332fc4aa98
- a733f589292a5e3e9ea4c33c758c27332fc4aa98 arm64: dts: qcom: sm8250-retroid-rpmini: Add SM8250 Retroid Pocket variants
+https://github.com/bazzite-org/patchwork/commit/5fb22d19f486558f190e4d14840ac7ce9fd49ed1
+ 5fb22d19f486558f190e4d14840ac7ce9fd49ed1 arm64: dts: qcom: sm8250-retroid-rpmini: Add SM8250 Retroid Pocket variants
 
-https://github.com/bazzite-org/patchwork/commit/546eed70c907455e35785a5ad64e657a3638555f
- 546eed70c907455e35785a5ad64e657a3638555f arm64: dts: qcom: pm8150b: Add a FG
+https://github.com/bazzite-org/patchwork/commit/cbd4efeece1e221d3585df3406af2fdedc93e4c3
+ cbd4efeece1e221d3585df3406af2fdedc93e4c3 arm64: dts: qcom: pm8150b: Add a FG
 
-https://github.com/bazzite-org/patchwork/commit/e4ed22e7562aa6cb5da126e603c86e822e72df75
- e4ed22e7562aa6cb5da126e603c86e822e72df75 arm64: dts: qcom: pm8150b: Add a charger
+https://github.com/bazzite-org/patchwork/commit/84b76238a1fe1bcb422c7ee13b190b6c908729b0
+ 84b76238a1fe1bcb422c7ee13b190b6c908729b0 arm64: dts: qcom: pm8150b: Add a charger
 
-https://github.com/bazzite-org/patchwork/commit/9baa6271f03b83dd84d570b6f331ceb433b1eb10
- 9baa6271f03b83dd84d570b6f331ceb433b1eb10 power: supply: Driver for Qualcomm FG
-
-https://github.com/bazzite-org/patchwork/commit/ab77226d15774dd81cac3f5ef23494814c0d46c5
- ab77226d15774dd81cac3f5ef23494814c0d46c5 power: supply: Driver for Qualcomm SMB5
+https://github.com/bazzite-org/patchwork/commit/c5ea099e0651365eb8dfb3667192f1010ca7d629
+ c5ea099e0651365eb8dfb3667192f1010ca7d629 power: supply: Driver for Qualcomm FG
 
 https://github.com/bazzite-org/patchwork/commit/e9dab0b4c2c2860e7d44fac5a63215315f566981
  e9dab0b4c2c2860e7d44fac5a63215315f566981 Input: driver for AYN Odin2 Gamepad

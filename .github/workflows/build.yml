@@ -56,17 +56,21 @@ jobs:
           TARFILE_RELEASE=$(sed -n 's/^%define[[:space:]]\+tarfile_release[[:space:]]\+//p' kernel.spec)
           NVIDIA_RELEASE=$(sed -n 's/^%define[[:space:]]\+nvidia_version[[:space:]]\+//p' kernel.spec)
           NVIDIA_RELEASE_LTS=$(sed -n 's/^%define[[:space:]]\+nvidia_version_lts[[:space:]]\+//p' kernel.spec)
+          ZFS_RELEASE=$(sed -n 's/^%define[[:space:]]\+zfs_version[[:space:]]\+//p' kernel.spec)
 
           echo "TARFILE_RELEASE is $TARFILE_RELEASE"
           echo "NVIDIA_RELEASE is $NVIDIA_RELEASE"
           echo "NVIDIA_RELEASE_LTS is $NVIDIA_RELEASE_LTS"
+          echo "ZFS_RELEASE is $ZFS_RELEASE"
           
           curl -L -o "linux-${TARFILE_RELEASE}.tar.xz" "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${TARFILE_RELEASE}.tar.xz"
           curl -L -o "NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run" \
             "https://us.download.nvidia.com/XFree86/Linux-${{ matrix.arch }}/${NVIDIA_RELEASE}/NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run"
           curl -L -o "NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run" \
             "https://us.download.nvidia.com/XFree86/Linux-${{ matrix.arch }}/${NVIDIA_RELEASE_LTS}/NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE_LTS}.run"
-      
+          curl -L -o "zfs-${ZFS_RELEASE}.tar.gz" \
+            "https://github.com/openzfs/zfs/releases/download/zfs-${ZFS_RELEASE}/zfs-${ZFS_RELEASE}.tar.gz"
+
       - name: Compile Kernel
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
