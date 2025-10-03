@@ -1,5 +1,5 @@
-https://github.com/bazzite-org/patchwork/commit/c2359134c36df9296c22ddda800003698081a48d
- c2359134c36df9296c22ddda800003698081a48d CI: add akmod modules
+https://github.com/bazzite-org/patchwork/commit/3947d1d89bbc134ca67a33ca5deb122063346a89
+ 3947d1d89bbc134ca67a33ca5deb122063346a89 CI: add akmod modules
 
 https://github.com/bazzite-org/patchwork/commit/e17bbd66db9ede00ebe0d180e30dfb02a51003f8
  e17bbd66db9ede00ebe0d180e30dfb02a51003f8 drm/amdgpu: defer overdrive taint until used
