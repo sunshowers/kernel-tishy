@@ -966,8 +966,11 @@ Source1: Makefile.rhelver
 Source2: %{package_name}.changelog
 
 %define nvidia_version 580.95.05
+%define nvidia_version_lts 580.95.05
+%define nvidia_epoch 3
 %if %{with_nvidia}
 Source5: NVIDIA-Linux-%{_build_arch}-%{nvidia_version}.run
+Source6: NVIDIA-Linux-%{_build_arch}-%{nvidia_version_lts}.run
 %endif
 
 Source10: redhatsecurebootca5.cer
@@ -1612,48 +1615,40 @@ This package provides less commonly used kernel modules for the %{?2:%{2} }kerne
 
 #
 # This macro creates a kernel-<subpackage>-nvidia package.
-#	%%kernel_nvidia_package_open [-m] <subpackage> <pretty-name>
+#	%%kernel_nvidia_package [-m] <subpackage> <nvpkg> <pretty-name>
 #
-%define kernel_nvidia_package_open(m) \
-%package %{?1:%{1}-}nvidia\
-Summary: Extra kernel modules to match the %{?2:%{2} }kernel\
+%define kernel_nvidia_package(m) \
+%package %{?2:%{2}-}%{1}\
+Summary: Extra kernel modules to match the %{?3:%{3} }kernel\
+%if "%{1}" == "nvidia" || "%{1}" == "nvidia-lts" \
 License: MIT\
-Provides: %{name}%{?1:-%{1}}-nvidia-%{_target_cpu} = %{specrpmversion}-%{release}\
-Provides: %{name}%{?1:-%{1}}-nvidia-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
-Provides: %{name}%{?1:-%{1}}-nvidia = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
-Provides: installonlypkg(kernel-module)\
-Provides: %{name}%{?1:-%{1}}-nvidia-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-Requires: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-Requires: %{name}%{?1:-%{1}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-%if %{-m:1}%{!-m:0}\
-Requires: %{name}-nvidia-uname-r = %{KVERREL}%{uname_variant %{?1}}\
-%endif\
-AutoReq: no\
-AutoProv: yes\
-%description %{?1:%{1}-}nvidia\
-This package provides the Nvidia Open DRM modules for the %{?2:%{2} }kernel package.\
-%{nil}
-
-%define kernel_nvidia_package_closed(m) \
-%package %{?1:%{1}-}nvidia-closed\
-Summary: Extra kernel modules to match the %{?2:%{2} }kernel\
+%else\
 License: NVIDIA\
-Provides: %{name}%{?1:-%{1}}-nvidia-closed-%{_target_cpu} = %{specrpmversion}-%{release}\
-Provides: %{name}%{?1:-%{1}}-nvidia-closed-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
-Provides: %{name}%{?1:-%{1}}-nvidia-closed = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
+%endif\
+Provides: %{name}%{?2:-%{2}}-%{1}-%{_target_cpu} = %{specrpmversion}-%{release}\
+Provides: %{name}%{?2:-%{2}}-%{1}-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?2}}\
+Provides: %{name}%{?2:-%{2}}-%{1} = %{specrpmversion}-%{release}%{uname_suffix %{?2}}\
 Provides: installonlypkg(kernel-module)\
-Provides: %{name}%{?1:-%{1}}-nvidia-closed-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-Requires: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-Requires: %{name}%{?1:-%{1}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Provides: %{name}%{?2:-%{2}}-%{1}-uname-r = %{KVERREL}%{uname_suffix %{?2}}\
+%if "%{1}" == "nvidia-closed-lts" || "%{1}" == "nvidia-lts" \
+Provides: nvidia-kmod = %{?nvidia_epoch:%{nvidia_epoch}:}%{nvidia_version_lts}\
+%else\
+Provides: nvidia-kmod = %{?nvidia_epoch:%{nvidia_epoch}:}%{nvidia_version}\
+%endif\
+Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?2}}\
+Requires: %{name}%{?2:-%{2}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?2}}\
+Requires: %{name}%{?2:-%{2}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?2}}\
 %if %{-m:1}%{!-m:0}\
-Requires: %{name}-nvidia-closed-uname-r = %{KVERREL}%{uname_variant %{?1}}\
+Requires: %{name}%{?2:-%{2}}-uname-r = %{KVERREL}%{uname_variant %{?2}}\
 %endif\
 AutoReq: no\
 AutoProv: yes\
-%description %{?1:%{1}-}nvidia-closed\
-This package provides the Nvidia legacy closed DRM modules for the %{?2:%{2} }kernel package.\
+%description %{?2:%{2}-}%{1}\
+%if "%{1}" == "nvidia" || "%{1}" == "nvidia-lts" \
+This package provides the Nvidia Open DRM modules for the %{?3:%{3} }kernel package.\
+%else\
+This package provides the Nvidia Closed DRM modules for the %{?3:%{3} }kernel package.\
+%endif\
 %{nil}
 
 #
@@ -1748,8 +1743,10 @@ Requires: %{name}-%{?1:%{1}-}-modules-core-uname-r = %{KVERREL}%{uname_variant %
 %{expand:%%kernel_modules_core_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %{expand:%%kernel_modules_extra_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %if %{with_nvidia}\
-%{expand:%%kernel_nvidia_package_open %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
-%{expand:%%kernel_nvidia_package_closed %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%{expand:%%kernel_nvidia_package nvidia %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%{expand:%%kernel_nvidia_package nvidia-closed %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%{expand:%%kernel_nvidia_package nvidia-lts %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%{expand:%%kernel_nvidia_package nvidia-closed-lts %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %endif\
 %if %{-m:0}%{!-m:1}\
 %{expand:%%kernel_modules_internal_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}}}\
@@ -2097,6 +2094,8 @@ ApplyOptionalPatch linux-kernel-test.patch
 %if %{with_nvidia}
 chmod +x %{SOURCE5} && %{SOURCE5} --extract-only && \
   mv NVIDIA-Linux-%{_build_arch}-%{nvidia_version} drivers/custom/nvidia
+chmod +x %{SOURCE56} && %{SOURCE6} --extract-only && \
+  mv NVIDIA-Linux-%{_build_arch}-%{nvidia_version_lts} drivers/custom/nvidia-lts
 %endif # with_nvidia
 
 %{log_msg "End of patch applications"}
@@ -2423,6 +2422,10 @@ BuildKernel() {
       -C $(pwd)/drivers/custom/nvidia/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src)
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
       -C $(pwd)/drivers/custom/nvidia/kernel modules SYSSRC=$(pwd) SYSOUT=$(src)
+    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
+      -C $(pwd)/drivers/custom/nvidia-lts/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src)
+    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
+      -C $(pwd)/drivers/custom/nvidia-lts/kernel modules SYSSRC=$(pwd) SYSOUT=$(src)
     %endif # with_nvidia
     fi
 
@@ -2541,6 +2544,10 @@ BuildKernel() {
     modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel-open
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel \
     modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel
+	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia-lts/kernel-open \
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel-open
+	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia-lts/kernel \
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel
   %endif # with_nvidia
 
     # We have to do a little hack here. modules.dep cannot contain multiple modules
@@ -3900,20 +3907,13 @@ fi\
 #
 # This macro defines a %%post script for the kernel*-nvidia packages.
 # It also defines a %%postun script that does the same thing.
-#	%%kernel_nvidia_post <is-open> [<subpackage>]
+#	%%kernel_nvidia_post [<subpackage>] [<name>]
 #
-%define kernel_nvidia_post_open() \
-%{expand:%%post %{?1:%{1}-}nvidia}\
+%define kernel_nvidia_post() \
+%{expand:%%post %{?2:%{2}-}%{?1:%{1}}}\
 /sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
 %{nil}\
-%{expand:%%postun %{?1:%{1}-}nvidia}\
-/sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
-%{nil}
-%define kernel_nvidia_post_closed() \
-%{expand:%%post %{?1:%{1}-}nvidia-closed}\
-/sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
-%{nil}\
-%{expand:%%postun %{?1:%{1}-}nvidia-closed}\
+%{expand:%%postun %{?2:%{2}-}%{?1:%{1}}}\
 /sbin/depmod -a %{KVERREL}%{?2:+%{2}}\
 %{nil}
 
@@ -4011,8 +4011,10 @@ fi\
 %{expand:%%kernel_modules_core_post %{?-v*}}\
 %{expand:%%kernel_modules_extra_post %{?-v*}}\
 %if %{with_nvidia}\
-%{expand:%%kernel_nvidia_post_open %{?-v*}}\
-%{expand:%%kernel_nvidia_post_closed %{?-v*}}\
+%{expand:%%kernel_nvidia_post nvidia %{?-v*}}\
+%{expand:%%kernel_nvidia_post nvidia-closed %{?-v*}}\
+%{expand:%%kernel_nvidia_post nvidia-lts %{?-v*}}\
+%{expand:%%kernel_nvidia_post nvidia-closed-lts %{?-v*}}\
 %endif\
 %{expand:%%kernel_modules_internal_post %{?-v*}}\
 %if 0%{!?fedora:1}\
@@ -4502,6 +4504,20 @@ fi\
 /lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-uvm.ko*
 /lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia.ko*
 
+%files nvidia-lts
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-drm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-modeset.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-peermem.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-uvm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia.ko*
+
+%files nvidia-closed-lts
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-drm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-modeset.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-peermem.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-uvm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia.ko*
+
 %endif # with_nvidia
 
 %if %{with_debug_meta}
@@ -4546,8 +4562,7 @@ fi\
 #
 #
 %changelog
-* Thu Oct 02 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-1.bazzite]
-- add initial support for nvidia modules (Antheas Kapenekakis)
+* Fri Oct 03 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-1.bazzite]
 - CI: add akmod modules (Antheas Kapenekakis)
 - drm/amdgpu: defer overdrive taint until used (Antheas Kapenekakis)
 - drm/amdgpu: enable override by default for APUs (Antheas Kapenekakis)
