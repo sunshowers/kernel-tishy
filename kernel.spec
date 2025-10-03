@@ -2432,6 +2432,16 @@ BuildKernel() {
     fi
 
     if [ $DoModules -eq 1 ]; then
+    %if %{with_zfs}
+    cdir=$(pwd)
+    pushd drivers/custom/zfs
+    sh autogen.sh
+    ./configure --with-linux="$cdir" --with-linux-obj="$cdir"
+    popd
+    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
+      -C $(pwd)/drivers/custom/zfs/module %{?_smp_mflags} modules || exit 1
+    %endif # with_zfs
+
     %if %{with_nvidia}
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
       -C $(pwd)/drivers/custom/nvidia/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src)
@@ -2442,16 +2452,6 @@ BuildKernel() {
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
       -C $(pwd)/drivers/custom/nvidia-lts/kernel modules SYSSRC=$(pwd) SYSOUT=$(src)
     %endif # with_nvidia
-
-    %if %{with_zfs}
-    %{log_msg "Build ZFS modules"}
-    pushd drivers/custom/zfs
-    sh autogen.sh
-    ./configure --with-linux=../../../ --with-linux-obj=../../../
-    popd
-    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/zfs %{?_smp_mflags} modules || exit 1
-    %endif # with_zfs
     fi
 
     %{log_msg "Setup RPM_BUILD_ROOT directories"}
@@ -2563,7 +2563,12 @@ BuildKernel() {
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} modules_install KERNELRELEASE=$KernelVer mod-fw=
     fi
   
-    if [ $DoModules -eq 1 ]; then
+    if [ $DoModules -eq 1 ]; then    
+    %if %{with_zfs}
+    %{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} \
+      -C $(pwd)/drivers/custom/zfs/module modules_install mod-fw=
+    %endif # with_zfs
+
   %if %{with_nvidia}
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel-open \
     modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel-open
@@ -2583,11 +2588,6 @@ BuildKernel() {
       > $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep.tmp
     mv $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep.tmp \
       $RPM_BUILD_ROOT/lib/modules/$KernelVer/modules.dep
-    
-    %if %{with_zfs}
-    %{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} \
-      -C $(pwd)/drivers/custom/zfs/module modules_install mod-fw=
-    %endif # with_zfs
     fi
 
 %if %{with_gcov}

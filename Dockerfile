@@ -13,7 +13,7 @@ RUN dnf install -y fedpkg fedora-packager rpmdevtools ncurses-devel pesign \
     systemd-boot-unsigned systemd-ukify which xmlto xz-devel zlib-devel \
     python3-requests hmaccalc dracut tpm2-tools rustfmt clippy bpftool \
     python3-jsonschema libxml2-devel swig opencsd-devel automake \
-    libtool libtirpc && dnf clean all
+    libtool libtirpc libtirpc-devel && dnf clean all
 
 ARG UID=1000
 ARG GID=1000
