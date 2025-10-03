@@ -172,17 +172,17 @@ Summary: The Linux kernel
 #  to build the base kernel using the debug configuration. (Specifying
 #  the --with-release option overrides this setting.)
 %define debugbuildsenabled 1
-%define buildid .bazzite
+%define buildid .test
 %define specrpmversion 6.17.0
 %define specversion 6.17.0
 %define patchversion 6.17
-%define pkgrelease 5.bazzite
+%define pkgrelease ba05.test
 %define kversion 6
 %define tarfile_release 6.17
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease 5%{?buildid}%{?dist}
+%define specrelease ba05%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.0
 
@@ -4592,7 +4592,7 @@ fi\
 #
 #
 %changelog
-* Fri Oct 03 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-5.bazzite]
+* Fri Oct 03 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-ba05.test]
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
 - CI: add akmod modules (Antheas Kapenekakis)
