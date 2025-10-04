@@ -78,7 +78,7 @@ jobs:
 
       - name: Setup Secure Boot
         run: |
-          sudo apt-get install -y pk12util certutil
+          sudo apt-get install -y libnss3-tools
           ./create_sign.sh
 
       - name: Maximize build space
