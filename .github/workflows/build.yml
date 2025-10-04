@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: ${{ github.event.inputs.arm == 'true' && fromJSON('["aarch64"]') || fromJSON('["aarch64", "x86_64"]') }}
-        fedora_version: [42, 43]
+        fedora_version: [43]
         # exclude:
         #   - arch: aarch64
         #     fedora_version: 41
