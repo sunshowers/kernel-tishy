@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.0
 %define specversion 6.17.0
 %define patchversion 6.17
-%define pkgrelease ba06
+%define pkgrelease ba07
 %define kversion 6
 %define tarfile_release 6.17
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba06%{?buildid}%{?dist}
+%define specrelease ba07%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.0
 
@@ -4592,7 +4592,7 @@ fi\
 #
 #
 %changelog
-* Fri Oct 03 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-ba06]
+* Sat Oct 04 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-ba07]
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
 - CI: add akmod modules (Antheas Kapenekakis)
@@ -4765,7 +4765,6 @@ fi\
 - arm64: dts: qcom: sm8250-retroid-rpmini: Add SM8250 Retroid Pocket variants (Teguh Sobirin)
 - arm64: dts: qcom: pm8150b: Add a FG (Teguh Sobirin)
 - arm64: dts: qcom: pm8150b: Add a charger (Teguh Sobirin)
-- power: supply: Driver for Qualcomm FG (Teguh Sobirin)
 - Input: driver for AYN Odin2 Gamepad (Teguh Sobirin)
 - drm: panel: Add DDIC CH13726A panel (Teguh Sobirin)
 - arm64: dts: qcom: sm8250: add uart16 (Teguh Sobirin)
