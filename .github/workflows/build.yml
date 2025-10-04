@@ -81,6 +81,7 @@ jobs:
 
       - name: Setup Secure Boot
         run: |
+          sudo apt-get install efitools -y
           ./create_sign.sh
 
       - name: Compile Kernel
