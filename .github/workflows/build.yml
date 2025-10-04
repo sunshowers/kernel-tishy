@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       arm:
-        description: 'Build arm version only'
+        description: "Build arm version only"
         type: boolean
         default: false
   release:
@@ -42,7 +42,7 @@ jobs:
           sudo podman build . --tag 'fedora_builder' \
             --build-arg UID=$(id -u) --build-arg GID=$(id -g) \
             --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
-      
+
       - name: Fixup kernel source
         run: |
           # Get the tarfile_release value from the spec file and download it
@@ -55,7 +55,7 @@ jobs:
           echo "NVIDIA_RELEASE is $NVIDIA_RELEASE"
           echo "NVIDIA_RELEASE_LTS is $NVIDIA_RELEASE_LTS"
           echo "ZFS_RELEASE is $ZFS_RELEASE"
-          
+
           curl -L -o "linux-${TARFILE_RELEASE}.tar.xz" "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${TARFILE_RELEASE}.tar.xz"
           curl -L -o "NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run" \
             "https://us.download.nvidia.com/XFree86/Linux-${{ matrix.arch }}/${NVIDIA_RELEASE}/NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run"
@@ -67,17 +67,37 @@ jobs:
           curl -L -o "zfs-${ZFS_RELEASE}.tar.gz" \
             "https://github.com/openzfs/zfs/releases/download/zfs-${ZFS_RELEASE}/zfs-${ZFS_RELEASE}.tar.gz"
 
+      - name: Load Universal Blue Keys
+        if: github.event_name == 'release' && matrix.arch == 'x86_64'
+        env:
+          UBLUE_MOKKEY_LEGACY: ${{ secrets.UBLUE_MOKKEY_LEGACY }}
+          UBLUE_MOKKEY_KERNEL: ${{ secrets.UBLUE_MOKKEY_KERNEL }}
+        run: |
+          mkdir -p certs
+          echo "${UBLUE_MOKKEY_LEGACY}" > certs/ubmok101.priv
+          cp ubmok101.cer certs/ubmok101.der
+          echo "${UBLUE_MOKKEY_KERNEL}" > certs/ubmok102.priv
+          cp ubmok102.cer certs/ubmok102.der
+
+      - name: Setup Secure Boot
+        run: |
+          ./create_sign.sh
+
       - name: Compile Kernel
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
           ARCH="${{ matrix.arch }}"
           sudo podman run --rm -v $(pwd):/workspace $DISABLE_ARG \
+            -v $(pwd)/certs/pki/ubluesign:/etc/pki/pesign \
             fedora_builder fedpkg \
             --name kernel --namespace rpms --release "f${FEDORA_VERSION:-41}" \
             local --arch ${ARCH:-x86_64} --with bazzite --with nvidia --with zfs \
-            --builddir build --buildrootdir buildroot \
+            --with ubsb --builddir build --buildrootdir buildroot \
              | grep -v "nvidia.o: warning: objtool:"
-      
+
+          # We are signed, remove certs
+          rm -rf ./certs
+
       - name: Separate debuginfo into different folder
         run: |
           mkdir -p debuginfo
@@ -100,7 +120,7 @@ jobs:
             .build-*.log
             debuginfo/*.rpm
           compression-level: 7
-      
+
       - name: Convert to Arch
         if: matrix.arch == 'x86_64' && matrix.fedora_version == 43 #arch_fedora
         run: |
