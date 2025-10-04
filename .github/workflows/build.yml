@@ -94,7 +94,7 @@ jobs:
             --name kernel --namespace rpms --release "f${FEDORA_VERSION:-41}" \
             local --arch ${ARCH:-x86_64} --with bazzite --with nvidia --with zfs \
             --with ubsb --builddir build --buildrootdir buildroot \
-             | grep -v "nvidia.o: warning: objtool:"
+             | grep -v ": warning: objtool:"
 
           # We are signed, remove certs
           rm -rf ./certs
