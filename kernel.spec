@@ -1582,6 +1582,9 @@ Provides: %{name}%{?1:-%{1}}-modules-akmods-%{_target_cpu} = %{specrpmversion}-%
 Provides: %{name}%{?1:-%{1}}-modules-akmods-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
 Provides: %{name}%{?1:-%{1}}-modules-akmods = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
 Provides: installonlypkg(kernel-module)\
+%if %{with_zfs}\
+Provides: zfs-kmod = %{zfs_version}\
+%endif\
 Provides: %{name}%{?1:-%{1}}-modules-akmods-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
 Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
 Requires: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
