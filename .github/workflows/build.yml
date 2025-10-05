@@ -77,25 +77,14 @@ jobs:
             echo "One or more keys are missing, setup will create temporary keys"
           fi
 
-      - name: Setup Secure Boot
-        run: |
-          sudo apt-get install -y libnss3-tools
-          ./create_sign.sh
-
       - name: Maximize build space
         uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
       - name: Compile Kernel
         run: |
-          FEDORA_VERSION="${{ matrix.fedora_version }}"
-          ARCH="${{ matrix.arch }}"
-          sudo podman run --rm -v $(pwd):/workspace $DISABLE_ARG \
-            -v $(pwd)/certs/pki/ubluesign:/etc/pki/pesign \
-            fedora_builder fedpkg \
-            --name kernel --namespace rpms --release "f${FEDORA_VERSION:-41}" \
-            local --arch ${ARCH:-x86_64} --with bazzite --with nvidia --with zfs \
-            --with ubsb --builddir build --buildrootdir buildroot \
-             | grep -v ": warning: objtool:"
+          sudo FEDORA_VERSION="${{ matrix.fedora_version }}" ARCH="${{ matrix.arch }}" \
+            podman run --rm -v $(pwd):/workspace fedora_builder bash ./build.sh \
+              | grep -v ".o: warning: objtool:"
 
           # We are signed, remove certs
           rm -rf ./certs
