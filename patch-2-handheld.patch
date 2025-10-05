@@ -53074,17 +53074,21 @@ From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Wed, 1 Oct 2025 03:34:27 +0200
 Subject: CI: add akmod modules
 
+We have to lobotomize objtool for broadcom-wl to compile. TODO: remove
+when that module goes out the wayside.
+
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .gitmodules                               |  57 +++++
+ .gitmodules                               |  60 ++++++
  drivers/Kconfig                           |   2 +
  drivers/Makefile                          |   2 +
  drivers/custom/.gitignore                 |   3 +
- drivers/custom/Kconfig                    | 109 ++++++++++
- drivers/custom/Makefile                   |  42 ++++
+ drivers/custom/Kconfig                    | 115 ++++++++++
+ drivers/custom/Makefile                   |  41 ++++
  drivers/custom/ayaneo_platform            |   1 +
  drivers/custom/ayn_platform               |   1 +
  drivers/custom/bmi260                     |   1 +
+ drivers/custom/broadcom-wl                |   1 +
  drivers/custom/cdemu                      |   1 +
  drivers/custom/evdi                       |   1 +
  drivers/custom/facetimehd                 |   1 +
@@ -53104,7 +53108,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/custom/xonedo                     |   1 +
  drivers/custom/xpadneo                    |   1 +
  drivers/custom/zenergy                    |   1 +
- 28 files changed, 487 insertions(+)
+ tools/objtool/builtin-check.c             |   1 +
+ tools/objtool/check.c                     |   3 +
+ tools/objtool/include/objtool/builtin.h   |   1 +
+ 32 files changed, 501 insertions(+)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -53112,6 +53119,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  create mode 160000 drivers/custom/ayaneo_platform
  create mode 160000 drivers/custom/ayn_platform
  create mode 160000 drivers/custom/bmi260
+ create mode 160000 drivers/custom/broadcom-wl
  create mode 160000 drivers/custom/cdemu
  create mode 160000 drivers/custom/evdi
  create mode 160000 drivers/custom/facetimehd
@@ -53134,10 +53142,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 
 diff --git a/.gitmodules b/.gitmodules
 new file mode 100644
-index 000000000000..ad55adb21565
+index 000000000000..ab425e2f865a
 --- /dev/null
 +++ b/.gitmodules
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,60 @@
 +[submodule "drivers/custom/ayn_platform"]
 +	path = drivers/custom/ayn_platform
 +	url = https://github.com/bazzite-org/ayn-platform
@@ -53195,6 +53203,9 @@ index 000000000000..ad55adb21565
 +[submodule "drivers/custom/cdemu"]
 +	path = drivers/custom/cdemu
 +	url = https://github.com/cdemu/cdemu
++[submodule "drivers/custom/broadcom-wl"]
++	path = drivers/custom/broadcom-wl
++	url = https://github.com/bazzite-org/broadcom-wl
 diff --git a/drivers/Kconfig b/drivers/Kconfig
 index 4915a63866b0..f3796a10e278 100644
 --- a/drivers/Kconfig
@@ -53233,10 +53244,10 @@ index 000000000000..b9adbda1674e
 \ No newline at end of file
 diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
 new file mode 100644
-index 000000000000..2134fa840172
+index 000000000000..c3cfe17880e3
 --- /dev/null
 +++ b/drivers/custom/Kconfig
-@@ -0,0 +1,109 @@
+@@ -0,0 +1,115 @@
 +config AYN
 +    tristate "AYN Platform Driver"
 +    help
@@ -53297,6 +53308,12 @@ index 000000000000..2134fa840172
 +        NCT6687D driver for Linux. Link:
 +        https://github.com/ublue-os/nct6687d.git
 +
++config WL
++    tristate "Broadcom WL Driver"
++    help
++        Broadcom WL driver for Linux. Link:
++        https://github.com/bazzite-org/broadcom-wl
++
 +
 +config FWOOT
 +    tristate "Framework Laptop Driver"
@@ -53349,11 +53366,10 @@ index 000000000000..2134fa840172
 \ No newline at end of file
 diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
 new file mode 100644
-index 000000000000..6736228083af
+index 000000000000..a58148032ce0
 --- /dev/null
 +++ b/drivers/custom/Makefile
-@@ -0,0 +1,42 @@
-+ifneq ($(ARCH),arm64)
+@@ -0,0 +1,41 @@
 +obj-$(CONFIG_AYN) += ayn_platform/
 +obj-$(CONFIG_AYANEO) += ayaneo_platform/
 +obj-$(CONFIG_BMI260) += bmi260/
@@ -53365,6 +53381,7 @@ index 000000000000..6736228083af
 +obj-$(CONFIG_GCAOC) += gcadapter_oc/
 +obj-$(CONFIG_RAZER) += razer/driver/
 +
++obj-$(CONFIG_WL) += broadcom-wl/
 +obj-$(CONFIG_NCT6687D) += nct6687d/
 +
 +obj-$(CONFIG_FWOOT) += framework/
@@ -53380,7 +53397,6 @@ index 000000000000..6736228083af
 +obj-$(CONFIG_V4L2LOOP) += v4l2loopback/
 +obj-$(CONFIG_VHBA) += cdemu/vhba-module/
 +obj-$(CONFIG_FACETIMEHD) += facetimehd/
-+endif
 +
 +# Install common files from all modules
 +install:
@@ -53417,6 +53433,13 @@ index 000000000000..2d764db2bd69
 +++ b/drivers/custom/bmi260
 @@ -0,0 +1 @@
 +Subproject commit 2d764db2bd69f2922d7fad6cb162136e32f357a2
+diff --git a/drivers/custom/broadcom-wl b/drivers/custom/broadcom-wl
+new file mode 160000
+index 000000000000..2eb8d6d0bc06
+--- /dev/null
++++ b/drivers/custom/broadcom-wl
+@@ -0,0 +1 @@
++Subproject commit 2eb8d6d0bc064501177e7528834f80166987b538
 diff --git a/drivers/custom/cdemu b/drivers/custom/cdemu
 new file mode 160000
 index 000000000000..d00300615639
@@ -53801,6 +53824,43 @@ index 000000000000..310ed88b13c6
 +++ b/drivers/custom/zenergy
 @@ -0,0 +1 @@
 +Subproject commit 310ed88b13c6c46ea8b4e89c120690eb319816a9
+diff --git a/tools/objtool/builtin-check.c b/tools/objtool/builtin-check.c
+index 80239843e9f0..ec97ba30fed5 100644
+--- a/tools/objtool/builtin-check.c
++++ b/tools/objtool/builtin-check.c
+@@ -101,6 +101,7 @@ static const struct option check_options[] = {
+ 	OPT_BOOLEAN(0,   "stats", &opts.stats, "print statistics"),
+ 	OPT_BOOLEAN('v', "verbose", &opts.verbose, "verbose warnings"),
+ 	OPT_BOOLEAN(0,   "Werror", &opts.werror, "return error on warnings"),
++	OPT_BOOLEAN(0,   "skip-check", &opts.skipcheck, "return error on warnings"),
+ 
+ 	OPT_END(),
+ };
+diff --git a/tools/objtool/check.c b/tools/objtool/check.c
+index d14f20ef1db1..c586cd225207 100644
+--- a/tools/objtool/check.c
++++ b/tools/objtool/check.c
+@@ -4806,5 +4806,8 @@ int check(struct objtool_file *file)
+ 		disas_warned_funcs(file);
+ 	}
+ 
++	if (opts.skipcheck)
++		ret = 0;
++
+ 	return ret;
+ }
+diff --git a/tools/objtool/include/objtool/builtin.h b/tools/objtool/include/objtool/builtin.h
+index 6b08666fa69d..a128c357bf45 100644
+--- a/tools/objtool/include/objtool/builtin.h
++++ b/tools/objtool/include/objtool/builtin.h
+@@ -39,6 +39,7 @@ struct opts {
+ 	bool stats;
+ 	bool verbose;
+ 	bool werror;
++	bool skipcheck;
+ };
+ 
+ extern struct opts opts;
 -- 
 2.51.0
 
