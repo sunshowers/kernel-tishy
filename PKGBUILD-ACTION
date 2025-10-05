@@ -24,6 +24,7 @@ source=("kernel-core-${fedver}.rpm"
         "kernel-modules-${fedver}.rpm"
         "kernel-modules-core-${fedver}.rpm"
         "kernel-modules-extra-${fedver}.rpm"
+        "kernel-modules-akmods-${fedver}.rpm"
         "kernel-modules-internal-${fedver}.rpm"
         "kernel-devel-${fedver}.rpm")
 #        "kernel-uki-virt-${pkgver}-${extras}.x86_64.rpm")

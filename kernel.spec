@@ -1571,6 +1571,31 @@ This package provides less commonly used kernel modules for the %{?2:%{2} }kerne
 %{nil}
 
 #
+# This macro creates a kernel-<subpackage>-modules-akmods package.
+#	%%kernel_modules_akmods_package [-m] <subpackage> <pretty-name>
+#
+%define kernel_modules_akmods_package(m) \
+%package %{?1:%{1}-}modules-akmods\
+Summary: OOT kernel modules that match the %{?2:%{2} }kernel\
+License: BROADCOM and CDDL AND GPL-2.0-only AND MIT\
+Provides: %{name}%{?1:-%{1}}-modules-akmods-%{_target_cpu} = %{specrpmversion}-%{release}\
+Provides: %{name}%{?1:-%{1}}-modules-akmods-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
+Provides: %{name}%{?1:-%{1}}-modules-akmods = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
+Provides: installonlypkg(kernel-module)\
+Provides: %{name}%{?1:-%{1}}-modules-akmods-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+Requires: %{name}%{?1:-%{1}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
+%if %{-m:1}%{!-m:0}\
+Requires: %{name}-modules-akmods-uname-r = %{KVERREL}%{uname_variant %{?1}}\
+%endif\
+AutoReq: no\
+AutoProv: yes\
+%description %{?1:%{1}-}modules-akmods\
+This package provides traditionally OOT modules for the %{?2:%{2} }kernel package.\
+Refer to their respective licenses.\
+
+#
 # This macro creates a kernel-<subpackage>-nvidia package.
 #	%%kernel_nvidia_package [-m] <subpackage> <nvpkg> <pretty-name>
 #
@@ -1578,7 +1603,7 @@ This package provides less commonly used kernel modules for the %{?2:%{2} }kerne
 %package %{?2:%{2}-}%{1}\
 Summary: Extra kernel modules to match the %{?3:%{3} }kernel\
 %if "%{1}" == "nvidia" || "%{1}" == "nvidia-lts" \
-License: MIT\
+License: (GPL-2.0-only OR MIT)\
 %else\
 License: NVIDIA\
 %endif\
@@ -1700,6 +1725,7 @@ Requires: %{name}-%{?1:%{1}-}-modules-core-uname-r = %{KVERREL}%{uname_variant %
 %{expand:%%kernel_modules_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %{expand:%%kernel_modules_core_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %{expand:%%kernel_modules_extra_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
+%{expand:%%kernel_modules_akmods_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %if %{with_nvidia}\
 %{expand:%%kernel_nvidia_package nvidia %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %{expand:%%kernel_nvidia_package nvidia-closed %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
@@ -2844,6 +2870,7 @@ BuildKernel() {
         echo '%%defattr(-,-,-)' > ../kernel${Variant:+-${Variant}}-modules-core.list
         echo '%%defattr(-,-,-)' > ../kernel${Variant:+-${Variant}}-modules.list
         echo '%%defattr(-,-,-)' > ../kernel${Variant:+-${Variant}}-modules-extra.list
+        echo '%%defattr(-,-,-)' > ../kernel${Variant:+-${Variant}}-modules-akmods.list
         echo '%%defattr(-,-,-)' > ../kernel${Variant:+-${Variant}}-modules-internal.list
         echo '%%defattr(-,-,-)' > ../kernel${Variant:+-${Variant}}-modules-partner.list
         mkdir -p $RPM_BUILD_ROOT/lib/modules/$KernelVer/kernel
@@ -3013,6 +3040,7 @@ BuildKernel() {
         create_module_file_list "kernel" ../modules.list ../kernel${Variant:+-${Variant}}-modules.list 0 0
         create_module_file_list "internal" ../modules-internal.list ../kernel${Variant:+-${Variant}}-modules-internal.list 0 1
         create_module_file_list "kernel" ../modules-extra.list ../kernel${Variant:+-${Variant}}-modules-extra.list 0 1
+        create_module_file_list "kernel" ../modules-akmods.list ../kernel${Variant:+-${Variant}}-modules-akmods.list 0 1
 %if 0%{!?fedora:1}
         create_module_file_list "partner" ../modules-partner.list ../kernel${Variant:+-${Variant}}-modules-partner.list 1 1
 %endif
@@ -3830,6 +3858,18 @@ fi\
 %{nil}
 
 #
+# This macro defines a %%post script for a kernel*-modules-akmods package.
+# It also defines a %%postun script that does the same thing.
+#	%%kernel_modules_akmods_post [<subpackage>]
+#
+%define kernel_modules_akmods_post() \
+%{expand:%%post %{?1:%{1}-}modules-akmods}\
+/sbin/depmod -a %{KVERREL}%{?1:+%{1}}\
+%{nil}\
+%{expand:%%postun %{?1:%{1}-}modules-akmods}\
+/sbin/depmod -a %{KVERREL}%{?1:+%{1}}\
+
+#
 # This macro defines a %%post script for the kernel*-nvidia packages.
 # It also defines a %%postun script that does the same thing.
 #	%%kernel_nvidia_post [<subpackage>] [<name>]
@@ -3935,6 +3975,7 @@ fi\
 %{expand:%%kernel_modules_post %{?-v*}}\
 %{expand:%%kernel_modules_core_post %{?-v*}}\
 %{expand:%%kernel_modules_extra_post %{?-v*}}\
+%{expand:%%kernel_modules_akmods_post %{?-v*}}\
 %if %{with_nvidia}\
 %{expand:%%kernel_nvidia_post nvidia %{?-v*}}\
 %{expand:%%kernel_nvidia_post nvidia-closed %{?-v*}}\
