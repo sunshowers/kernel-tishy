@@ -91,16 +91,15 @@ jobs:
 
       - name: Separate debuginfo into different folder
         run: |
-          mkdir -p debuginfo
-          mv ${{ matrix.arch }}/kernel-debuginfo-*.rpm debuginfo/
+          mkdir -p ./build/DRPMS/
+          mv ./build/RPMS/kernel-debuginfo-*.rpm ./build/DRPMS/
 
       - name: Upload Kernel to action
         uses: actions/upload-artifact@v4
         with:
           name: kernel-f${{ matrix.fedora_version}}-${{ matrix.arch }}
           path: |
-            .build-*.log
-            ${{ matrix.arch }}/kernel-*.rpm
+            ./build/RPMS/kernel-*.rpm
           compression-level: 7
 
       - name: Upload Kernel debuginfo to action
@@ -108,8 +107,7 @@ jobs:
         with:
           name: kernel-f${{ matrix.fedora_version}}-${{ matrix.arch }}-debuginfo
           path: |
-            .build-*.log
-            debuginfo/*.rpm
+            ./build/DRPMS/*.rpm
           compression-level: 7
 
       - name: Convert to Arch
@@ -122,9 +120,9 @@ jobs:
           cat PKGBUILD-ACTION | \
             sed "s/VERSION_FEDORA/${KERNEL_VER}.x86_64/" | \
             sed "s/VERSION_TAG/${ARCH_VER}/" \
-            > x86_64/PKGBUILD
+            > ./build/RPMS/PKGBUILD
           sudo podman build . -f Dockerfile-arch --tag 'arch_builder' --build-arg UID=$(id -u) --build-arg GID=$(id -g) 
-          sudo podman run --rm -v $(pwd)/x86_64:/workspace arch_builder makepkg -s
+          sudo podman run --rm -v $(pwd)/build/RPMS/:/workspace arch_builder makepkg -s
 
       - name: Upload Kernel arch package to action
         uses: actions/upload-artifact@v4
@@ -132,7 +130,7 @@ jobs:
         with:
           name: linux-f${{ matrix.fedora_version }}-arch
           path: |
-            x86_64/linux-*.pkg.tar.zst
+            ./build/RPMS/linux-*.pkg.tar.zst
           compression-level: 7
 
       - name: Upload Kernel to release
@@ -146,9 +144,9 @@ jobs:
           action: softprops/action-gh-release@v2
           with: |
             files: |
-              ${{ matrix.arch }}/kernel-*.rpm
-              x86_64/linux-*.pkg.tar.zst
-              x86_64/linux-*.pkg.tar.zst.sig
+              ./build/RPMS/kernel-*.rpm
+              ./build/RPMS/linux-*.pkg.tar.zst
+              ./build/RPMS/linux-*.pkg.tar.zst.sig
             fail_on_unmatched_files: false
             make_latest: false
 
