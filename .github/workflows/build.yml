@@ -1,12 +1,6 @@
 name: Build Bazzite Kernel
 
 on:
-  workflow_dispatch:
-    inputs:
-      arm:
-        description: "Build arm version only"
-        type: boolean
-        default: false
   release:
     types: [published]
   push:
@@ -28,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: ${{ github.event.inputs.arm == 'true' && fromJSON('["aarch64"]') || fromJSON('["aarch64", "x86_64"]') }}
+        arch: ["aarch64", "x86_64"]
         fedora_version: [43]
     runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
 
