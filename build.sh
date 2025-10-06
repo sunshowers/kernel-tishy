@@ -47,6 +47,8 @@ echo "Starting build for Fedora $FEDORA_VERSION, arch $ARCH"
 
 sudo rm -rf /etc/pki/pesign
 sudo cp -r certs/pki/ubluesign /etc/pki/pesign
+sudo chown -R root:root /etc/pki/pesign
+sudo chmod -R 755 /etc/pki/pesign
 
 rpmbuild \
   --define '_topdir   %(pwd)/build' \

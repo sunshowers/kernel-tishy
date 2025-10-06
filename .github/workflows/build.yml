@@ -83,7 +83,8 @@ jobs:
       - name: Compile Kernel
         run: |
           sudo FEDORA_VERSION="${{ matrix.fedora_version }}" ARCH="${{ matrix.arch }}" \
-            podman run --rm -v $(pwd):/workspace fedora_builder bash ./build.sh \
+            podman run --rm -v $(pwd):/workspace -e UID=$UID -e GID=$GID \
+              fedora_builder bash ./build.sh \
               | grep -v ".o: warning: objtool:"
 
           # We are signed, remove certs
