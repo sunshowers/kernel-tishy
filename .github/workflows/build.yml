@@ -115,7 +115,7 @@ jobs:
         if: matrix.arch == 'x86_64' && matrix.fedora_version == 43 #arch_fedora
         run: |
           # Grab kernel ver from the log
-          KERNEL_VER=$(ls -a build/SRPMS/ | grep "kernel-*" | head -n 1 | sed 's/^kernel-//' | sed 's/.src.rpm//').${{ matrix.arch }}
+          KERNEL_VER=$(ls -a build/SRPMS/ | grep "kernel-*" | head -n 1 | sed 's/^kernel-//' | sed 's/.src.rpm//')
           ARCH_VER=$(echo $KERNEL_VER | sed 's/-/./g')
           # Place in PKGBUILD
           cat PKGBUILD-ACTION | \
