@@ -173,18 +173,18 @@ Summary: The Linux kernel
 #  the --with-release option overrides this setting.)
 %define debugbuildsenabled 1
 # define buildid .local
-%define specrpmversion 6.17.0
-%define specversion 6.17.0
+%define specrpmversion 6.17.1
+%define specversion 6.17.1
 %define patchversion 6.17
-%define pkgrelease ba11
+%define pkgrelease ba00
 %define kversion 6
-%define tarfile_release 6.17
+%define tarfile_release 6.17.1
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba11%{?buildid}%{?dist}
+%define specrelease ba00%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.17.0
+%define kabiversion 6.17.1
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -1582,6 +1582,7 @@ Provides: %{name}%{?1:-%{1}}-modules-akmods-%{_target_cpu} = %{specrpmversion}-%
 Provides: %{name}%{?1:-%{1}}-modules-akmods-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
 Provides: %{name}%{?1:-%{1}}-modules-akmods = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
 Provides: installonlypkg(kernel-module)\
+Provides: evdi-kmod = %{evdi_version}\
 %if %{with_zfs}\
 Provides: zfs-kmod = %{zfs_version}\
 %endif\
@@ -1648,7 +1649,6 @@ Provides: %{name}-modules-%{_target_cpu} = %{specrpmversion}-%{release}%{uname_s
 Provides: %{name}-modules = %{specrpmversion}-%{release}%{uname_suffix %{?1}}\
 Provides: installonlypkg(kernel-module)\
 Provides: %{name}%{?1:-%{1}}-modules-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
-Provides: evdi-kmod = %{evdi_version}\
 Requires: %{name}-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
 Requires: %{name}%{?1:-%{1}}-modules-core-uname-r = %{KVERREL}%{uname_suffix %{?1}}\
 %if %{-m:1}%{!-m:0}\
@@ -4532,7 +4532,7 @@ fi\
 #
 #
 %changelog
-* Mon Oct 06 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.0-ba11]
+* Mon Oct 06 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba00]
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
@@ -4745,6 +4745,13 @@ fi\
 - Revert "efi/x86: Set the PE/COFF header's NX compat flag unconditionally" (Maximilian Luz)
 - scsi: sd: remove unused warning inherited from fedora (Antheas Kapenekakis)
 - [NA] add dev tools (Antheas Kapenekakis)
+
+* Mon Oct 06 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.1-1]
+- Add Bug to BugsFixed (Justin M. Forbes)
+- gpio: usbio: Add ACPI device-id for MTL-CVF devices (Hans de Goede)
+- i2c: usbio: Add ACPI device-id for MTL-CVF devices (Hans de Goede)
+- wifi: ath11k: Add missing platform IDs for quirk table (Mark Pearson)
+- blk-mq: fix blk_mq_tags double free while nr_requests grown (Yu Kuai)
 - usb: typec: ucsi: Handle incorrect num_connectors capability (Mark Pearson)
 - Initial setup for stable Fedora releases (Justin M. Forbes)
 - arm64: dts: qcom: x1e80100-lenovo-yoga-slim7x: add Bluetooth support (Jens Glathe)
@@ -4766,6 +4773,7 @@ fi\
 - x86/virt/tdx: Mark memory cache state incoherent when making SEAMCALL (Kai Huang)
 - x86/sme: Use percpu boolean to control WBINVD during kexec (Kai Huang)
 - x86/kexec: Consolidate relocate_kernel() function parameters (Kai Huang)
+- Linux v6.17.1
 
 * Mon Sep 29 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.0-1]
 - Reset RHEL_RELEASE for the 6.18 cycle (Justin M. Forbes)

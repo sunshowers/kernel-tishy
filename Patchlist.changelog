@@ -1,3 +1,117 @@
+https://gitlab.com/cki-project/kernel-ark/-/commit/4a245d5610b1706a1ede4cf1b5f462bb3cf84f1c
+ 4a245d5610b1706a1ede4cf1b5f462bb3cf84f1c Linux 6.17.1
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/ef08ce6304d30b5778035d07b04514cb70839983
+ ef08ce6304d30b5778035d07b04514cb70839983 ASoC: qcom: audioreach: fix potential null pointer dereference
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/4eeafff163e80d576c5efc1360ae310c0ceedd02
+ 4eeafff163e80d576c5efc1360ae310c0ceedd02 media: stm32-csi: Fix dereference before NULL check
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/ec2f87ad035e8d1ad67567542842f1f23a4dbde2
+ ec2f87ad035e8d1ad67567542842f1f23a4dbde2 media: iris: Fix memory leak by freeing untracked persist buffer
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/500fcc31e488d798937a23dbb1f62db46820c5b2
+ 500fcc31e488d798937a23dbb1f62db46820c5b2 wifi: ath11k: fix NULL dereference in ath11k_qmi_m3_load()
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/e4e99d69b8b8295c501b2eef89e13306b738b667
+ e4e99d69b8b8295c501b2eef89e13306b738b667 mm: swap: check for stable address space before operating on the VMA
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/0f140cede24334b3ee55e3e1127071266cbb8287
+ 0f140cede24334b3ee55e3e1127071266cbb8287 media: uvcvideo: Mark invalid entities with id UVC_INVALID_ENTITY_ID
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/2e7fd93b9cc565b839bc55a6662475718963e156
+ 2e7fd93b9cc565b839bc55a6662475718963e156 media: rc: fix races with imon_disconnect()
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/4266f012806fc18e46da4a04d130df59a4946f93
+ 4266f012806fc18e46da4a04d130df59a4946f93 media: tuner: xc5000: Fix use-after-free in xc5000_release
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/2610617effb4454d2f1c434c011ccb5cc7140711
+ 2610617effb4454d2f1c434c011ccb5cc7140711 media: i2c: tc358743: Fix use-after-free bugs caused by orphan timer in probe
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/6a92f5796880f5aa345f0fed53ef511e3fd6f706
+ 6a92f5796880f5aa345f0fed53ef511e3fd6f706 media: b2c2: Fix use-after-free causing by irq_check_work in flexcop_pci_remove
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/bdb3c41b358cf87d99e39d393e164f9e4a6088e6
+ bdb3c41b358cf87d99e39d393e164f9e4a6088e6 wifi: rtw89: fix use-after-free in rtw89_core_tx_kick_off_and_wait()
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/353d8c715cc951a980728133c9dd64ca5a0a186c
+ 353d8c715cc951a980728133c9dd64ca5a0a186c ALSA: usb-audio: fix race condition to UAF in snd_usbmidi_free
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/a150275831b765b0f1de8b8ff52ec5c6933ac15d
+ a150275831b765b0f1de8b8ff52ec5c6933ac15d scsi: target: target_core_configfs: Add length check to avoid buffer overflow
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/0424e4ee60a621d71ab12b51475292115eac903a
+ 0424e4ee60a621d71ab12b51475292115eac903a gcc-plugins: Remove TODO_verify_il for GCC >= 16
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/392b1d64911f4de8887fe8b68299fa8bd6e5b923
+ 392b1d64911f4de8887fe8b68299fa8bd6e5b923 blk-mq: fix blk_mq_tags double free while nr_requests grown
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/3060ed02f4a7e09f9b583b21cd79990b9be01e04
+ 3060ed02f4a7e09f9b583b21cd79990b9be01e04 gpio: usbio: Add ACPI device-id for MTL-CVF devices
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/30a281e3b63d9a5134e4ed42a19dd8b440022538
+ 30a281e3b63d9a5134e4ed42a19dd8b440022538 i2c: usbio: Add ACPI device-id for MTL-CVF devices
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/1748701ccf977943c2977fde3ed74353b5496a4c
+ 1748701ccf977943c2977fde3ed74353b5496a4c wifi: ath11k: Add missing platform IDs for quirk table
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/66d6e49f25d39fcdb49308c1d7775907621b5245
+ 66d6e49f25d39fcdb49308c1d7775907621b5245 blk-mq: fix blk_mq_tags double free while nr_requests grown
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/5fa16f2c7c24a728beccde52592c57719ec41fca
+ 5fa16f2c7c24a728beccde52592c57719ec41fca usb: typec: ucsi: Handle incorrect num_connectors capability
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/f94928cb3bf1f38192245cc0fb121e93231b7dd0
+ f94928cb3bf1f38192245cc0fb121e93231b7dd0 arm64: dts: qcom: x1e80100-lenovo-yoga-slim7x: add Bluetooth support
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/8954d31d6b48c0de1774fabca2b68f4a8f9fcd58
+ 8954d31d6b48c0de1774fabca2b68f4a8f9fcd58 i2c: Add Intel USBIO I2C driver
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/8323915b4b7178aa54c343eef4b8ac2500de0326
+ 8323915b4b7178aa54c343eef4b8ac2500de0326 gpio: Add Intel USBIO GPIO driver
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/bd32ba7b2550a6a4cc4706301f600c7240f3a05a
+ bd32ba7b2550a6a4cc4706301f600c7240f3a05a usb: misc: Add Intel USBIO bridge driver
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/fb3c43460df4d29e164c82554277b4903998db6f
+ fb3c43460df4d29e164c82554277b4903998db6f media: ov08x40: Fix the horizontal flip control
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/f113a746dccad5e407fdf9a1b49c85e7a5b99c3a
+ f113a746dccad5e407fdf9a1b49c85e7a5b99c3a ACPI: scan: Add Intel CVS ACPI HIDs to acpi_ignore_dep_ids[]
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/8ecfdac68955cc7ef306e763c4701e7abeac8543
+ 8ecfdac68955cc7ef306e763c4701e7abeac8543 platform/x86: int3472: Increase ov08x40 handshake GPIO delay to 45 ms
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/32725c6665f45b8f45b7caa4c97c0594bcdd0393
+ 32725c6665f45b8f45b7caa4c97c0594bcdd0393 platform/x86: int3472: Rework regulator enable-time handling
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/006fd67c0b3e91f86f1449f792d7d40998c37d4f
+ 006fd67c0b3e91f86f1449f792d7d40998c37d4f platform/x86: int3472: Convert int3472_gpio_map to use C99 initializers
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/03b1f9503b74fb11ff8797c1b73d63fc463a1c2d
+ 03b1f9503b74fb11ff8797c1b73d63fc463a1c2d powerpc/tools: drop `-o pipefail` in gcc check scripts
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/17e842dc3cbf9a2cbd4330399ebd140a5f3555b0
+ 17e842dc3cbf9a2cbd4330399ebd140a5f3555b0 KVM/TDX: Explicitly do WBINVD when no more TDX SEAMCALLs
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/baa38bd2a561cf7b9bc0fdfd0891365739924948
+ baa38bd2a561cf7b9bc0fdfd0891365739924948 x86/virt/tdx: Update the kexec section in the TDX documentation
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/980036ebf5da4e026d4c24c910b37c0be3350a5c
+ 980036ebf5da4e026d4c24c910b37c0be3350a5c x86/virt/tdx: Remove the !KEXEC_CORE dependency
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/81222db814cab5bcd6f090482f025d2c94163706
+ 81222db814cab5bcd6f090482f025d2c94163706 x86/kexec: Disable kexec/kdump on platforms with TDX partial write erratum
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/22da7dcaeafc05f8bc775e5ce2713f1554538ada
+ 22da7dcaeafc05f8bc775e5ce2713f1554538ada x86/virt/tdx: Mark memory cache state incoherent when making SEAMCALL
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/6f806f83a781d96bf847565da401c20d1895243e
+ 6f806f83a781d96bf847565da401c20d1895243e x86/sme: Use percpu boolean to control WBINVD during kexec
+
+https://gitlab.com/cki-project/kernel-ark/-/commit/ee4f8c1c52d602cec787f7d9244f040868f1f771
+ ee4f8c1c52d602cec787f7d9244f040868f1f771 x86/kexec: Consolidate relocate_kernel() function parameters
+
 https://gitlab.com/cki-project/kernel-ark/-/commit/ac733ae45f49b68213b54beee5aeb78d7d990571
  ac733ae45f49b68213b54beee5aeb78d7d990571 arm64: add early lockdown for secure boot
 
