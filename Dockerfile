@@ -25,8 +25,6 @@ RUN groupadd -g $GID -o builder && \
     
 USER builder
 
-ENV PATH="/usr/lib64/ccache/:$PATH"
-
 WORKDIR /workspace
 
 ENTRYPOINT [ "env" ]
