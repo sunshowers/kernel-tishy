@@ -55,8 +55,8 @@ rpmbuild \
   --define '_builddir %{_topdir}/BUILD' \
   --define '_rpmdir   %{_topdir}/RPMS' \
   --define '_srcrpmdir %{_topdir}/SRPMS' \
-  --define "_sourcedir $(pwd)/" \
-  --define "_specdir  $(pwd)/" \
+  --define '_sourcedir %(pwd)/' \
+  --define '_specdir  %(pwd)/' \
   --with bazzite --with ubsb --with nvidia --with zfs \
   -ba kernel.spec &
 
