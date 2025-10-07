@@ -976,8 +976,8 @@ Source4: broadcom-wl.blob
 %define nvidia_version_lts 580.95.05
 %define nvidia_epoch 3
 %if %{with_nvidia}
-Source5: NVIDIA-Linux-%{_build_arch}-%{nvidia_version}.run
-Source6: NVIDIA-Linux-%{_build_arch}-%{nvidia_version_lts}.run
+Source5: nvidia-kmod-%{_build_arch}-%{nvidia_version}.tar.xz
+Source6: nvidia-kmod-%{_build_arch}-%{nvidia_version_lts}.tar.xz
 %endif
 
 %define zfs_version 2.4.0-rc2
@@ -2083,10 +2083,10 @@ mkdir -p drivers/custom/broadcom-wl/lib
 cp -a %{SOURCE4} drivers/custom/broadcom-wl/lib/wlc_hybrid.o_shipped
 
 %if %{with_nvidia}
-chmod +x %{SOURCE5} && %{SOURCE5} --extract-only && \
-  mv NVIDIA-Linux-%{_build_arch}-%{nvidia_version} drivers/custom/nvidia
-chmod +x %{SOURCE56} && %{SOURCE6} --extract-only && \
-  mv NVIDIA-Linux-%{_build_arch}-%{nvidia_version_lts} drivers/custom/nvidia-lts
+mkdir -p drivers/custom/nvidia
+mkdir -p drivers/custom/nvidia-lts
+tar -xJf %{SOURCE5} -C drivers/custom/nvidia
+tar -xJf %{SOURCE6} -C drivers/custom/nvidia-lts
 %endif # with_nvidia
 
 %if %{with_zfs}
@@ -4532,7 +4532,7 @@ fi\
 #
 #
 %changelog
-* Mon Oct 06 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba00]
+* Tue Oct 07 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba00]
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)

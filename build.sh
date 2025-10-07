@@ -4,6 +4,12 @@
 # Key preparation
 #
 
+# Check we are in a container before we nuke the pesign dir
+if [ -z "$container" ]; then
+    echo "Error: This script should be run inside the build container."
+    exit 1
+fi
+
 # Use two keys. In the action, these will get prefilled with the public
 # keys from this directory
 
@@ -37,10 +43,75 @@ echo "Secure Boot Key status:"
 certutil -L -d sql:./certs/pki/ubluesign
 
 #
+# Sources preparation
+#
+
+# Get the tarfile_release value from the spec file and download it
+ARCH=${ARCH:-x86_64}
+TARFILE_RELEASE=$(sed -n 's/^%define[[:space:]]\+tarfile_release[[:space:]]\+//p' kernel.spec)
+NVIDIA_RELEASE=$(sed -n 's/^%define[[:space:]]\+nvidia_version[[:space:]]\+//p' kernel.spec)
+NVIDIA_RELEASE_LTS=$(sed -n 's/^%define[[:space:]]\+nvidia_version_lts[[:space:]]\+//p' kernel.spec)
+ZFS_RELEASE=$(sed -n 's/^%define[[:space:]]\+zfs_version[[:space:]]\+//p' kernel.spec)
+
+echo "TARFILE_RELEASE is $TARFILE_RELEASE"
+echo "NVIDIA_RELEASE is $NVIDIA_RELEASE"
+echo "NVIDIA_RELEASE_LTS is $NVIDIA_RELEASE_LTS"
+echo "ZFS_RELEASE is $ZFS_RELEASE"
+
+if [ -z "$TARFILE_RELEASE" ] || [ -z "$NVIDIA_RELEASE" ] || [ -z "$ZFS_RELEASE" ]; then
+    echo "Error: Could not determine TARFILE_RELEASE, NVIDIA_RELEASE, or ZFS_RELEASE from kernel.spec"
+    exit 1
+fi
+
+linuxfn="linux-${TARFILE_RELEASE}.tar.xz"
+zfsfn="zfs-${ZFS_RELEASE}.tar.gz"
+
+if [ ! -f "$linuxfn" ]; then
+    echo "Downloading $linuxfn"
+    curl -L -o "$linuxfn" "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${TARFILE_RELEASE}.tar.xz"
+fi
+if [ ! -f "$zfsfn" ]; then
+    echo "Downloading $zfsfn"
+    curl -L -o "$zfsfn" \
+        "https://github.com/openzfs/zfs/releases/download/zfs-${ZFS_RELEASE}/zfs-${ZFS_RELEASE}.tar.gz"
+fi
+
+nvreleases=($NVIDIA_RELEASE)
+if [ "$NVIDIA_RELEASE" != "$NVIDIA_RELEASE_LTS" ]; then
+    nvreleases+=($NVIDIA_RELEASE_LTS)
+fi
+
+for nvrelease in "${nvreleases[@]}"; do
+    # We need to do this to strip the driver from the srpm. Keeping two of
+    # Them would be a nice 800MB, here we drop to 160MB. We could halve
+    # that if we only keep the closed for LTS.
+    echo "Processing NVIDIA release $nvrelease for arch $ARCH"
+    RUN_FN="NVIDIA-Linux-$ARCH-${nvrelease}.run"
+    tarfn="nvidia-kmod-${ARCH}-${nvrelease}.tar.xz"
+
+    if [ ! -f "$RUN_FN" ]; then
+        echo "Downloading $RUN_FN"
+        curl -L -o $RUN_FN \
+                    "https://download.nvidia.com/XFree86/Linux-$ARCH/${nvrelease}/NVIDIA-Linux-$ARCH-${NVIDIA_RELEASE}.run"
+    fi
+
+    rm -rf build/nvidia
+    mkdir -p build/nvidia/kmod
+
+    chmod +x $RUN_FN
+    ./$RUN_FN --extract-only --target build/nvidia/extract
+
+    mv build/nvidia/extract/kernel build/nvidia/extract/kernel-open build/nvidia/kmod
+
+    XZ_OPT='-T0' tar --remove-files -cJf $tarfn -C build/nvidia/kmod .
+    echo "Created $tarfn"
+    rm -rf build/nvidia
+done
+
+#
 # Build
 #
 
-ARCH=${ARCH:-x86_64}
 FEDORA_VERSION=${FEDORA_VERSION:-43}
 
 echo "Starting build for Fedora $FEDORA_VERSION, arch $ARCH"

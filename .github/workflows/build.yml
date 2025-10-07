@@ -37,30 +37,6 @@ jobs:
             --build-arg UID=$(id -u) --build-arg GID=$(id -g) \
             --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
 
-      - name: Fixup kernel source
-        run: |
-          # Get the tarfile_release value from the spec file and download it
-          TARFILE_RELEASE=$(sed -n 's/^%define[[:space:]]\+tarfile_release[[:space:]]\+//p' kernel.spec)
-          NVIDIA_RELEASE=$(sed -n 's/^%define[[:space:]]\+nvidia_version[[:space:]]\+//p' kernel.spec)
-          NVIDIA_RELEASE_LTS=$(sed -n 's/^%define[[:space:]]\+nvidia_version_lts[[:space:]]\+//p' kernel.spec)
-          ZFS_RELEASE=$(sed -n 's/^%define[[:space:]]\+zfs_version[[:space:]]\+//p' kernel.spec)
-
-          echo "TARFILE_RELEASE is $TARFILE_RELEASE"
-          echo "NVIDIA_RELEASE is $NVIDIA_RELEASE"
-          echo "NVIDIA_RELEASE_LTS is $NVIDIA_RELEASE_LTS"
-          echo "ZFS_RELEASE is $ZFS_RELEASE"
-
-          curl -L -o "linux-${TARFILE_RELEASE}.tar.xz" "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${TARFILE_RELEASE}.tar.xz"
-          curl -L -o "NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run" \
-            "https://download.nvidia.com/XFree86/Linux-${{ matrix.arch }}/${NVIDIA_RELEASE}/NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run"
-          if [ "$NVIDIA_RELEASE" != "$NVIDIA_RELEASE_LTS" ]; then
-            echo "Also downloading LTS version of NVIDIA driver $NVIDIA_RELEASE_LTS"
-            curl -L -o "NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE}.run" \
-              "https://download.nvidia.com/XFree86/Linux-${{ matrix.arch }}/${NVIDIA_RELEASE_LTS}/NVIDIA-Linux-${{ matrix.arch }}-${NVIDIA_RELEASE_LTS}.run"
-          fi
-          curl -L -o "zfs-${ZFS_RELEASE}.tar.gz" \
-            "https://github.com/openzfs/zfs/releases/download/zfs-${ZFS_RELEASE}/zfs-${ZFS_RELEASE}.tar.gz"
-
       - name: Load Universal Blue Keys
         if: github.event_name == 'release' && matrix.arch == 'x86_64'
         env:
@@ -157,6 +133,7 @@ jobs:
           with: |
             files: |
               ./build/RPMS/${{ matrix.arch }}/kernel-*.rpm
+              ./build/SRPMS/${{ matrix.arch }}/kernel-*.rpm
               ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst
               ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
             fail_on_unmatched_files: false
