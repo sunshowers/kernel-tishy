@@ -57,7 +57,7 @@ jobs:
         run: |
           df -h
           #  remove swapfile (3gb)
-          sudo swapoff /swapfile && sudo rm -f /swapfile
+          sudo swapoff -a; sudo rm -f /swapfile
           # Remove toolchains, browsers
           shopt -s nullglob
           printf '%s\0' /opt/PyPy /opt/az /opt/node/ /opt/pipx /opt/go /opt/Ruby \
