@@ -4,6 +4,8 @@
 # Key preparation
 #
 
+set -e
+
 # Check we are in a container before we nuke the pesign dir
 if [ -z "$container" ]; then
     echo "Error: This script should be run inside the build container."

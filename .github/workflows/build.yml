@@ -69,8 +69,8 @@ jobs:
 
       - name: Compile Kernel
         run: |
-          sudo FEDORA_VERSION="${{ matrix.fedora_version }}" ARCH="${{ matrix.arch }}" \
-            podman run --rm -v $(pwd):/workspace -e UID=$UID -e GID=$GID \
+          sudo podman run --rm -v $(pwd):/workspace -e UID=$UID -e GID=$GID \
+              -e ARCH=${{ matrix.arch }} -e FEDORA_VERSION=${{ matrix.fedora_version }} \
               fedora_builder bash ./build.sh \
               | grep -v ".o: warning: objtool:"
 
