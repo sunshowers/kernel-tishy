@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.1
 %define specversion 6.17.1
 %define patchversion 6.17
-%define pkgrelease ba03
+%define pkgrelease ba04
 %define kversion 6
 %define tarfile_release 6.17.1
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba03%{?buildid}%{?dist}
+%define specrelease ba04%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.1
 
@@ -4532,7 +4532,10 @@ fi\
 #
 #
 %changelog
-* Tue Oct 07 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba03]
+* Tue Oct 07 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba04]
+- orientation: add x1 air (Antheas Kapenekakis)
+- oxpec: add x1 air (Antheas Kapenekakis)
+- platform/x86/amd: pmc: Add Lenovo Legion Go 2 to pmc quirk list (Antheas Kapenekakis)
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
