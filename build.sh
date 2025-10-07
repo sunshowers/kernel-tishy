@@ -117,6 +117,7 @@ done
 FEDORA_VERSION=${FEDORA_VERSION:-43}
 
 echo "Starting build for Fedora $FEDORA_VERSION, arch $ARCH"
+unset ARCH # There seems to be an issue here
 
 sudo rm -rf /etc/pki/pesign
 sudo cp -r certs/pki/ubluesign /etc/pki/pesign
