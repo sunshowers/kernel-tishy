@@ -10,12 +10,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  # Group by commit hash so that
-  # the release cancels the push
-  group: ${{ github.sha }}
-  cancel-in-progress: true
-
 jobs:
   build_kernel:
     environment: prod
