@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.1
 %define specversion 6.17.1
 %define patchversion 6.17
-%define pkgrelease ba01
+%define pkgrelease ba02
 %define kversion 6
 %define tarfile_release 6.17.1
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba01%{?buildid}%{?dist}
+%define specrelease ba02%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.1
 
@@ -2085,8 +2085,8 @@ cp -a %{SOURCE4} drivers/custom/broadcom-wl/lib/wlc_hybrid.o_shipped
 %if %{with_nvidia}
 mkdir -p drivers/custom/nvidia
 mkdir -p drivers/custom/nvidia-lts
-tar xzf %{SOURCE5} -C drivers/custom/nvidia
-tar xzf %{SOURCE6} -C drivers/custom/nvidia-lts
+tar -xJf %{SOURCE5} -C drivers/custom/nvidia
+tar -xJf %{SOURCE6} -C drivers/custom/nvidia-lts
 %endif # with_nvidia
 
 %if %{with_zfs}
@@ -4532,7 +4532,7 @@ fi\
 #
 #
 %changelog
-* Tue Oct 07 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba01]
+* Tue Oct 07 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba02]
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
