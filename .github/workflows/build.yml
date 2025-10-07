@@ -63,8 +63,8 @@ jobs:
           printf '%s\0' /opt/PyPy /opt/az /opt/node/ /opt/pipx /opt/go /opt/Ruby \
               /usr/lib/llvm-* /usr/local/julia* /usr/local/lib/android /usr/share/dotnet \
               /usr/share/swift /usr/local/.ghcup /usr/lib/firefox /opt/google/chrome \
-              /opt/microsoft/msedge /usr/share/miniconda /opt/hostedtoolcache \
-              | sudo xargs -0 -n1 -P8 rm -rf
+              /opt/microsoft/msedge \
+              | sudo xargs -0 -n1 -P4 rm -rf
           df -h
 
       - name: Compile Kernel
