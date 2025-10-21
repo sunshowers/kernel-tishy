@@ -156,8 +156,8 @@ jobs:
 
   update_aur:
     uses: ./.github/workflows/publish-aur.yml
+    needs: post_release
     if: github.ref_type == 'tag' && contains(github.ref_name, '-ba')
-    needs: build_kernel
     secrets: inherit
     with:
       relver: ${{ github.ref_name }}
