@@ -9,7 +9,9 @@ on:
       - '*-rc*'
 
 permissions:
-  contents: write
+  id-token: write
+  contents: read
+  attestations: write
 
 jobs:
   build_kernel:
@@ -129,6 +131,15 @@ jobs:
             ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
           fail_on_unmatched_files: false
           draft: true
+      
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            ./build/RPMS/${{ matrix.arch }}/kernel-*.rpm
+            ./build/SRPMS/${{ matrix.arch }}/kernel-*.rpm
+            ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst
+            ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
 
   post_release:
     runs-on: ubuntu-24.04
