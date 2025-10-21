@@ -6,6 +6,7 @@ on:
       - bazzite-*
     tags:
       - '*-ba*'
+      - '*-rc*'
 
 permissions:
   contents: write
