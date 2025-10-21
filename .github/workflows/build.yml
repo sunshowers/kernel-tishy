@@ -13,6 +13,10 @@ permissions:
   contents: write
   attestations: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   build_kernel:
     environment: ${{ (github.ref_type == 'tag' && (contains(github.ref_name, '-ba') || contains(github.ref_name, '-rc'))) && 'prod' || 'dev' }}
