@@ -1,18 +1,18 @@
 name: Build Bazzite Kernel
 
 on:
-  release:
-    types: [published]
   push:
     branches:
       - bazzite-*
+    tags:
+      - '*-ba*'
 
 permissions:
   contents: write
 
 jobs:
   build_kernel:
-    environment: prod
+    environment: ${{ (github.ref_type == 'tag' && contains(github.ref_name, '-ba')) && 'prod' || 'dev' }}
     strategy:
       fail-fast: false
       matrix:
@@ -116,7 +116,7 @@ jobs:
           compression-level: 7
 
       - name: Upload Kernel to release
-        if: github.event_name == 'release'
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -127,31 +127,26 @@ jobs:
             ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst
             ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
           fail_on_unmatched_files: false
-          make_latest: false
+          draft: true
 
-  # Trigger ublue-os/akmods build/kernel cache
   post_release:
     runs-on: ubuntu-24.04
     needs: build_kernel
-    if: github.event_name == 'release'
+    if: github.ref_type == 'tag'
     steps:
       - name: Make release latest
-        if: github.event.release.prerelease == false
-        uses: Wandalen/wretry.action@v3.8.0
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          attempt_limit: 3
-          attempt_delay: 15000
-          action: softprops/action-gh-release@v2
-          with: |
-            make_latest: true
+          draft: false
+          prerelease: ${{ !contains(github.ref_name, '-ba') }}
 
   update_aur:
     uses: ./.github/workflows/publish-aur.yml
+    if: github.ref_type == 'tag' && contains(github.ref_name, '-ba')
     needs: build_kernel
     secrets: inherit
-    if: github.event_name == 'release' && github.event.release.prerelease == false
     with:
-      relver: ${{ github.event.release.tag_name }}
+      relver: ${{ github.ref_name }}
       fedora_version: 43 #arch_fedora
