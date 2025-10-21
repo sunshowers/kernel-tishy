@@ -5,8 +5,8 @@ on:
     branches:
       - bazzite-*
     tags:
-      - '*-ba*'
-      - '*-rc*'
+      - "*-ba*"
+      - "*-rc*"
 
 permissions:
   id-token: write
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build_kernel:
-    environment: ${{ (github.ref_type == 'tag' && contains(github.ref_name, '-ba')) && 'prod' || 'dev' }}
+    environment: ${{ (github.ref_type == 'tag' && (contains(github.ref_name, '-ba') || contains(github.ref_name, '-rc'))) && 'prod' || 'dev' }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +35,7 @@ jobs:
             --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
 
       - name: Load Universal Blue Keys
-        if: github.event_name == 'release' && matrix.arch == 'x86_64'
+        if: (github.ref_type == 'tag' && (contains(github.ref_name, '-ba') || contains(github.ref_name, '-rc')))
         env:
           UBLUE_MOKKEY_LEGACY: ${{ secrets.UBLUE_MOKKEY_LEGACY }}
           UBLUE_MOKKEY_KERNEL: ${{ secrets.UBLUE_MOKKEY_KERNEL }}
@@ -131,7 +131,7 @@ jobs:
             ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
           fail_on_unmatched_files: false
           draft: true
-      
+
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v3
         with:
