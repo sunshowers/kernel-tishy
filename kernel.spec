@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.4
 %define specversion 6.17.4
 %define patchversion 6.17
-%define pkgrelease ba02
+%define pkgrelease ba03
 %define kversion 6
 %define tarfile_release 6.17.4
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba02%{?buildid}%{?dist}
+%define specrelease ba03%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.4
 
@@ -4532,7 +4532,7 @@ fi\
 #
 #
 %changelog
-* Tue Oct 21 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba02]
+* Tue Oct 21 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba03]
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
