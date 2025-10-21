@@ -173,18 +173,18 @@ Summary: The Linux kernel
 #  the --with-release option overrides this setting.)
 %define debugbuildsenabled 1
 # define buildid .local
-%define specrpmversion 6.17.1
-%define specversion 6.17.1
+%define specrpmversion 6.17.4
+%define specversion 6.17.4
 %define patchversion 6.17
-%define pkgrelease ba04
+%define pkgrelease ba01
 %define kversion 6
-%define tarfile_release 6.17.1
+%define tarfile_release 6.17.4
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba04%{?buildid}%{?dist}
+%define specrelease ba01%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.17.1
+%define kabiversion 6.17.4
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -4532,14 +4532,16 @@ fi\
 #
 #
 %changelog
-* Tue Oct 07 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.1-ba04]
-- orientation: add x1 air (Antheas Kapenekakis)
-- oxpec: add x1 air (Antheas Kapenekakis)
-- platform/x86/amd: pmc: Add Lenovo Legion Go 2 to pmc quirk list (Antheas Kapenekakis)
+* Tue Oct 21 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba01]
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)
 - CI: add akmod modules (Antheas Kapenekakis)
+- add legion go 2 mics (Antheas Kapenekakis)
+- add new ally units (Antheas Kapenekakis)
+- orientation: add x1 air (Antheas Kapenekakis)
+- oxpec: add x1 air (Antheas Kapenekakis)
+- platform/x86/amd: pmc: Add Lenovo Legion Go 2 to pmc quirk list (Antheas Kapenekakis)
 - drm/amdgpu: defer overdrive taint until used (Antheas Kapenekakis)
 - drm/amdgpu: enable override by default for APUs (Antheas Kapenekakis)
 - lower sleep interval to avoid waking up too long (Antheas Kapenekakis)
@@ -4552,7 +4554,6 @@ fi\
 - drm: panel-orientation-quirks: add SuiPlay0X1 (Antheas Kapenekakis)
 - disable custom brightness curve for now (Antheas Kapenekakis)
 - drm/amd/display: enable private color API universally (Antheas Kapenekakis)
-- drm: re-allow no-op changes on non-primary planes in async flips (Xaver Hugl)
 - drm/amdgpu: tweak min and max clocks of cyan_skillfish (Antheas Kapenekakis)
 - drm: panel-backlight-quirks: Add Steam Decks (Antheas Kapenekakis)
 - drm: panel-backlight-quirks: Add brightness mask quirk (Antheas Kapenekakis)
@@ -4748,6 +4749,22 @@ fi\
 - Revert "efi/x86: Set the PE/COFF header's NX compat flag unconditionally" (Maximilian Luz)
 - scsi: sd: remove unused warning inherited from fedora (Antheas Kapenekakis)
 - [NA] add dev tools (Antheas Kapenekakis)
+
+* Sun Oct 19 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.4-0]
+- Add Fedora 42 and 41 to release_targets (Justin M. Forbes)
+- RHEL_RELEASE should be 0, not 1 (Justin M. Forbes)
+- PCI: vmd: override irq_startup()/irq_shutdown() in vmd_init_dev_msi_info() (Inochi Amaoto)
+- fedora: arm64: Updates for AMD Xilinx devices (Peter Robinson)
+- Fix up config issue due to stable backport (Justin M. Forbes)
+- Linux v6.17.4
+
+* Wed Oct 15 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.3-1]
+- Linux v6.17.3
+
+* Sun Oct 12 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.2-1]
+- fedora: aarch64: Enable arm MHUv2 driver (Peter Robinson)
+- fedora: arm: Enable the NVMEM_IMX_OCOTP_ELE module (Peter Robinson)
+- Linux v6.17.2
 
 * Mon Oct 06 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.1-1]
 - Add Bug to BugsFixed (Justin M. Forbes)
