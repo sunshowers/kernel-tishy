@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.4
 %define specversion 6.17.4
 %define patchversion 6.17
-%define pkgrelease ba05
+%define pkgrelease ba06
 %define kversion 6
 %define tarfile_release 6.17.4
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba05%{?buildid}%{?dist}
+%define specrelease ba06%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.4
 
@@ -4532,7 +4532,10 @@ fi\
 #
 #
 %changelog
-* Tue Oct 21 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba05]
+* Fri Oct 24 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba06]
+- drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)
+- add pmc (Antheas Kapenekakis)
+- platform/x86/amd/pmc: Add support for Van Gogh SoC (Antheas Kapenekakis)
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
 - CI: add Nvidia LTS and Production modules (Antheas Kapenekakis)

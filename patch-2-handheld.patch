@@ -50638,3 +50638,171 @@ index 6b08666fa69d..a128c357bf45 100644
 -- 
 2.51.0
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Thu, 23 Oct 2025 17:19:57 +0200
+Subject: platform/x86/amd/pmc: Add support for Van Gogh SoC
+
+The ROG Xbox Ally (non-X) SoC features a similar architecture to the
+Steam Deck. While the Steam Deck supports S3 (s2idle causes a crash),
+this support was dropped by the Xbox Ally which only S0ix suspend.
+
+Since the handler is missing here, this causes the device to not suspend
+and the AMD GPU driver to crash while trying to resume afterwards due to
+a power hang.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/amd/pmc/pmc.c | 3 +++
+ drivers/platform/x86/amd/pmc/pmc.h | 1 +
+ 2 files changed, 4 insertions(+)
+
+diff --git a/drivers/platform/x86/amd/pmc/pmc.c b/drivers/platform/x86/amd/pmc/pmc.c
+index ae70fc71ab42..79870f371beb 100644
+--- a/drivers/platform/x86/amd/pmc/pmc.c
++++ b/drivers/platform/x86/amd/pmc/pmc.c
+@@ -106,6 +106,7 @@ static void amd_pmc_get_ip_info(struct amd_pmc_dev *dev)
+ 	switch (dev->cpu_id) {
+ 	case AMD_CPU_ID_PCO:
+ 	case AMD_CPU_ID_RN:
++	case AMD_CPU_ID_VG:
+ 	case AMD_CPU_ID_YC:
+ 	case AMD_CPU_ID_CB:
+ 		dev->num_ips = 12;
+@@ -517,6 +518,7 @@ static int amd_pmc_get_os_hint(struct amd_pmc_dev *dev)
+ 	case AMD_CPU_ID_PCO:
+ 		return MSG_OS_HINT_PCO;
+ 	case AMD_CPU_ID_RN:
++	case AMD_CPU_ID_VG:
+ 	case AMD_CPU_ID_YC:
+ 	case AMD_CPU_ID_CB:
+ 	case AMD_CPU_ID_PS:
+@@ -717,6 +719,7 @@ static const struct pci_device_id pmc_pci_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, AMD_CPU_ID_RV) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, AMD_CPU_ID_SP) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, AMD_CPU_ID_SHP) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, AMD_CPU_ID_VG) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_1AH_M20H_ROOT) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_1AH_M60H_ROOT) },
+ 	{ }
+diff --git a/drivers/platform/x86/amd/pmc/pmc.h b/drivers/platform/x86/amd/pmc/pmc.h
+index 62f3e51020fd..fe3f53eb5955 100644
+--- a/drivers/platform/x86/amd/pmc/pmc.h
++++ b/drivers/platform/x86/amd/pmc/pmc.h
+@@ -156,6 +156,7 @@ void amd_mp2_stb_deinit(struct amd_pmc_dev *dev);
+ #define AMD_CPU_ID_RN			0x1630
+ #define AMD_CPU_ID_PCO			AMD_CPU_ID_RV
+ #define AMD_CPU_ID_CZN			AMD_CPU_ID_RN
++#define AMD_CPU_ID_VG			0x1645
+ #define AMD_CPU_ID_YC			0x14B5
+ #define AMD_CPU_ID_CB			0x14D8
+ #define AMD_CPU_ID_PS			0x14E8
+-- 
+2.51.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Thu, 23 Oct 2025 20:40:56 +0200
+Subject: add pmc
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/platform/x86/amd/pmc/pmc-quirks.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/platform/x86/amd/pmc/pmc-quirks.c b/drivers/platform/x86/amd/pmc/pmc-quirks.c
+index 0fadcf5f288a..404e62ad293a 100644
+--- a/drivers/platform/x86/amd/pmc/pmc-quirks.c
++++ b/drivers/platform/x86/amd/pmc/pmc-quirks.c
+@@ -122,6 +122,14 @@ static const struct dmi_system_id fwbug_list[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "21A1"),
+ 		}
+ 	},
++	{
++		.ident = "ROG Xbox Ally RC73YA",
++		.driver_data = &quirk_spurious_8042,
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_BOARD_NAME, "RC73YA"),
++		}
++	},
+ 	/* https://bugzilla.kernel.org/show_bug.cgi?id=218024 */
+ 	{
+ 		.ident = "V14 G4 AMN",
+-- 
+2.51.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Thu, 23 Oct 2025 16:24:25 -0400
+Subject: drm/amdgpu: only send the SMU RLC notification on S3
+
+For S0ix, the RLC is not powered down.
+
+v2: handle swsmu side as well
+v3: skip post_init
+
+Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/4659
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_device.c       | 8 +++++---
+ drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c        | 6 ++++++
+ drivers/gpu/drm/amd/pm/swsmu/smu11/vangogh_ppt.c | 3 +++
+ 3 files changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+index 907ae2f5a981..ea90b315b5bd 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+@@ -5186,9 +5186,11 @@ int amdgpu_device_suspend(struct drm_device *dev, bool notify_clients)
+ 	if (amdgpu_sriov_vf(adev))
+ 		amdgpu_virt_release_full_gpu(adev, false);
+ 
+-	r = amdgpu_dpm_notify_rlc_state(adev, false);
+-	if (r)
+-		return r;
++	if (!adev->in_s0ix) {
++		r = amdgpu_dpm_notify_rlc_state(adev, false);
++		if (r)
++			return r;
++	}
+ 
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
+index 4eb99b74a04f..3758eee890dc 100644
+--- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
++++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
+@@ -2012,6 +2012,12 @@ static int smu_disable_dpms(struct smu_context *smu)
+ 	    smu->is_apu && (amdgpu_in_reset(adev) || adev->in_s0ix))
+ 		return 0;
+ 
++	/* vangogh s0ix */
++	if ((amdgpu_ip_version(adev, MP1_HWIP, 0) == IP_VERSION(11, 5, 0) ||
++	     amdgpu_ip_version(adev, MP1_HWIP, 0) == IP_VERSION(11, 5, 2)) &&
++	    adev->in_s0ix)
++		return 0;
++
+ 	/*
+ 	 * For gpu reset, runpm and hibernation through BACO,
+ 	 * BACO feature has to be kept enabled.
+diff --git a/drivers/gpu/drm/amd/pm/swsmu/smu11/vangogh_ppt.c b/drivers/gpu/drm/amd/pm/swsmu/smu11/vangogh_ppt.c
+index 2c9869feba61..0708d0f0938b 100644
+--- a/drivers/gpu/drm/amd/pm/swsmu/smu11/vangogh_ppt.c
++++ b/drivers/gpu/drm/amd/pm/swsmu/smu11/vangogh_ppt.c
+@@ -2217,6 +2217,9 @@ static int vangogh_post_smu_init(struct smu_context *smu)
+ 	uint32_t total_cu = adev->gfx.config.max_cu_per_sh *
+ 		adev->gfx.config.max_sh_per_se * adev->gfx.config.max_shader_engines;
+ 
++	if (adev->in_s0ix)
++		return 0;
++
+ 	/* allow message will be sent after enable message on Vangogh*/
+ 	if (smu_cmn_feature_is_enabled(smu, SMU_FEATURE_DPM_GFXCLK_BIT) &&
+ 			(adev->pg_flags & AMD_PG_SUPPORT_GFX_PG)) {
+-- 
+2.51.0
+
