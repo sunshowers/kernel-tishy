@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.4
 %define specversion 6.17.4
 %define patchversion 6.17
-%define pkgrelease ba08
+%define pkgrelease ba09
 %define kversion 6
 %define tarfile_release 6.17.4
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba08%{?buildid}%{?dist}
+%define specrelease ba09%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.4
 
@@ -4532,7 +4532,8 @@ fi\
 #
 #
 %changelog
-* Fri Oct 24 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba08]
+* Fri Oct 24 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba09]
+- patch it87 using frankcrawford/it87#60d9de (Antheas Kapenekakis)
 - drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)
 - platform/x86/amd/pmc: Add spurious_8042 to Xbox Ally (Antheas Kapenekakis)
 - platform/x86/amd/pmc: Add support for Van Gogh SoC (Antheas Kapenekakis)
