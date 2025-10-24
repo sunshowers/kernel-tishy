@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.4
 %define specversion 6.17.4
 %define patchversion 6.17
-%define pkgrelease ba06
+%define pkgrelease ba07
 %define kversion 6
 %define tarfile_release 6.17.4
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba06%{?buildid}%{?dist}
+%define specrelease ba07%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.4
 
@@ -4532,9 +4532,9 @@ fi\
 #
 #
 %changelog
-* Fri Oct 24 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba06]
+* Fri Oct 24 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba07]
 - drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)
-- add pmc (Antheas Kapenekakis)
+- platform/x86/amd/pmc: Add spurious_8042 to Xbox Ally (Antheas Kapenekakis)
 - platform/x86/amd/pmc: Add support for Van Gogh SoC (Antheas Kapenekakis)
 - CI: add universal blue secure boot (Antheas Kapenekakis)
 - CI: add ZFS module (Antheas Kapenekakis)
@@ -4575,7 +4575,6 @@ fi\
 - watchdog: reduce error message level to maintain plymouth (Antheas Kapenekakis)
 - Input: evdev - allow releasing keys on grab (Antheas Kapenekakis)
 - Input: xpad - add new ID for Lenovo Legion Go controllers (Antheas Kapenekakis)
-- HID: asus: add Zenbook Duo Keyboard (Antheas Kapenekakis)
 - drm/amd: Use suspend and hibernate post freeze notifications (Mario Limonciello)
 - PM: Add suspend and hibernate notifications for after freeze (Mario Limonciello)
 - drm/amd: Lower logging level of overdrive warning to err (Antheas Kapenekakis)
@@ -4643,17 +4642,21 @@ fi\
 - Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume" (Antheas Kapenekakis)
 - Revert "platform/x86: asus-wmi: Refactor Ally suspend/resume" (Antheas Kapenekakis)
 - add ROG Ally devices to nct6775 (Antheas Kapenekakis)
+- platform/x86: asus-wmi: add early backlight init quirk (Antheas Kapenekakis)
+- HID: asus: add Zenbook Duo Keyboards (Antheas Kapenekakis)
 - HID: asus: initialize LED endpoint early for old NKEY keyboards (Antheas Kapenekakis)
 - HID: asus: add RGB support to the ROG Ally units (Antheas Kapenekakis)
 - HID: asus: add basic RGB support (Antheas Kapenekakis)
+- HID: asus: add Z13 folio to generic group for multitouch to work (Antheas Kapenekakis)
 - HID: asus: add support for the asus-wmi brightness handler (Antheas Kapenekakis)
 - platform/x86: asus-wmi: add keyboard brightness event handler (Antheas Kapenekakis)
 - platform/x86: asus-wmi: remove unused keyboard backlight quirk (Antheas Kapenekakis)
 - HID: asus: listen to the asus-wmi brightness device instead of creating one (Antheas Kapenekakis)
-- platform/x86: asus-wmi: Add support for multiple kbd RGB handlers (Antheas Kapenekakis)
-- HID: asus: add Z13 folio to generic group for multitouch to work (Antheas Kapenekakis)
+- platform/x86: asus-wmi: Add support for multiple kbd led handlers (Antheas Kapenekakis)
 - HID: asus: prevent binding to all HID devices on ROG (Antheas Kapenekakis)
-- HID: asus: refactor init sequence per spec (Antheas Kapenekakis)
+- HID: asus: fortify keyboard handshake (Antheas Kapenekakis)
+- HID: asus: use same report_id in response (Antheas Kapenekakis)
+- HID: asus: simplify RGB init sequence (Antheas Kapenekakis)
 - drm/amdgpu: enable SI and CIK support by default (Jan200101)
 - set ds controller bluetooth pollrate to 1 ms (GloriousEggroll)
 - Allow to set custom USB pollrate for specific devices like so: usbcore.interrupt_interval_override=045e:00db:16,1bcf:0005:1 (GloriousEggroll)
