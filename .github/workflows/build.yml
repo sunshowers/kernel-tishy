@@ -136,13 +136,14 @@ jobs:
         run: |
             FEDORA_VERSION="${{ matrix.fedora_version }}" ARCH="${{ matrix.arch }}" \
               buildah unshare ./oci.sh
-            echo "digest=$(cat ./.oci-digest)" >> $GITHUB_OUTPUT
       
       - name: Upload OCI image to Registry
+        id: upload
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
-          podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
+          podman push --digestfile .driver-version "localhost/kernel-f${{ matrix.fedora_version}}" \
             "docker://ghcr.io/${{ github.repository }}:${{ github.ref_name }}-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
+          echo "digest=$(cat .driver-version)" >> $GITHUB_OUTPUT
           
           if [ "${{ github.ref_type }}" = "tag" ]; then
             podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
@@ -159,7 +160,7 @@ jobs:
       - name: Generate OCI attestation
         uses: actions/attest-build-provenance@v3
         with:
-          subject-digest: "${{ steps.oci.outputs.digest }}"
+          subject-digest: "${{ steps.upload.outputs.digest }}"
           subject-name: "ghcr.io/${{ github.repository }}"
           push-to-registry: true
 
