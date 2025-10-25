@@ -131,6 +131,31 @@ jobs:
             ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst
             ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
 
+      - name: Create OCI image
+        id: oci
+        run: |
+            FEDORA_VERSION="${{ matrix.fedora_version }}" ARCH="${{ matrix.arch }}" \
+              buildah unshare ./oci.sh
+            echo "digest=$(cat ./.oci-digest)" >> $GITHUB_OUTPUT
+          
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-digest: "${{ steps.oci.outputs.digest }}"
+          subject-name: "ghcr.io/${{ github.repository_owner }}/${{ github.repository }}"
+          push-to-registry: true
+      
+      - name: Upload OCI image to Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+          podman push localhost/kernel-bazzite-${{ matrix.fedora_version}} \
+            "docker://ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:${{ github.ref_name }}-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
+          
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            podman push localhost/kernel-bazzite-${{ matrix.fedora_version}} \
+              "docker://ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
+          fi
+
       - name: Upload Kernel to release
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2

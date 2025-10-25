@@ -60,6 +60,10 @@ echo "NVIDIA_RELEASE is $NVIDIA_RELEASE"
 echo "NVIDIA_RELEASE_LTS is $NVIDIA_RELEASE_LTS"
 echo "ZFS_RELEASE is $ZFS_RELEASE"
 
+echo "$NVIDIA_RELEASE" > .nvidia-release
+echo "$NVIDIA_RELEASE_LTS" > .nvidia-lts-release
+echo "$ZFS_RELEASE" >> .zfs-release
+
 if [ -z "$TARFILE_RELEASE" ] || [ -z "$NVIDIA_RELEASE" ] || [ -z "$ZFS_RELEASE" ]; then
     echo "Error: Could not determine TARFILE_RELEASE, NVIDIA_RELEASE, or ZFS_RELEASE from kernel.spec"
     exit 1
