@@ -141,11 +141,11 @@ jobs:
       - name: Upload OCI image to Registry
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
-          podman push localhost/kernel-bazzite-${{ matrix.fedora_version}} \
+          podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
             "docker://ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:${{ github.ref_name }}-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
           
           if [ "${{ github.ref_type }}" = "tag" ]; then
-            podman push localhost/kernel-bazzite-${{ matrix.fedora_version}} \
+            podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
               "docker://ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
           fi
           
