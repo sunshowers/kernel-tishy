@@ -60,6 +60,7 @@ echo "NVIDIA_RELEASE is $NVIDIA_RELEASE"
 echo "NVIDIA_RELEASE_LTS is $NVIDIA_RELEASE_LTS"
 echo "ZFS_RELEASE is $ZFS_RELEASE"
 
+echo "$TARFILE_RELEASE" > .tarfile-release
 echo "$NVIDIA_RELEASE" > .nvidia-release
 echo "$NVIDIA_RELEASE_LTS" > .nvidia-lts-release
 echo "$ZFS_RELEASE" >> .zfs-release
