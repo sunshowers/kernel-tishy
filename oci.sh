@@ -14,8 +14,6 @@ trap 'buildah rm $BOCI' ERR
 # Mount the filesystem
 MOCI=$(buildah mount $BOCI)
 
-mkdir -p $MOCI/rpms
-
 # Copy only binary RPMs (exclude src.rpm) directly into rpms/
 find "./build/RPMS/$ARCH" -type f -name "kernel-*.rpm" ! -name "*.src.rpm" -exec cp -t "$MOCI/" {} +
 
