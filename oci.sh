@@ -20,12 +20,14 @@ find "./build/RPMS/$ARCH" -type f -name "kernel-*.rpm" ! -name "*.src.rpm" -exec
 # Unmount the filesystem
 buildah unmount $BOCI
 
+buildah config \
+    --label "org.bazzite.kernel.version=$(cat .kernel-version)" \
+    --label "org.bazzite.kernel.nvidia_lts=$(cat .nvidia-lts-release)" \
+    --label "org.bazzite.kernel.zfs=$(cat .zfs-release)" \
+    $BOCI
+
 # Commit the image
-buildah commit \
-    --annotation "org.bazzite.kernel.nvidia=$(cat .nvidia-release)" \
-    --annotation "org.bazzite.kernel.nvidia_lts=$(cat .nvidia-lts-release)" \
-    --annotation "org.bazzite.kernel.zfs=$(cat .zfs-release)" \
-     $BOCI kernel-f${FEDORA_VERSION}
+buildah commit $BOCI kernel-f${FEDORA_VERSION}
 
 # Get digest
 DIGEST=$(buildah images --noheading --format "{{.Digest}}" nvidia-oci-f${FEDORA_VERSION})
