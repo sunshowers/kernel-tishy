@@ -142,14 +142,9 @@ jobs:
         id: upload
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
-          podman push --digestfile .driver-version "localhost/kernel-f${{ matrix.fedora_version}}" \
+          podman push --digestfile .oci-digest "localhost/kernel-f${{ matrix.fedora_version}}" \
             "docker://ghcr.io/${{ github.repository }}:${{ github.ref_name }}-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
-          echo "digest=$(cat .driver-version)" >> $GITHUB_OUTPUT
-          
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
-              "docker://ghcr.io/${{ github.repository }}:latest-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
-          fi
+          echo "digest=$(cat .oci-digest)" >> $GITHUB_OUTPUT
           
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -164,6 +159,12 @@ jobs:
           subject-digest: "${{ steps.upload.outputs.digest }}"
           subject-name: "ghcr.io/${{ github.repository }}"
           push-to-registry: true
+      
+      - name: Upload OCI image to latest
+        if: github.ref_type == 'tag'
+        run: |
+          podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
+            "docker://ghcr.io/${{ github.repository }}:latest-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
 
       - name: Upload Kernel to release
         if: github.ref_type == 'tag'
