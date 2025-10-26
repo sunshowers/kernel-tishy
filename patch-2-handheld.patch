@@ -7495,7 +7495,7 @@ Patchset: surface-typecover
  1 file changed, 97 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/hid/hid-multitouch.c b/drivers/hid/hid-multitouch.c
-index 22c6314a8843..4e99f9f015c6 100644
+index a9ff84f0bd9b..d961b750653e 100644
 --- a/drivers/hid/hid-multitouch.c
 +++ b/drivers/hid/hid-multitouch.c
 @@ -35,7 +35,10 @@
@@ -7533,7 +7533,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  enum latency_mode {
  	HID_LATENCY_NORMAL = 0,
  	HID_LATENCY_HIGH = 1,
-@@ -177,6 +184,8 @@ struct mt_device {
+@@ -180,6 +187,8 @@ struct mt_device {
  
  	struct list_head applications;
  	struct list_head reports;
@@ -7542,7 +7542,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  };
  
  static void mt_post_parse_default_settings(struct mt_device *td,
-@@ -222,6 +231,7 @@ static void mt_post_parse(struct mt_device *td, struct mt_application *app);
+@@ -225,6 +234,7 @@ static void mt_post_parse(struct mt_device *td, struct mt_application *app);
  #define MT_CLS_RAZER_BLADE_STEALTH		0x0112
  #define MT_CLS_SMART_TECH			0x0113
  #define MT_CLS_APPLE_TOUCHBAR			0x0114
@@ -7550,7 +7550,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  #define MT_CLS_SIS				0x0457
  
  #define MT_DEFAULT_MAXCONTACT	10
-@@ -418,6 +428,16 @@ static const struct mt_class mt_classes[] = {
+@@ -421,6 +431,16 @@ static const struct mt_class mt_classes[] = {
  			MT_QUIRK_ALWAYS_VALID |
  			MT_QUIRK_CONTACT_CNT_ACCURATE,
  	},
@@ -7567,7 +7567,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  	{ }
  };
  
-@@ -1809,6 +1829,69 @@ static void mt_expired_timeout(struct timer_list *t)
+@@ -1811,6 +1831,69 @@ static void mt_expired_timeout(struct timer_list *t)
  	clear_bit_unlock(MT_IO_FLAGS_RUNNING, &td->mt_io_flags);
  }
  
@@ -7637,7 +7637,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  {
  	int ret, i;
-@@ -1832,6 +1915,9 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+@@ -1834,6 +1917,9 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  	td->inputmode_value = MT_INPUTMODE_TOUCHSCREEN;
  	hid_set_drvdata(hdev, td);
  
@@ -7647,7 +7647,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  	INIT_LIST_HEAD(&td->applications);
  	INIT_LIST_HEAD(&td->reports);
  
-@@ -1870,8 +1956,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+@@ -1872,8 +1958,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  	timer_setup(&td->release_timer, mt_expired_timeout, 0);
  
  	ret = hid_parse(hdev);
@@ -7659,7 +7659,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  
  	if (mtclass->name == MT_CLS_APPLE_TOUCHBAR &&
  	    !hid_find_field(hdev, HID_INPUT_REPORT,
-@@ -1885,8 +1973,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+@@ -1887,8 +1975,10 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
  		hdev->quirks |= HID_QUIRK_NOGET;
  
  	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
@@ -7671,7 +7671,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  
  	ret = sysfs_create_group(&hdev->dev.kobj, &mt_attribute_group);
  	if (ret)
-@@ -1936,6 +2026,7 @@ static void mt_remove(struct hid_device *hdev)
+@@ -1938,6 +2028,7 @@ static void mt_remove(struct hid_device *hdev)
  {
  	struct mt_device *td = hid_get_drvdata(hdev);
  
@@ -7679,7 +7679,7 @@ index 22c6314a8843..4e99f9f015c6 100644
  	timer_delete_sync(&td->release_timer);
  
  	sysfs_remove_group(&hdev->dev.kobj, &mt_attribute_group);
-@@ -2379,6 +2470,10 @@ static const struct hid_device_id mt_devices[] = {
+@@ -2381,6 +2472,10 @@ static const struct hid_device_id mt_devices[] = {
  	{ .driver_data = MT_CLS_APPLE_TOUCHBAR,
  		HID_USB_DEVICE(USB_VENDOR_ID_APPLE,
  			USB_DEVICE_ID_APPLE_TOUCHBAR_DISPLAY) },
@@ -7722,7 +7722,7 @@ Patchset: surface-typecover
  1 file changed, 122 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/hid/hid-multitouch.c b/drivers/hid/hid-multitouch.c
-index 4e99f9f015c6..8b6d15db11a0 100644
+index d961b750653e..525d3c307237 100644
 --- a/drivers/hid/hid-multitouch.c
 +++ b/drivers/hid/hid-multitouch.c
 @@ -79,6 +79,7 @@ MODULE_LICENSE("GPL");
@@ -7742,7 +7742,7 @@ index 4e99f9f015c6..8b6d15db11a0 100644
  
  enum latency_mode {
  	HID_LATENCY_NORMAL = 0,
-@@ -430,6 +433,7 @@ static const struct mt_class mt_classes[] = {
+@@ -433,6 +436,7 @@ static const struct mt_class mt_classes[] = {
  	},
  	{ .name = MT_CLS_WIN_8_MS_SURFACE_TYPE_COVER,
  		.quirks = MT_QUIRK_HAS_TYPE_COVER_BACKLIGHT |
@@ -7875,7 +7875,7 @@ index 4e99f9f015c6..8b6d15db11a0 100644
  static int mt_input_configured(struct hid_device *hdev, struct hid_input *hi)
  {
  	struct mt_device *td = hid_get_drvdata(hdev);
-@@ -1744,6 +1826,13 @@ static int mt_input_configured(struct hid_device *hdev, struct hid_input *hi)
+@@ -1745,6 +1827,13 @@ static int mt_input_configured(struct hid_device *hdev, struct hid_input *hi)
  		/* force BTN_STYLUS to allow tablet matching in udev */
  		__set_bit(BTN_STYLUS, hi->input->keybit);
  		break;
@@ -7889,7 +7889,7 @@ index 4e99f9f015c6..8b6d15db11a0 100644
  	default:
  		suffix = "UNKNOWN";
  		break;
-@@ -1829,30 +1918,6 @@ static void mt_expired_timeout(struct timer_list *t)
+@@ -1831,30 +1920,6 @@ static void mt_expired_timeout(struct timer_list *t)
  	clear_bit_unlock(MT_IO_FLAGS_RUNNING, &td->mt_io_flags);
  }
  
@@ -7920,7 +7920,7 @@ index 4e99f9f015c6..8b6d15db11a0 100644
  static void update_keyboard_backlight(struct hid_device *hdev, bool enabled)
  {
  	struct usb_device *udev = hid_to_usb_dev(hdev);
-@@ -1861,8 +1926,9 @@ static void update_keyboard_backlight(struct hid_device *hdev, bool enabled)
+@@ -1863,8 +1928,9 @@ static void update_keyboard_backlight(struct hid_device *hdev, bool enabled)
  	/* Wake up the device in case it's already suspended */
  	pm_runtime_get_sync(&udev->dev);
  
@@ -7932,7 +7932,7 @@ index 4e99f9f015c6..8b6d15db11a0 100644
  		hid_err(hdev, "couldn't find backlight field\n");
  		goto out;
  	}
-@@ -2004,13 +2070,24 @@ static int mt_suspend(struct hid_device *hdev, pm_message_t state)
+@@ -2006,13 +2072,24 @@ static int mt_suspend(struct hid_device *hdev, pm_message_t state)
  
  static int mt_reset_resume(struct hid_device *hdev)
  {
@@ -7957,7 +7957,7 @@ index 4e99f9f015c6..8b6d15db11a0 100644
  	/* Some Elan legacy devices require SET_IDLE to be set on resume.
  	 * It should be safe to send it to other devices too.
  	 * Tested on 3M, Stantum, Cypress, Zytronic, eGalax, and Elan panels. */
-@@ -2019,12 +2096,31 @@ static int mt_resume(struct hid_device *hdev)
+@@ -2021,12 +2098,31 @@ static int mt_resume(struct hid_device *hdev)
  
  	mt_set_modes(hdev, HID_LATENCY_NORMAL, TOUCHPAD_REPORT_ALL);
  
@@ -12162,7 +12162,7 @@ Subject: HID: Add quirk to ignore the touchscreen battery on 8BitDo SN30 Pro
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index f45f856a127f..e4eb0703a14d 100644
+index 2c743e35c1d3..2f156bc08daa 100644
 --- a/drivers/hid/hid-input.c
 +++ b/drivers/hid/hid-input.c
 @@ -343,6 +343,8 @@ static enum power_supply_property hidinput_battery_props[] = {
@@ -14119,10 +14119,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 4 insertions(+)
 
 diff --git a/sound/soc/codecs/nau8821.c b/sound/soc/codecs/nau8821.c
-index edb95f869a4a..52791d270a3b 100644
+index a8ff2ce70be9..0278c610ae4c 100644
 --- a/sound/soc/codecs/nau8821.c
 +++ b/sound/soc/codecs/nau8821.c
-@@ -1412,6 +1412,10 @@ static int nau8821_set_fll(struct snd_soc_component *component,
+@@ -1422,6 +1422,10 @@ static int nau8821_set_fll(struct snd_soc_component *component,
  	mdelay(2);
  	regmap_update_bits(nau8821->regmap, NAU8821_R03_CLK_DIVIDER,
  		NAU8821_CLK_SRC_MASK, NAU8821_CLK_SRC_VCO);
@@ -14849,10 +14849,10 @@ Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
  1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 58c4e57abc9e..2ae664ebcf08 100644
+index 163780030eb1..8c698b25c99c 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -6349,8 +6349,7 @@ static void fill_stream_properties_from_drm_display_mode(
+@@ -6346,8 +6346,7 @@ static void fill_stream_properties_from_drm_display_mode(
  	timing_out->v_border_top = 0;
  	timing_out->v_border_bottom = 0;
  	/* TODO: un-hardcode */
@@ -14890,10 +14890,10 @@ Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 2ae664ebcf08..bb2443f49e84 100644
+index 8c698b25c99c..c018d98064ea 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -8377,7 +8377,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
+@@ -8374,7 +8374,12 @@ static int amdgpu_dm_connector_get_modes(struct drm_connector *connector)
  				drm_add_modes_noedid(connector, 1920, 1080);
  	} else {
  		amdgpu_dm_connector_ddc_get_modes(connector, drm_edid);
@@ -16622,7 +16622,7 @@ index ef3af170dda4..cf918b18db53 100644
  extern int amdgpu_gart_size;
  extern int amdgpu_gtt_size;
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index dbbb3407fa13..1cf4bdd71969 100644
+index 65f4a76490ea..3d335baa9f61 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -148,6 +148,7 @@ enum AMDGPU_DEBUG_MASK {
@@ -17000,7 +17000,7 @@ Signed-off-by: Jan200101 <sentrycraft123@gmail.com>
  2 files changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index 1cf4bdd71969..7be62b9619f9 100644
+index 3d335baa9f61..ae3ba4f38b2f 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -639,13 +639,8 @@ module_param_named(timeout_period, amdgpu_watchdog_timer.period, uint, 0644);
@@ -21800,7 +21800,7 @@ index 304890c11fa0..bac60ff9ede5 100644
  #define USB_VENDOR_ID_NTI               0x0757
  #define USB_DEVICE_ID_USB_SUN           0x0a00
 diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
-index e4eb0703a14d..004dfc79346f 100644
+index 2f156bc08daa..09b7b8240d6f 100644
 --- a/drivers/hid/hid-input.c
 +++ b/drivers/hid/hid-input.c
 @@ -392,6 +392,8 @@ static const struct hid_device_id hid_battery_quirks[] = {
@@ -42641,7 +42641,7 @@ Co-developed-by: linh1987
  1 file changed, 10 insertions(+)
 
 diff --git a/sound/hda/codecs/realtek/alc269.c b/sound/hda/codecs/realtek/alc269.c
-index 07ea76efa5de..4d08aa8a407b 100644
+index 8fb1a5c6ff6d..4910abdd24ec 100644
 --- a/sound/hda/codecs/realtek/alc269.c
 +++ b/sound/hda/codecs/realtek/alc269.c
 @@ -3479,6 +3479,7 @@ enum {
@@ -42666,7 +42666,7 @@ index 07ea76efa5de..4d08aa8a407b 100644
  	[ALC269_FIXUP_LIMIT_INT_MIC_BOOST_MUTE_LED] = {
  		.type = HDA_FIXUP_FUNC,
  		.v.func = alc269_fixup_limit_int_mic_boost,
-@@ -7178,6 +7186,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -7179,6 +7187,7 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
  	SND_PCI_QUIRK(0x2782, 0x4900, "MEDION E15443", ALC233_FIXUP_MEDION_MTL_SPK),
@@ -42674,7 +42674,7 @@ index 07ea76efa5de..4d08aa8a407b 100644
  	SND_PCI_QUIRK(0x8086, 0x2074, "Intel NUC 8", ALC233_FIXUP_INTEL_NUC8_DMIC),
  	SND_PCI_QUIRK(0x8086, 0x2080, "Intel NUC 8 Rugged", ALC256_FIXUP_INTEL_NUC8_RUGGED),
  	SND_PCI_QUIRK(0x8086, 0x2081, "Intel NUC 10", ALC256_FIXUP_INTEL_NUC10),
-@@ -7303,6 +7312,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
+@@ -7304,6 +7313,7 @@ static const struct hda_model_fixup alc269_fixup_models[] = {
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK, .name = "asus-zenbook"},
  	{.id = ALC269VB_FIXUP_ASUS_ZENBOOK_UX31A, .name = "asus-zenbook-ux31a"},
  	{.id = ALC269VB_FIXUP_ORDISSIMO_EVE2, .name = "ordissimo"},
@@ -42698,7 +42698,7 @@ Co-developed-by: Bouke Sybren Haarsma <boukehaarsma23@gmail.com>
  1 file changed, 50 insertions(+), 1 deletion(-)
 
 diff --git a/sound/hda/codecs/realtek/alc269.c b/sound/hda/codecs/realtek/alc269.c
-index 4d08aa8a407b..d519021bfb08 100644
+index 4910abdd24ec..7870d1cb570c 100644
 --- a/sound/hda/codecs/realtek/alc269.c
 +++ b/sound/hda/codecs/realtek/alc269.c
 @@ -2545,6 +2545,20 @@ static void alc294_gx502_toggle_output(struct hda_codec *codec,
@@ -42777,7 +42777,7 @@ index 4d08aa8a407b..d519021bfb08 100644
  	[ALC299_FIXUP_PREDATOR_SPK] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -7185,8 +7233,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -7186,8 +7234,9 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x2782, 0x1701, "Infinix Y4 Max", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1705, "MEDION E15433", ALC269VC_FIXUP_INFINIX_Y4_MAX),
  	SND_PCI_QUIRK(0x2782, 0x1707, "Vaio VJFE-ADL", ALC298_FIXUP_SPK_VOLUME),
@@ -43008,7 +43008,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 12 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 317ae31e89b3..e01995515c7c 100644
+index b02876f1ae38..db940c532989 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -132,6 +132,7 @@ struct platform_suspend_ops {
@@ -43078,7 +43078,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 12 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index e01995515c7c..7bb1367cf217 100644
+index db940c532989..a654f222d99c 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -133,6 +133,7 @@ struct platform_suspend_ops {
@@ -43140,7 +43140,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 8 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 7bb1367cf217..e5b214222d66 100644
+index a654f222d99c..858480cfdd82 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -142,6 +142,7 @@ struct platform_s2idle_ops {
@@ -43190,7 +43190,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  3 files changed, 131 insertions(+)
 
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index e5b214222d66..a9d4a9c88115 100644
+index 858480cfdd82..58b1b8edeb99 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
 @@ -40,6 +40,15 @@ typedef int __bitwise suspend_state_t;
@@ -44423,10 +44423,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
-index 26e0e662e8f2..433b50555f35 100644
+index 728328c51b64..a5cb82f82c95 100644
 --- a/kernel/power/hibernate.c
 +++ b/kernel/power/hibernate.c
-@@ -787,6 +787,10 @@ int hibernate(void)
+@@ -798,6 +798,10 @@ int hibernate(void)
  	bool snapshot_test = false;
  	unsigned int sleep_flags;
  	int error;
@@ -44437,7 +44437,7 @@ index 26e0e662e8f2..433b50555f35 100644
  
  	if (!hibernation_available()) {
  		pm_pr_dbg("Hibernation not available.\n");
-@@ -812,6 +816,13 @@ int hibernate(void)
+@@ -823,6 +827,13 @@ int hibernate(void)
  	}
  
  	pr_info("hibernation entry\n");
@@ -44451,7 +44451,7 @@ index 26e0e662e8f2..433b50555f35 100644
  	pm_prepare_console();
  	error = pm_notifier_call_chain_robust(PM_HIBERNATION_PREPARE, PM_POST_HIBERNATION);
  	if (error)
-@@ -864,8 +875,10 @@ int hibernate(void)
+@@ -875,8 +886,10 @@ int hibernate(void)
  		if (!error) {
  			if (hibernation_mode == HIBERNATION_TEST_RESUME)
  				snapshot_test = true;
@@ -44463,7 +44463,7 @@ index 26e0e662e8f2..433b50555f35 100644
  		}
  		in_suspend = 0;
  		pm_restore_gfp_mask();
-@@ -891,6 +904,19 @@ int hibernate(void)
+@@ -902,6 +915,19 @@ int hibernate(void)
  	filesystems_thaw();
  	pm_notifier_call_chain(PM_POST_HIBERNATION);
   Restore:
@@ -47798,7 +47798,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index 7be62b9619f9..9380a29ac67d 100644
+index ae3ba4f38b2f..26d6fb9835a3 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -3143,7 +3143,7 @@ static int __init amdgpu_init(void)
@@ -47874,10 +47874,10 @@ index 186435c43b77..6a1912fbee21 100644
  Moreover, if one of the notifiers fails for the ``PM_HIBERNATION_PREPARE`` or
  ``PM_SUSPEND_PREPARE`` event, the notifiers that have already succeeded for that
 diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index a9d4a9c88115..4a6ad1b22e54 100644
+index 58b1b8edeb99..565c82ae19e3 100644
 --- a/include/linux/suspend.h
 +++ b/include/linux/suspend.h
-@@ -443,12 +443,14 @@ static inline int is_hibernate_resume_dev(dev_t dev) { return 0; }
+@@ -449,12 +449,14 @@ static inline int is_hibernate_resume_dev(dev_t dev) { return 0; }
  #endif
  
  /* Hibernation and suspend events */
@@ -47899,10 +47899,10 @@ index a9d4a9c88115..4a6ad1b22e54 100644
  extern struct mutex system_transition_mutex;
  
 diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
-index 433b50555f35..b64c3d638ef4 100644
+index a5cb82f82c95..6627b324c8d2 100644
 --- a/kernel/power/hibernate.c
 +++ b/kernel/power/hibernate.c
-@@ -836,11 +836,15 @@ int hibernate(void)
+@@ -847,11 +847,15 @@ int hibernate(void)
  	if (error)
  		goto Exit;
  
@@ -47919,7 +47919,7 @@ index 433b50555f35..b64c3d638ef4 100644
  
  	error = hibernation_snapshot(hibernation_mode == HIBERNATION_PLATFORM);
  	if (error || freezer_test_done)
-@@ -888,8 +892,9 @@ int hibernate(void)
+@@ -899,8 +903,9 @@ int hibernate(void)
  
   Free_bitmaps:
  	free_basic_memory_bitmaps();
@@ -49729,10 +49729,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  3 files changed, 35 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index bb2443f49e84..81f08136e191 100644
+index c018d98064ea..c0b5b1ec79ea 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -3609,11 +3609,11 @@ static struct drm_mode_config_helper_funcs amdgpu_dm_mode_config_helperfuncs = {
+@@ -3606,11 +3606,11 @@ static struct drm_mode_config_helper_funcs amdgpu_dm_mode_config_helperfuncs = {
  
  static void update_connector_ext_caps(struct amdgpu_dm_connector *aconnector)
  {
@@ -49745,7 +49745,7 @@ index bb2443f49e84..81f08136e191 100644
  
  	if (aconnector->bl_idx == -1 ||
  	    aconnector->dc_link->connector_signal != SIGNAL_TYPE_EDP)
-@@ -3653,9 +3653,13 @@ static void update_connector_ext_caps(struct amdgpu_dm_connector *aconnector)
+@@ -3650,9 +3650,13 @@ static void update_connector_ext_caps(struct amdgpu_dm_connector *aconnector)
  	else
  		caps->aux_min_input_signal = 1;
  
@@ -49999,10 +49999,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  4 files changed, 50 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 81f08136e191..011b90fad0f5 100644
+index c0b5b1ec79ea..c613d79184d3 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -3659,6 +3659,9 @@ static void update_connector_ext_caps(struct amdgpu_dm_connector *aconnector)
+@@ -3656,6 +3656,9 @@ static void update_connector_ext_caps(struct amdgpu_dm_connector *aconnector)
  		if (panel_backlight_quirk->min_brightness)
  			caps->min_input_signal =
  				panel_backlight_quirk->min_brightness - 1;
@@ -50012,7 +50012,7 @@ index 81f08136e191..011b90fad0f5 100644
  	}
  }
  
-@@ -4859,6 +4862,10 @@ static void amdgpu_dm_backlight_set_level(struct amdgpu_display_manager *dm,
+@@ -4856,6 +4859,10 @@ static void amdgpu_dm_backlight_set_level(struct amdgpu_display_manager *dm,
  	brightness = convert_brightness_from_user(caps, dm->brightness[bl_idx]);
  	link = (struct dc_link *)dm->backlight_link[bl_idx];
  
@@ -50024,7 +50024,7 @@ index 81f08136e191..011b90fad0f5 100644
  	mutex_lock(&dm->dc_lock);
  	if (dm->dc->caps.ips_support && dm->dc->ctx->dmub_srv->idle_allowed) {
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
-index 6aae51c1beb3..85f5aa2a957c 100644
+index b937da0a4e4a..340f9b5f68eb 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
 @@ -200,6 +200,12 @@ struct amdgpu_dm_backlight_caps {
@@ -50203,10 +50203,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  4 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index 011b90fad0f5..b8ca3d635dea 100644
+index c613d79184d3..08f788d36f10 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4679,7 +4679,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
+@@ -4676,7 +4676,7 @@ static int amdgpu_dm_mode_config_init(struct amdgpu_device *adev)
  		return r;
  	}
  
@@ -50305,10 +50305,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 2 insertions(+)
 
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index b8ca3d635dea..f65fb9a6c789 100644
+index 08f788d36f10..ec7ba3356b39 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4780,6 +4780,8 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
+@@ -4777,6 +4777,8 @@ static void convert_custom_brightness(const struct amdgpu_dm_backlight_caps *cap
  	u8 prev_signal = 0, prev_lum = 0;
  	int i = 0;
  
@@ -50655,7 +50655,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  11 files changed, 55 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index 9380a29ac67d..c0f04e495892 100644
+index 26d6fb9835a3..cd236fab238b 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -3142,7 +3142,6 @@ static int __init amdgpu_init(void)
@@ -50684,10 +50684,10 @@ index 9a821563bc8e..e7ef9e5aff39 100644
  		if (size != 2) {
  			pr_err("Input parameter number not correct\n");
 diff --git a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/smu7_hwmgr.c b/drivers/gpu/drm/amd/pm/powerplay/hwmgr/smu7_hwmgr.c
-index 8da882c51856..50aea23f49c1 100644
+index 9b28c0728269..302c47ddbed2 100644
 --- a/drivers/gpu/drm/amd/pm/powerplay/hwmgr/smu7_hwmgr.c
 +++ b/drivers/gpu/drm/amd/pm/powerplay/hwmgr/smu7_hwmgr.c
-@@ -5510,6 +5510,12 @@ static int smu7_odn_edit_dpm_table(struct pp_hwmgr *hwmgr,
+@@ -5509,6 +5509,12 @@ static int smu7_odn_edit_dpm_table(struct pp_hwmgr *hwmgr,
  		return -EINVAL;
  	}
  
@@ -54959,8 +54959,138 @@ index e233aafa8856..a7d8da0ca8bb 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 25 Oct 2025 12:26:44 +0200
-Subject: add projects for xbox allies (not used)
+Date: Sun, 26 Oct 2025 15:55:33 +0100
+Subject: ALSA: hda/tas2781: fix speaker id retrieval for multiple probes
+
+Currently, on ASUS projects, the TAS2781 codec attaches the speaker
+GPIO to the first tasdevice_priv instance using devm. This causes
+tas2781_read_acpi to fail on subsequent probes since the GPIO
+is already managed by the first device. But this is unnecessary as
+the GPIO contains a static value.
+
+Therefore, instead of attaching the GPIO to the device and reading it
+when loading the firmware, read its value directly in tas2781_read_acpi
+and store it in the private data structure. Then, make reading the value
+non-fatal so that ASUS projects that miss a speaker pin can still work,
+perhaps using fallback firmware.
+
+Fixes: 4e7035a75da9 ("ALSA: hda/tas2781: Add speaker id check for ASUS projects")
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ include/sound/tas2781.h                       |  2 +-
+ .../hda/codecs/side-codecs/tas2781_hda_i2c.c  | 41 +++++++++++--------
+ 2 files changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/include/sound/tas2781.h b/include/sound/tas2781.h
+index 3875e92f1ec5..8e016c9a32dd 100644
+--- a/include/sound/tas2781.h
++++ b/include/sound/tas2781.h
+@@ -183,7 +183,6 @@ struct tasdevice_priv {
+ 	struct acoustic_data acou_data;
+ #endif
+ 	struct tasdevice_fw *fmw;
+-	struct gpio_desc *speaker_id;
+ 	struct gpio_desc *reset;
+ 	struct mutex codec_lock;
+ 	struct regmap *regmap;
+@@ -200,6 +199,7 @@ struct tasdevice_priv {
+ 	unsigned int magic_num;
+ 	unsigned int chip_id;
+ 	unsigned int sysclk;
++	int speaker_id;
+ 
+ 	int irq;
+ 	int cur_prog;
+diff --git a/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c b/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
+index b5b7a1e82b75..41a0cbecd9d0 100644
+--- a/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
++++ b/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
+@@ -85,6 +85,7 @@ static const struct acpi_gpio_mapping tas2781_speaker_id_gpios[] = {
+ 
+ static int tas2781_read_acpi(struct tasdevice_priv *p, const char *hid)
+ {
++	struct gpio_desc *speaker_id;
+ 	struct acpi_device *adev;
+ 	struct device *physdev;
+ 	LIST_HEAD(resources);
+@@ -117,19 +118,30 @@ static int tas2781_read_acpi(struct tasdevice_priv *p, const char *hid)
+ 	/* Speaker id was needed for ASUS projects. */
+ 	ret = kstrtou32(sub, 16, &subid);
+ 	if (!ret && upper_16_bits(subid) == PCI_VENDOR_ID_ASUSTEK) {
+-		ret = devm_acpi_dev_add_driver_gpios(p->dev,
+-			tas2781_speaker_id_gpios);
+-		if (ret < 0)
++		ret = acpi_dev_add_driver_gpios(adev, tas2781_speaker_id_gpios);
++		if (ret < 0) {
+ 			dev_err(p->dev, "Failed to add driver gpio %d.\n",
+ 				ret);
+-		p->speaker_id = devm_gpiod_get(p->dev, "speakerid", GPIOD_IN);
+-		if (IS_ERR(p->speaker_id)) {
+-			dev_err(p->dev, "Failed to get Speaker id.\n");
+-			ret = PTR_ERR(p->speaker_id);
+ 			goto err;
+ 		}
++
++		speaker_id = fwnode_gpiod_get_index(acpi_fwnode_handle(adev),
++			"speakerid", 0, GPIOD_IN, NULL);
++		if (!IS_ERR(speaker_id)) {
++			p->speaker_id = gpiod_get_value_cansleep(speaker_id);
++			dev_dbg(p->dev, "Got speaker id gpio from ACPI: %d.\n",
++				p->speaker_id);
++			gpiod_put(speaker_id);
++		} else {
++			p->speaker_id = -1;
++			ret = PTR_ERR(speaker_id);
++			dev_err(p->dev, "Get speaker id gpio failed %d.\n",
++				ret);
++		}
++			
++		acpi_dev_remove_driver_gpios(adev);
+ 	} else {
+-		p->speaker_id = NULL;
++		p->speaker_id = -1;
+ 	}
+ 
+ end_2563:
+@@ -430,23 +442,16 @@ static void tasdevice_dspfw_init(void *context)
+ 	struct tas2781_hda *tas_hda = dev_get_drvdata(tas_priv->dev);
+ 	struct tas2781_hda_i2c_priv *hda_priv = tas_hda->hda_priv;
+ 	struct hda_codec *codec = tas_priv->codec;
+-	int ret, spk_id;
++	int ret;
+ 
+ 	tasdevice_dsp_remove(tas_priv);
+ 	tas_priv->fw_state = TASDEVICE_DSP_FW_PENDING;
+-	if (tas_priv->speaker_id != NULL) {
+-		// Speaker id need to be checked for ASUS only.
+-		spk_id = gpiod_get_value(tas_priv->speaker_id);
+-		if (spk_id < 0) {
+-			// Speaker id is not valid, use default.
+-			dev_dbg(tas_priv->dev, "Wrong spk_id = %d\n", spk_id);
+-			spk_id = 0;
+-		}
++	if (tas_priv->speaker_id >= 0) {
+ 		snprintf(tas_priv->coef_binaryname,
+ 			  sizeof(tas_priv->coef_binaryname),
+ 			  "TAS2XXX%04X%d.bin",
+ 			  lower_16_bits(codec->core.subsystem_id),
+-			  spk_id);
++			  tas_priv->speaker_id);
+ 	} else {
+ 		snprintf(tas_priv->coef_binaryname,
+ 			  sizeof(tas_priv->coef_binaryname),
+-- 
+2.51.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sun, 26 Oct 2025 16:19:57 +0100
+Subject: ALSA: hda/realtek: Add match for ASUS Xbox Ally projects
+
+Bind realtek codec to TAS2781 I2C audio amps on ASUS Xbox Ally projects.
+While these projects work without a quirk, adding it increases the
+output volume significantly.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
@@ -54968,15 +55098,15 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 2 insertions(+)
 
 diff --git a/sound/hda/codecs/realtek/alc269.c b/sound/hda/codecs/realtek/alc269.c
-index d519021bfb08..29674d76ffd0 100644
+index 7870d1cb570c..1cc063bf6c0b 100644
 --- a/sound/hda/codecs/realtek/alc269.c
 +++ b/sound/hda/codecs/realtek/alc269.c
-@@ -6760,6 +6760,8 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+@@ -6761,6 +6761,8 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
  	SND_PCI_QUIRK(0x1043, 0x12f0, "ASUS X541UV", ALC256_FIXUP_ASUS_MIC_NO_PRESENCE),
  	SND_PCI_QUIRK(0x1043, 0x1313, "Asus K42JZ", ALC269VB_FIXUP_ASUS_MIC_NO_PRESENCE),
  	SND_PCI_QUIRK(0x1043, 0x1314, "ASUS GA605K", ALC285_FIXUP_ASUS_GA605K_HEADSET_MIC),
-+	// SND_PCI_QUIRK(0x1043, 0x1384, "ASUS RC73XA", ALC287_FIXUP_TXNW2781_I2C),
-+	// SND_PCI_QUIRK(0x1043, 0x1394, "ASUS RC73YA", ALC287_FIXUP_TXNW2781_I2C),
++	SND_PCI_QUIRK(0x1043, 0x1384, "ASUS RC73XA", ALC287_FIXUP_TXNW2781_I2C),
++	SND_PCI_QUIRK(0x1043, 0x1394, "ASUS RC73YA", ALC287_FIXUP_TXNW2781_I2C),
  	SND_PCI_QUIRK(0x1043, 0x13b0, "ASUS Z550SA", ALC256_FIXUP_ASUS_MIC_NO_PRESENCE),
  	SND_PCI_QUIRK(0x1043, 0x1427, "Asus Zenbook UX31E", ALC269VB_FIXUP_ASUS_ZENBOOK),
  	SND_PCI_QUIRK(0x1043, 0x1433, "ASUS GX650PY/PZ/PV/PU/PYV/PZV/PIV/PVV", ALC285_FIXUP_ASUS_I2C_HEADSET_MIC),

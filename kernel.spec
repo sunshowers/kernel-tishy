@@ -173,18 +173,18 @@ Summary: The Linux kernel
 #  the --with-release option overrides this setting.)
 %define debugbuildsenabled 1
 # define buildid .local
-%define specrpmversion 6.17.4
-%define specversion 6.17.4
+%define specrpmversion 6.17.5
+%define specversion 6.17.5
 %define patchversion 6.17
-%define pkgrelease ba10
+%define pkgrelease ba01
 %define kversion 6
-%define tarfile_release 6.17.4
+%define tarfile_release 6.17.5
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba10%{?buildid}%{?dist}
+%define specrelease ba01%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.17.4
+%define kabiversion 6.17.5
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -4532,8 +4532,9 @@ fi\
 #
 #
 %changelog
-* Sun Oct 26 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.4-ba10]
-- add projects for xbox allies (not used) (Antheas Kapenekakis)
+* Sun Oct 26 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.5-ba01]
+- ALSA: hda/realtek: Add match for ASUS Xbox Ally projects (Antheas Kapenekakis)
+- ALSA: hda/tas2781: fix speaker id retrieval for multiple probes (Antheas Kapenekakis)
 - patch it87 using frankcrawford/it87#60d9de (Antheas Kapenekakis)
 - drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)
 - platform/x86/amd/pmc: Add spurious_8042 to Xbox Ally (Antheas Kapenekakis)
@@ -4762,6 +4763,9 @@ fi\
 - Revert "efi/x86: Set the PE/COFF header's NX compat flag unconditionally" (Maximilian Luz)
 - scsi: sd: remove unused warning inherited from fedora (Antheas Kapenekakis)
 - [NA] add dev tools (Antheas Kapenekakis)
+
+* Thu Oct 23 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.5-0]
+- Linux v6.17.5
 
 * Sun Oct 19 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.4-0]
 - Add Fedora 42 and 41 to release_targets (Justin M. Forbes)
