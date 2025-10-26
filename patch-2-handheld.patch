@@ -54962,24 +54962,27 @@ From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sun, 26 Oct 2025 15:55:33 +0100
 Subject: ALSA: hda/tas2781: fix speaker id retrieval for multiple probes
 
-Currently, on ASUS projects, the TAS2781 codec attaches the speaker
-GPIO to the first tasdevice_priv instance using devm. This causes
-tas2781_read_acpi to fail on subsequent probes since the GPIO
-is already managed by the first device. But this is unnecessary as
-the GPIO contains a static value.
+Currently, on ASUS projects, the TAS2781 codec attaches the speaker GPIO
+to the first tasdevice_priv instance using devm. This causes
+tas2781_read_acpi to fail on subsequent probes since the GPIO is already
+managed by the first device. This causes a failure on Xbox Ally X,
+because it has two amplifiers, and prevents us from quirking both the
+Xbox Ally and Xbox Ally X in the realtek codec driver.
 
-Therefore, instead of attaching the GPIO to the device and reading it
-when loading the firmware, read its value directly in tas2781_read_acpi
-and store it in the private data structure. Then, make reading the value
-non-fatal so that ASUS projects that miss a speaker pin can still work,
-perhaps using fallback firmware.
+It is unnecessary to attach the GPIO to a device as it is static.
+Therefore, instead of attaching it and then reading it when loading the
+firmware, read its value directly in tas2781_read_acpi and store it in
+the private data structure. Then, make reading the value non-fatal so
+that ASUS projects that miss a speaker pin can still work, perhaps using
+fallback firmware.
 
 Fixes: 4e7035a75da9 ("ALSA: hda/tas2781: Add speaker id check for ASUS projects")
+Cc: stable@vger.kernel.org # 6.17
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  include/sound/tas2781.h                       |  2 +-
- .../hda/codecs/side-codecs/tas2781_hda_i2c.c  | 41 +++++++++++--------
- 2 files changed, 24 insertions(+), 19 deletions(-)
+ .../hda/codecs/side-codecs/tas2781_hda_i2c.c  | 44 +++++++++++--------
+ 2 files changed, 26 insertions(+), 20 deletions(-)
 
 diff --git a/include/sound/tas2781.h b/include/sound/tas2781.h
 index 3875e92f1ec5..8e016c9a32dd 100644
@@ -55002,7 +55005,7 @@ index 3875e92f1ec5..8e016c9a32dd 100644
  	int irq;
  	int cur_prog;
 diff --git a/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c b/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
-index b5b7a1e82b75..41a0cbecd9d0 100644
+index b5b7a1e82b75..dfbddb5f6cba 100644
 --- a/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
 +++ b/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
 @@ -85,6 +85,7 @@ static const struct acpi_gpio_mapping tas2781_speaker_id_gpios[] = {
@@ -55013,7 +55016,7 @@ index b5b7a1e82b75..41a0cbecd9d0 100644
  	struct acpi_device *adev;
  	struct device *physdev;
  	LIST_HEAD(resources);
-@@ -117,19 +118,30 @@ static int tas2781_read_acpi(struct tasdevice_priv *p, const char *hid)
+@@ -117,19 +118,31 @@ static int tas2781_read_acpi(struct tasdevice_priv *p, const char *hid)
  	/* Speaker id was needed for ASUS projects. */
  	ret = kstrtou32(sub, 16, &subid);
  	if (!ret && upper_16_bits(subid) == PCI_VENDOR_ID_ASUSTEK) {
@@ -55028,8 +55031,10 @@ index b5b7a1e82b75..41a0cbecd9d0 100644
 -		if (IS_ERR(p->speaker_id)) {
 -			dev_err(p->dev, "Failed to get Speaker id.\n");
 -			ret = PTR_ERR(p->speaker_id);
- 			goto err;
- 		}
+-			goto err;
++			p->speaker_id = -1;
++			goto end_2563;
++		}
 +
 +		speaker_id = fwnode_gpiod_get_index(acpi_fwnode_handle(adev),
 +			"speakerid", 0, GPIOD_IN, NULL);
@@ -55043,8 +55048,8 @@ index b5b7a1e82b75..41a0cbecd9d0 100644
 +			ret = PTR_ERR(speaker_id);
 +			dev_err(p->dev, "Get speaker id gpio failed %d.\n",
 +				ret);
-+		}
-+			
+ 		}
++
 +		acpi_dev_remove_driver_gpios(adev);
  	} else {
 -		p->speaker_id = NULL;
@@ -55052,7 +55057,7 @@ index b5b7a1e82b75..41a0cbecd9d0 100644
  	}
  
  end_2563:
-@@ -430,23 +442,16 @@ static void tasdevice_dspfw_init(void *context)
+@@ -430,23 +443,16 @@ static void tasdevice_dspfw_init(void *context)
  	struct tas2781_hda *tas_hda = dev_get_drvdata(tas_priv->dev);
  	struct tas2781_hda_i2c_priv *hda_priv = tas_hda->hda_priv;
  	struct hda_codec *codec = tas_priv->codec;
@@ -55088,10 +55093,11 @@ From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Sun, 26 Oct 2025 16:19:57 +0100
 Subject: ALSA: hda/realtek: Add match for ASUS Xbox Ally projects
 
-Bind realtek codec to TAS2781 I2C audio amps on ASUS Xbox Ally projects.
-While these projects work without a quirk, adding it increases the
-output volume significantly.
+Bind the realtek codec to TAS2781 I2C audio amps on ASUS Xbox Ally
+projects. While these projects work without a quirk, adding it increases
+the output volume significantly.
 
+Cc: stable@vger.kernel.org # 6.17
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  sound/hda/codecs/realtek/alc269.c | 2 ++
