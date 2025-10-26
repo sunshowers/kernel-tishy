@@ -161,7 +161,7 @@ jobs:
           push-to-registry: true
       
       - name: Upload OCI image to latest
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' && contains(github.ref_name, '-ba')
         run: |
           podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
             "docker://ghcr.io/${{ github.repository }}:latest-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
