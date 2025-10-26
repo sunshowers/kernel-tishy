@@ -28,9 +28,3 @@ buildah config \
 
 # Commit the image
 buildah commit $BOCI kernel-f${FEDORA_VERSION}
-
-# Get digest
-DIGEST=$(buildah images --noheading --format "{{.Digest}}" nvidia-oci-f${FEDORA_VERSION})
-echo "OCI Image created with digest: $DIGEST"
-
-echo $DIGEST > .oci-digest
