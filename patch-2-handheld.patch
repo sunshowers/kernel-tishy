@@ -52156,3 +52156,137 @@ index 7870d1cb570c..1cc063bf6c0b 100644
 -- 
 2.51.1
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 28 Oct 2025 17:17:05 +0100
+Subject: add more wheels
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ .gitmodules              | 6 ++++++
+ drivers/custom/Makefile  | 2 ++
+ drivers/custom/hid-tmff2 | 1 +
+ drivers/custom/t150      | 1 +
+ 4 files changed, 10 insertions(+)
+ create mode 160000 drivers/custom/hid-tmff2
+ create mode 160000 drivers/custom/t150
+
+diff --git a/.gitmodules b/.gitmodules
+index 5d95c074d1e0..495d57ed3c0c 100644
+--- a/.gitmodules
++++ b/.gitmodules
+@@ -55,3 +55,9 @@
+ [submodule "drivers/custom/fanatecff"]
+ 	path = drivers/custom/fanatecff
+ 	url = https://github.com/gotzl/hid-fanatecff
++[submodule "drivers/custom/hid-tmff2"]
++	path = drivers/custom/hid-tmff2
++	url = https://github.com/Kimplul/hid-tmff2
++[submodule "drivers/custom/t150"]
++	path = drivers/custom/t150
++	url = https://github.com/scarburato/t150_driver
+diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
+index 6bb34e96d0a6..4936686a9b1e 100644
+--- a/drivers/custom/Makefile
++++ b/drivers/custom/Makefile
+@@ -5,6 +5,8 @@ obj-$(CONFIG_BMI260) += bmi260/
+ obj-$(CONFIG_XONEDO) += xonedo/
+ obj-$(CONFIG_FANATEC) += fanatecff/
+ obj-$(CONFIG_LG4FF) += lg4ff/
++obj-$(CONFIG_TMFF2) += hid-tmff2/
++obj-$(CONFIG_T150) += t150/
+ obj-$(CONFIG_GCAOC) += gcadapter_oc/
+ obj-$(CONFIG_RAZER) += razer/driver/
+ 
+diff --git a/drivers/custom/hid-tmff2 b/drivers/custom/hid-tmff2
+new file mode 160000
+index 000000000000..438a3e140756
+--- /dev/null
++++ b/drivers/custom/hid-tmff2
+@@ -0,0 +1 @@
++Subproject commit 438a3e1407565dbd1d8ceb3981f4830a723a3c3c
+diff --git a/drivers/custom/t150 b/drivers/custom/t150
+new file mode 160000
+index 000000000000..f7ecb30c65ee
+--- /dev/null
++++ b/drivers/custom/t150
+@@ -0,0 +1 @@
++Subproject commit f7ecb30c65ee5f7870e921bc0a2354df8e1e8100
+-- 
+2.51.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 28 Oct 2025 17:30:31 +0100
+Subject: fixwheel
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/custom/Makefile | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
+index 4936686a9b1e..ad7a1191bfe2 100644
+--- a/drivers/custom/Makefile
++++ b/drivers/custom/Makefile
+@@ -6,7 +6,7 @@ obj-$(CONFIG_XONEDO) += xonedo/
+ obj-$(CONFIG_FANATEC) += fanatecff/
+ obj-$(CONFIG_LG4FF) += lg4ff/
+ obj-$(CONFIG_TMFF2) += hid-tmff2/
+-obj-$(CONFIG_T150) += t150/
++obj-$(CONFIG_T150) += t150/hid-t150/
+ obj-$(CONFIG_GCAOC) += gcadapter_oc/
+ obj-$(CONFIG_RAZER) += razer/driver/
+ 
+@@ -39,4 +39,6 @@ install:
+ 	install -D xonedo/install/modprobe.conf $(INSTALL_DIR)/usr/lib/modprobe.d/xone.conf
+ 
+ 	make -C v4l2loopback/utils/
+-	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
+\ No newline at end of file
++	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
++
++	install -D t150/files/etc/udev/rules.d/10-t150.rules $(INSTALL_DIR)/usr/lib/udev/rules.d/10-t150.rules
+\ No newline at end of file
+-- 
+2.51.1
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Tue, 28 Oct 2025 17:34:00 +0100
+Subject: add menus
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/custom/Kconfig | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
+index 9a86a6f61037..778f6188e9a5 100644
+--- a/drivers/custom/Kconfig
++++ b/drivers/custom/Kconfig
+@@ -34,6 +34,18 @@ config LG4FF
+         New LG4FF driver for Linux. Link:
+         https://github.com/berarma/new-lg4ff
+ 
++config TMFF2
++    tristate "New TMFF Driver"
++    help
++        New TMFF driver for Linux. Link:
++        https://github.com/Kimplul/hid-tmff2
++
++config T150
++    tristate "T150 Driver"
++    help
++        T150 driver for Linux. Link:
++        https://github.com/scarburato/t150_driver
++
+ config GCAOC
+     tristate "GCAdapter OC Driver"
+     help
+-- 
+2.51.1
+

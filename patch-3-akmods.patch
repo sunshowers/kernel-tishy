@@ -92592,3 +92592,5170 @@ index 000000000000..ed0fdf6926ee
 +	}
 +	return 0;
 +}
+# ----------------------------------------
+# Module: hid-tmff2
+# Version: 438a3e140756
+# ----------------------------------------
+diff --git a/drivers/custom/hid-tmff2/Kbuild b/drivers/custom/hid-tmff2/Kbuild
+new file mode 100644
+index 000000000000..3f4d74085bea
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/Kbuild
+@@ -0,0 +1,7 @@
++obj-m := hid-tmff-new.o
++hid-tmff-new-y := \
++		src/hid-tmff2.o \
++		src/tmt300rs/hid-tmt300rs.o \
++		src/tmt248/hid-tmt248.o \
++		src/tmtx/hid-tmtx.o \
++		src/tmtsxw/hid-tmtsxw.o
+diff --git a/drivers/custom/hid-tmff2/Makefile b/drivers/custom/hid-tmff2/Makefile
+new file mode 100644
+index 000000000000..ad52621189ae
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/Makefile
+@@ -0,0 +1,24 @@
++KDIR ?= /lib/modules/$(shell uname -r)/build
++
++all: deps/hid-tminit
++	$(MAKE) -C $(KDIR) M=$(shell pwd) modules
++
++install: deps/hid-tminit
++	$(MAKE) -C $(KDIR) M=$(shell pwd) modules_install
++	depmod -A
++
++.PHONY: udev-rules
++udev-rules:
++	install -m 0644 udev/99-thrustmaster.rules /etc/udev/rules.d/
++
++.PHONY: steamdeck-rules
++steamdeck-rules:
++	install -m 0644 udev/71-thrustmaster-steamdeck.rules /etc/udev/rules.d/
++
++clean: deps/hid-tminit
++	$(MAKE) -C $(KDIR) M=$(shell pwd) clean
++
++
++.PHONY: deps/hid-tminit
++deps/hid-tminit:
++	$(MAKE) -C deps/hid-tminit KDIR="$(KDIR)" $(MAKECMDGOALS)
+diff --git a/drivers/custom/hid-tmff2/src/hid-tmff2.c b/drivers/custom/hid-tmff2/src/hid-tmff2.c
+new file mode 100644
+index 000000000000..b6bb834f22cb
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/hid-tmff2.c
+@@ -0,0 +1,801 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/workqueue.h>
++#include <linux/module.h>
++#include <linux/hid.h>
++#include <linux/version.h>
++#include "hid-tmff2.h"
++
++
++int open_mode = 1;
++module_param(open_mode, int, 0660);
++MODULE_PARM_DESC(open_mode,
++		"Whether to send mode change commands on open/close");
++
++int timer_msecs = DEFAULT_TIMER_PERIOD;
++module_param(timer_msecs, int, 0660);
++MODULE_PARM_DESC(timer_msecs,
++		"Timer resolution in msecs");
++
++/* should these be removed and just rely on /sys? */
++int spring_level = 30;
++module_param(spring_level, int, 0);
++MODULE_PARM_DESC(spring_level,
++		"Level of spring force (0-100), as per Oversteer standards");
++
++int damper_level = 30;
++module_param(damper_level, int, 0);
++MODULE_PARM_DESC(damper_level,
++		"Level of damper force (0-100), as per Oversteer standards");
++
++int friction_level = 30;
++module_param(friction_level, int, 0);
++MODULE_PARM_DESC(friction_level,
++		"Level of friction force (0-100), as per Oversteer standards");
++
++int range = 900;
++module_param(range, int, 0);
++MODULE_PARM_DESC(range,
++		"Range of wheel, depends on the wheel. Invalid values are ignored");
++
++int alt_mode = 0;
++module_param(alt_mode, int, 0);
++MODULE_PARM_DESC(alt_mode,
++		"Alternate mode, eg. F1 mode");
++
++#define GAIN_MAX 65535
++int gain = 40000;
++module_param(gain, int, 0);
++MODULE_PARM_DESC(gain,
++		"Level of gain (0-65535)");
++
++static spinlock_t lock;
++
++static struct tmff2_device_entry *tmff2_from_hdev(struct hid_device *hdev)
++{
++	unsigned long lock_flags = 0;
++	struct tmff2_device_entry *tmff2;
++	spin_lock_irqsave(&lock, lock_flags);
++
++	if (!(tmff2 = hid_get_drvdata(hdev)))
++		dev_err(&hdev->dev, "hdev private data not found\n");
++
++	spin_unlock_irqrestore(&lock, lock_flags);
++
++	return tmff2;
++}
++
++static struct tmff2_device_entry *tmff2_from_input(struct input_dev *input_dev)
++{
++	unsigned long lock_flags = 0;
++	struct hid_device *hdev;
++	spin_lock_irqsave(&lock, lock_flags);
++
++	if (!(hdev = input_get_drvdata(input_dev)))
++		dev_err(&input_dev->dev, "input_dev private data not found\n");
++
++	spin_unlock_irqrestore(&lock, lock_flags);
++
++	return tmff2_from_hdev(hdev);
++}
++
++static ssize_t spring_level_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	unsigned int value;
++	int ret;
++
++	ret = kstrtouint(buf, 0, &value);
++	if (ret) {
++		dev_err(dev, "kstrtouint failed at spring_level_store: %i", ret);
++		return ret;
++	}
++
++	if (value > 100) {
++		dev_info(dev, "value %i larger than max 100, clamping to 100.\n", value);
++		value = 100;
++	}
++
++	spring_level = value;
++
++	return count;
++}
++
++static ssize_t spring_level_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return scnprintf(buf, PAGE_SIZE, "%u\n", spring_level);
++}
++static DEVICE_ATTR_RW(spring_level);
++
++static ssize_t damper_level_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	unsigned int value;
++	int ret;
++
++
++	ret = kstrtouint(buf, 0, &value);
++	if (ret) {
++		dev_err(dev, "kstrtouint failed at damper_level_store: %i", ret);
++		return ret;
++	}
++
++	if (value > 100) {
++		dev_info(dev, "value %i larger than max 100, clamping to 100.\n", value);
++		value = 100;
++	}
++
++	damper_level = value;
++
++	return count;
++}
++
++static ssize_t damper_level_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return scnprintf(buf, PAGE_SIZE, "%u\n", damper_level);
++}
++static DEVICE_ATTR_RW(damper_level);
++
++static ssize_t friction_level_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	unsigned int value;
++	int ret;
++
++
++	ret = kstrtouint(buf, 0, &value);
++	if (ret) {
++		dev_err(dev, "kstrtouint failed at friction_level_store: %i", ret);
++		return ret;
++	}
++
++	if (value > 100) {
++		dev_info(dev, "value %i larger than max 100, clamping to 100.\n", value);
++		value = 100;
++	}
++
++	friction_level = value;
++
++	return count;
++}
++
++static ssize_t friction_level_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return scnprintf(buf, PAGE_SIZE, "%u\n", friction_level);
++}
++static DEVICE_ATTR_RW(friction_level);
++
++static ssize_t range_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_hdev(to_hid_device(dev));
++	unsigned int value;
++	int ret;
++
++	if (!tmff2)
++		return -ENODEV;
++
++	if ((ret = kstrtouint(buf, 0, &value))) {
++		hid_err(tmff2->hdev, "kstrtouint failed at range_store: %i", ret);
++		return ret;
++	}
++
++	if (tmff2->set_range) {
++		if ((ret = tmff2->set_range(tmff2->data, value)))
++			return ret;
++	}
++
++	return count;
++}
++
++static ssize_t range_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return scnprintf(buf, PAGE_SIZE, "%u\n", range);
++}
++static DEVICE_ATTR_RW(range);
++
++static ssize_t alternate_modes_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_hdev(to_hid_device(dev));
++
++	if (!tmff2)
++		return -ENODEV;
++
++	if (tmff2->alt_mode_store)
++		return tmff2->alt_mode_store(tmff2->data, buf, count);
++
++	return 0;
++}
++
++static ssize_t alternate_modes_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_hdev(to_hid_device(dev));
++
++	if (!tmff2)
++		return -ENODEV;
++
++	if (tmff2->alt_mode_show)
++		return tmff2->alt_mode_show(tmff2->data, buf);
++
++	return 0;
++}
++static DEVICE_ATTR_RW(alternate_modes);
++
++static ssize_t gain_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_hdev(to_hid_device(dev));
++	unsigned int value;
++	int ret;
++
++	if (!tmff2)
++		return -ENODEV;
++
++	if ((ret = kstrtouint(buf, 0, &value))) {
++		dev_err(dev, "kstrtouint failed at gain_store: %i", ret);
++		return ret;
++	}
++
++	gain = value;
++	if (tmff2->set_gain) /* if we can, update gain immediately */
++		tmff2->set_gain(tmff2->data, (GAIN_MAX * gain) / GAIN_MAX);
++
++	return count;
++}
++
++static ssize_t gain_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return scnprintf(buf, PAGE_SIZE, "%i\n", gain);
++}
++static DEVICE_ATTR_RW(gain);
++
++static void tmff2_set_gain(struct input_dev *dev, uint16_t value)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_input(dev);
++
++	if (!tmff2)
++		return;
++
++	if (!tmff2->set_gain) {
++		hid_err(tmff2->hdev, "missing set_gain\n");
++		return;
++	}
++
++	if (tmff2->set_gain(tmff2->data, (value * gain) / GAIN_MAX))
++		hid_warn(tmff2->hdev, "unable to set gain\n");
++}
++
++static void tmff2_set_autocenter(struct input_dev *dev, uint16_t value)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_input(dev);
++
++	if (!tmff2)
++		return;
++
++	if (!tmff2->set_autocenter) {
++		hid_err(tmff2->hdev, "missing set_autocenter\n");
++		return;
++	}
++
++	if (tmff2->set_autocenter(tmff2->data, value))
++		hid_warn(tmff2->hdev, "unable to set autocenter\n");
++}
++
++static void tmff2_work_handler(struct work_struct *w)
++{
++	unsigned long lock_flags = 0;
++	struct delayed_work *dw = container_of(w, struct delayed_work, work);
++	struct tmff2_device_entry *tmff2 = container_of(dw, struct tmff2_device_entry, work);
++	struct tmff2_effect_state *state;
++	int max_count = 0, effect_id;
++	unsigned long time_now;
++	__u16 effect_delay, effect_length;
++
++
++	if (!tmff2)
++		return;
++
++	for (effect_id = 0; effect_id < tmff2->max_effects; ++effect_id) {
++		spin_lock_irqsave(&tmff2->lock, lock_flags);
++
++		time_now = JIFFIES2MS(jiffies);
++		state = &tmff2->states[effect_id];
++
++		effect_delay = state->effect.replay.delay;
++		effect_length = state->effect.replay.length;
++		if (test_bit(FF_EFFECT_PLAYING, &state->flags) && effect_length) {
++			if ((time_now - state->start_time) >= (effect_delay + effect_length) * state->count) {
++				__clear_bit(FF_EFFECT_PLAYING, &state->flags);
++				__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
++
++				state->count = 0;
++			}
++		}
++
++		if (test_bit(FF_EFFECT_QUEUE_UPLOAD, &state->flags)) {
++			if (tmff2->upload_effect(tmff2->data, state)) {
++				hid_warn(tmff2->hdev, "failed uploading effect\n");
++			} else {
++				__clear_bit(FF_EFFECT_QUEUE_UPLOAD, &state->flags);
++				/* if we're uploading an effect, it's bound to be the up
++				 * to date */
++				__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
++			}
++		}
++
++		if (test_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags)) {
++			if (tmff2->update_effect(tmff2->data, state))
++				hid_warn(tmff2->hdev, "failed updating effect\n");
++			else
++				__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
++		}
++
++		if (test_bit(FF_EFFECT_QUEUE_START, &state->flags)) {
++			if (tmff2->play_effect(tmff2->data, state)) {
++				hid_warn(tmff2->hdev, "failed starting effect\n");
++			} else {
++				__clear_bit(FF_EFFECT_QUEUE_START, &state->flags);
++				__set_bit(FF_EFFECT_PLAYING, &state->flags);
++			}
++
++		}
++
++		if (test_bit(FF_EFFECT_QUEUE_STOP, &state->flags)) {
++			if (tmff2->stop_effect(tmff2->data, state)) {
++				hid_warn(tmff2->hdev, "failed stopping effect\n");
++			} else {
++				__clear_bit(FF_EFFECT_PLAYING, &state->flags);
++				__clear_bit(FF_EFFECT_QUEUE_STOP, &state->flags);
++			}
++		}
++
++		if (state->count > max_count)
++			max_count = state->count;
++
++		spin_unlock_irqrestore(&tmff2->lock, lock_flags);
++
++		/* wait for each effect update to actually be sent out to avoid
++		 * filling up usb output queue */
++		hid_hw_wait(tmff2->hdev);
++	}
++
++	if (max_count && tmff2->allow_scheduling)
++		schedule_delayed_work(&tmff2->work, msecs_to_jiffies(timer_msecs));
++}
++
++static void tmff2_rewrite_rumble(struct ff_effect *effect)
++{
++	/* this is more or less directly copied from
++	 * https://elixir.bootlin.com/linux/latest/source/drivers/input/ff-core.c#L48
++	 * except we set the direction to east, to make sure the direction
++	 * scaling doesn't do any funny business */
++	int magnitude = 0;
++	if (effect->type != FF_RUMBLE)
++		return;
++
++	magnitude = effect->u.rumble.strong_magnitude / 3
++		+ effect->u.rumble.weak_magnitude / 6;
++
++	effect->type = FF_PERIODIC;
++	effect->direction = 16384;
++	effect->u.periodic.waveform = FF_SINE;
++	effect->u.periodic.period = 50;
++	effect->u.periodic.magnitude = magnitude;
++	effect->u.periodic.offset = 0;
++	effect->u.periodic.phase = 0;
++	effect->u.periodic.envelope.attack_length = 0;
++	effect->u.periodic.envelope.attack_level = 0;
++	effect->u.periodic.envelope.fade_length = 0;
++	effect->u.periodic.envelope.fade_level = 0;
++}
++
++static int tmff2_upload(struct input_dev *dev,
++		struct ff_effect *effect, struct ff_effect *old)
++{
++	unsigned long lock_flags = 0;
++	struct tmff2_effect_state *state;
++	struct tmff2_device_entry *tmff2 = tmff2_from_input(dev);
++
++	if (!tmff2)
++		return -ENODEV;
++
++	if (effect->type == FF_PERIODIC && effect->u.periodic.period == 0)
++		return -EINVAL;
++
++	state = &tmff2->states[effect->id];
++
++	spin_lock_irqsave(&tmff2->lock, lock_flags);
++
++	state->effect = *effect;
++	tmff2_rewrite_rumble(&state->effect);
++
++	if (old) {
++		if (!test_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags)) {
++			state->old = *old;
++			tmff2_rewrite_rumble(&state->old);
++		}
++
++		__set_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
++	} else {
++		__set_bit(FF_EFFECT_QUEUE_UPLOAD, &state->flags);
++	}
++
++	spin_unlock_irqrestore(&tmff2->lock, lock_flags);
++	return 0;
++}
++
++static int tmff2_play(struct input_dev *dev, int effect_id, int value)
++{
++	unsigned long lock_flags = 0;
++	struct tmff2_effect_state *state;
++	struct tmff2_device_entry *tmff2 = tmff2_from_input(dev);
++
++	if (!tmff2)
++		return -ENODEV;
++
++	state = &tmff2->states[effect_id];
++	if (!state)
++		return 0;
++
++	spin_lock_irqsave(&tmff2->lock, lock_flags);
++	if (value > 0) {
++		state->count = value;
++		state->start_time = JIFFIES2MS(jiffies);
++		__set_bit(FF_EFFECT_QUEUE_START, &state->flags);
++		__clear_bit(FF_EFFECT_QUEUE_STOP, &state->flags);
++	} else {
++		__set_bit(FF_EFFECT_QUEUE_STOP, &state->flags);
++		__clear_bit(FF_EFFECT_QUEUE_START, &state->flags);
++	}
++
++	spin_unlock_irqrestore(&tmff2->lock, lock_flags);
++
++	if (!delayed_work_pending(&tmff2->work) && tmff2->allow_scheduling)
++		schedule_delayed_work(&tmff2->work, 0);
++
++	return 0;
++}
++
++static int tmff2_open(struct input_dev *dev)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_input(dev);
++
++	if (!tmff2)
++		return -ENODEV;
++
++	if (tmff2->open)
++		return tmff2->open(tmff2->data, open_mode);
++
++	hid_err(tmff2->hdev, "no open callback set\n");
++	return -EINVAL;
++}
++
++static void tmff2_close(struct input_dev *dev)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_input(dev);
++
++	if (!tmff2)
++		return;
++
++	/* since we're closing the device, no need to continue feeding it new data */
++	/* TODO: check somewhere that multiple users can't open us at the same
++	 * time */
++	cancel_delayed_work_sync(&tmff2->work);
++
++	if (tmff2->close) {
++		tmff2->close(tmff2->data, open_mode);
++		return;
++	}
++
++	hid_err(tmff2->hdev, "no close callback set\n");
++}
++
++static int tmff2_create_files(struct tmff2_device_entry *tmff2)
++{
++	struct device *dev = &tmff2->hdev->dev;
++	int ret;
++
++
++	/* could use short circuiting but this is more explicit */
++	if (tmff2->params & PARAM_GAIN) {
++		if ((ret = device_create_file(dev, &dev_attr_gain))) {
++			hid_err(tmff2->hdev, "unable to create sysfs for gain\n");
++			goto gain_err;
++		}
++	}
++
++	if (tmff2->params & PARAM_ALT_MODE) {
++		if ((ret = device_create_file(dev, &dev_attr_alternate_modes))) {
++			hid_err(tmff2->hdev, "unable to create sysfs for alternate_modes\n");
++			goto alt_err;
++		}
++	}
++
++	if (tmff2->params & PARAM_RANGE) {
++		if ((ret = device_create_file(dev, &dev_attr_range))) {
++			hid_warn(tmff2->hdev, "unable to create sysfs for range\n");
++			goto range_err;
++		}
++	}
++
++	if (tmff2->params & PARAM_SPRING_LEVEL) {
++		if ((ret = device_create_file(dev, &dev_attr_spring_level))) {
++			hid_warn(tmff2->hdev, "unable to create sysfs for spring_level\n");
++			goto spring_err;
++		}
++	}
++
++	if (tmff2->params & PARAM_DAMPER_LEVEL) {
++		if ((ret = device_create_file(dev, &dev_attr_damper_level))) {
++			hid_warn(tmff2->hdev, "unable to create sysfs for damper_level\n");
++			goto damper_err;
++		}
++	}
++
++	if (tmff2->params & PARAM_FRICTION_LEVEL) {
++		if ((ret = device_create_file(dev, &dev_attr_friction_level))) {
++			hid_warn(tmff2->hdev, "unable to create sysfs for friction_level\n");
++			goto friction_err;
++		}
++	}
++
++	return 0;
++
++friction_err:
++	device_remove_file(dev, &dev_attr_damper_level);
++damper_err:
++	device_remove_file(dev, &dev_attr_spring_level);
++spring_err:
++	device_remove_file(dev, &dev_attr_range);
++range_err:
++	device_remove_file(dev, &dev_attr_alternate_modes);
++alt_err:
++	device_remove_file(dev, &dev_attr_gain);
++gain_err:
++	return ret;
++}
++
++static int tmff2_wheel_init(struct tmff2_device_entry *tmff2)
++{
++	int ret, i;
++	struct ff_device *ff;
++
++	spin_lock_init(&lock);
++	spin_lock_init(&tmff2->lock);
++	INIT_DELAYED_WORK(&tmff2->work, tmff2_work_handler);
++
++	/* get parameters etc from backend */
++	if ((ret = tmff2->wheel_init(tmff2, open_mode)))
++		goto err;
++
++
++	tmff2->states = kzalloc(sizeof(struct tmff2_effect_state) * tmff2->max_effects,
++			GFP_KERNEL);
++
++	if (!tmff2->states) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	/* set supported effects into input_dev->ffbit */
++	for (i = 0; tmff2->supported_effects[i] >= 0; ++i)
++		__set_bit(tmff2->supported_effects[i], tmff2->input_dev->ffbit);
++
++	/* tell ffb subsystem that we want to handle our own rumble effects,
++	 * this is a (maybe kind of silly) workaround to the ffb subsystem
++	 * setting the direction of rumble to 0, which in our case means 0
++	 * force. Instead, do exactly what the subsystem would do, but update
++	 * the direction.
++	 *
++	 * It *might* be a good idea to change this in the subsystem proper, but
++	 * I don't know if anyone relies on the rumble to be 0 degrees, consider
++	 * this just a proof of concept for now */
++	if (test_bit(FF_PERIODIC, tmff2->input_dev->ffbit))
++		__set_bit(FF_RUMBLE, tmff2->input_dev->ffbit);
++
++	/* create actual ff device*/
++	if ((ret = input_ff_create(tmff2->input_dev, tmff2->max_effects))) {
++		hid_err(tmff2->hdev, "could not create input_ff\n");
++		goto ff_err;
++	}
++
++	/* set ff callbacks */
++	ff = tmff2->input_dev->ff;
++	ff->upload = tmff2_upload;
++	ff->playback = tmff2_play;
++
++	if (tmff2->open)
++		tmff2->input_dev->open = tmff2_open;
++
++	if (tmff2->close)
++		tmff2->input_dev->close = tmff2_close;
++
++	/* set defaults wherever possible */
++	if (tmff2->set_gain) {
++		ff->set_gain = tmff2_set_gain;
++		tmff2->set_gain(tmff2->data, (GAIN_MAX * gain) / GAIN_MAX);
++	}
++
++	if (tmff2->set_autocenter)
++		ff->set_autocenter = tmff2_set_autocenter;
++
++	if (tmff2->set_range)
++		tmff2->set_range(tmff2->data, range);
++
++	if (tmff2->switch_mode)
++		tmff2->switch_mode(tmff2->data, alt_mode);
++
++	/* create files */
++	if ((ret = tmff2_create_files(tmff2)))
++		goto file_err;
++
++	tmff2->allow_scheduling = 1;
++	return 0;
++
++file_err:
++	input_ff_destroy(tmff2->input_dev);
++ff_err:
++	kfree(tmff2->states);
++err:
++	return ret;
++}
++
++static int tmff2_probe(struct hid_device *hdev, const struct hid_device_id *id)
++{
++	struct tmff2_device_entry *tmff2 =
++		kzalloc(sizeof(struct tmff2_device_entry), GFP_KERNEL);
++
++	int ret;
++
++
++	if (!tmff2) {
++		ret = -ENOMEM;
++		goto oom_err;
++	}
++
++	tmff2->hdev = hdev;
++	hid_set_drvdata(tmff2->hdev, tmff2);
++
++	switch (tmff2->hdev->product) {
++		case TMT300RS_PS3_NORM_ID:
++		case TMT300RS_PS3_ADV_ID:
++		case TMT300RS_PS4_NORM_ID:
++			if ((ret = t300rs_populate_api(tmff2)))
++				goto wheel_err;
++			break;
++
++		case TMT248_PC_ID:
++			if ((ret = t248_populate_api(tmff2)))
++				goto wheel_err;
++			break;
++
++		case TX_ACTIVE:
++			if ((ret = tx_populate_api(tmff2)))
++				goto wheel_err;
++			break;
++		case TSXW_ACTIVE:
++			if ((ret = tsxw_populate_api(tmff2)))
++				goto wheel_err;
++			break;
++		default:
++			ret = -ENODEV;
++			goto wheel_err;
++	}
++
++	if ((ret = hid_parse(tmff2->hdev))) {
++		hid_err(hdev, "parse failed\n");
++		goto hid_err;
++	}
++
++	if ((ret = hid_hw_start(tmff2->hdev, HID_CONNECT_DEFAULT & ~HID_CONNECT_FF))) {
++		hid_err(hdev, "hw start failed\n");
++		goto hid_err;
++	}
++
++	tmff2->input_dev = list_entry(hdev->inputs.next, struct hid_input, list)->input;
++
++	if ((ret = tmff2_wheel_init(tmff2))) {
++		hid_err(hdev, "init failed\n");
++		goto init_err;
++	}
++
++	return 0;
++
++init_err:
++	hid_hw_stop(hdev);
++hid_err:
++	tmff2->wheel_destroy(tmff2->data);
++wheel_err:
++	kfree(tmff2);
++oom_err:
++	return ret;
++}
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6,12,0)
++static __u8 *tmff2_report_fixup(struct hid_device *hdev, __u8 *rdesc,
++		unsigned int *rsize)
++#else
++static const __u8 *tmff2_report_fixup(struct hid_device *hdev, __u8 *rdesc,
++		unsigned int *rsize)
++#endif
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_hdev(hdev);
++
++	if (!tmff2) /* not entirely sure what the best course of action would be here */
++		return rdesc;
++
++	if (tmff2->wheel_fixup)
++		return tmff2->wheel_fixup(hdev, rdesc, rsize);
++
++	return rdesc;
++}
++
++static void tmff2_remove(struct hid_device *hdev)
++{
++	struct tmff2_device_entry *tmff2 = tmff2_from_hdev(hdev);
++	struct device *dev;
++
++	if (!tmff2)
++		return;
++
++	tmff2->allow_scheduling = 0;
++	cancel_delayed_work_sync(&tmff2->work);
++
++	dev = &tmff2->hdev->dev;
++	if (tmff2->params & PARAM_FRICTION_LEVEL)
++		device_remove_file(dev, &dev_attr_friction_level);
++
++	if (tmff2->params & PARAM_DAMPER_LEVEL)
++		device_remove_file(dev, &dev_attr_damper_level);
++
++	if (tmff2->params & PARAM_SPRING_LEVEL)
++		device_remove_file(dev, &dev_attr_spring_level);
++
++	if (tmff2->params & PARAM_RANGE)
++		device_remove_file(dev, &dev_attr_range);
++
++	if (tmff2->params & PARAM_ALT_MODE)
++		device_remove_file(dev, &dev_attr_alternate_modes);
++
++	if (tmff2->params & PARAM_GAIN)
++		device_remove_file(dev, &dev_attr_gain);
++
++	hid_hw_stop(hdev);
++	tmff2->wheel_destroy(tmff2->data);
++
++	kfree(tmff2->states);
++	kfree(tmff2);
++}
++
++static const struct hid_device_id tmff2_devices[] = {
++	/* t300rs and variations */
++	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TMT300RS_PS3_NORM_ID)},
++	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TMT300RS_PS3_ADV_ID)},
++	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TMT300RS_PS4_NORM_ID)},
++	/* t248 PC*/
++	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TMT248_PC_ID)},
++	/* tx */
++	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TX_ACTIVE)},
++	/* tsxw */
++	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TSXW_ACTIVE)},
++
++	{}
++};
++MODULE_DEVICE_TABLE(hid, tmff2_devices);
++
++static struct hid_driver tmff2_driver = {
++	.name = "tmff2",
++	.id_table = tmff2_devices,
++	.probe = tmff2_probe,
++	.remove = tmff2_remove,
++	.report_fixup = tmff2_report_fixup,
++};
++module_hid_driver(tmff2_driver);
++
++MODULE_LICENSE("GPL");
+diff --git a/drivers/custom/hid-tmff2/src/hid-tmff2.h b/drivers/custom/hid-tmff2/src/hid-tmff2.h
+new file mode 100644
+index 000000000000..666d249b7ca7
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/hid-tmff2.h
+@@ -0,0 +1,151 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef __HID_TMFF2_H
++#define __HID_TMFF2_H
++
++#include <linux/fixp-arith.h>
++#include <linux/ktime.h>
++#include <linux/input.h>
++
++extern int timer_msecs;
++extern int spring_level;
++extern int damper_level;
++extern int friction_level;
++extern int range;
++extern int gain;
++extern int alt_mode;
++
++#define USB_VENDOR_ID_THRUSTMASTER 0x044f
++
++/* the wheel seems to only be capable of processing a certain number of
++ * interrupts per second, and if this value is too low the kernel urb buffer (or
++ * some buffer at least) fills up. Optimally I would figure out some way to
++ * space out the interrupts so that they all leave at regular intervals, but
++ * for now this is good enough, go slow enough that everything works.
++ */
++#define DEFAULT_TIMER_PERIOD	8
++
++#define FF_EFFECT_QUEUE_UPLOAD	0
++#define FF_EFFECT_QUEUE_START	1
++#define FF_EFFECT_QUEUE_STOP	2
++#define FF_EFFECT_QUEUE_UPDATE	3
++#define FF_EFFECT_PLAYING	4
++
++#define PARAM_SPRING_LEVEL	(1 << 0)
++#define PARAM_DAMPER_LEVEL	(1 << 1)
++#define PARAM_FRICTION_LEVEL	(1 << 2)
++#define PARAM_RANGE		(1 << 3)
++#define PARAM_ALT_MODE		(1 << 4)
++#define PARAM_GAIN		(1 << 5)
++
++#undef fixp_sin16
++#define fixp_sin16(v) (((v % 360) > 180) ?\
++		-(fixp_sin32((v % 360) - 180) >> 16)\
++		: fixp_sin32(v) >> 16)
++
++#define JIFFIES2MS(jiffies) ((jiffies) * 1000 / HZ)
++
++struct tmff2_effect_state {
++	struct ff_effect effect;
++	struct ff_effect old;
++
++	unsigned long flags;
++	unsigned long count;
++	unsigned long start_time;
++};
++
++struct tmff2_device_entry {
++	struct hid_device *hdev;
++	struct input_dev *input_dev;
++
++	/* pointer to array */
++	struct tmff2_effect_state *states;
++
++	struct delayed_work work;
++
++	spinlock_t lock;
++
++	int allow_scheduling;
++
++	/* fields relevant to each actual device (T300, T248...) */
++	void *data;
++	unsigned long params;
++	unsigned long max_effects;
++	signed short supported_effects[FF_CNT];
++
++	/* obligatory callbacks */
++	int (*play_effect)(void *data, struct tmff2_effect_state *state);
++	int (*upload_effect)(void *data, struct tmff2_effect_state *state);
++	int (*update_effect)(void *data, struct tmff2_effect_state *state);
++	int (*stop_effect)(void *data, struct tmff2_effect_state *state);
++
++	int (*wheel_init)(struct tmff2_device_entry *tmff2, int open_mode);
++	int (*wheel_destroy)(void *data);
++
++	/* optional callbacks */
++	int (*open)(void *data, int);
++	int (*close)(void *data, int);
++	int (*set_gain)(void *data, uint16_t gain);
++	int (*set_range)(void *data, uint16_t range);
++	/* switch_mode is required to not do anything if we're alredy in the
++	 * specified mode */
++	int (*switch_mode)(void *data, uint16_t mode);
++	ssize_t (*alt_mode_show)(void *data, char *buf);
++	ssize_t (*alt_mode_store)(void *data, const char *buf, size_t count);
++	int (*set_autocenter)(void *data, uint16_t autocenter);
++	__u8 *(*wheel_fixup)(struct hid_device *hdev, __u8 *rdesc, unsigned int *rsize);
++
++	/* void pointers are dangerous, I know, but in this case likely the
++	 * best option... */
++};
++
++/* external */
++int t300rs_populate_api(struct tmff2_device_entry *tmff2);
++int t248_populate_api(struct tmff2_device_entry *tmff2);
++int tx_populate_api(struct tmff2_device_entry *tmff2);
++int tsxw_populate_api(struct tmff2_device_entry *tmff2);
++
++#define TMT300RS_PS3_NORM_ID	0xb66e
++#define TMT300RS_PS3_ADV_ID	0xb66f
++#define TMT300RS_PS4_NORM_ID	0xb66d
++
++#define TMT248_PC_ID		0xb696
++
++#define TX_ACTIVE               0xb669
++
++#define TSXW_ACTIVE		0xb692
++
++/* APIs to different wheel families */
++/* T248 and TX at least uses the T300RS api, not sure if there are other wheels
++ * but that's why these functions are given global linkage */
++
++struct t300rs_device_entry {
++	struct hid_device *hdev;
++	struct input_dev *input_dev;
++	struct hid_report *report;
++	struct hid_field *ff_field;
++	struct usb_device *usbdev;
++
++	int (*open)(struct input_dev *dev);
++	void (*close)(struct input_dev *dev);
++
++	int mode;
++	int attachment;
++	u8 buffer_length;
++	u8 *send_buffer;
++};
++
++int t300rs_play_effect(void *, struct tmff2_effect_state *);
++int t300rs_upload_effect(void *, struct tmff2_effect_state *);
++int t300rs_update_effect(void *, struct tmff2_effect_state *);
++int t300rs_stop_effect(void *, struct tmff2_effect_state *);
++
++int t300rs_open(void *, int);
++int t300rs_close(void *, int);
++int t300rs_set_gain(void *, uint16_t);
++int t300rs_set_range(void *, uint16_t);
++int t300rs_set_autocenter(void *, uint16_t);
++
++int t300rs_send_buf(struct t300rs_device_entry *t300rs, u8 *send_buffer, size_t len);
++int t300rs_send_int(struct t300rs_device_entry *t300rs);
++
++#endif
+diff --git a/drivers/custom/hid-tmff2/src/tmt248/hid-tmt248.c b/drivers/custom/hid-tmff2/src/tmt248/hid-tmt248.c
+new file mode 100644
+index 000000000000..9ac43d9d5b93
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/tmt248/hid-tmt248.c
+@@ -0,0 +1,336 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/usb.h>
++#include <linux/hid.h>
++#include "../hid-tmff2.h"
++
++#define T248_MAX_EFFECTS 16
++#define T248_BUFFER_LENGTH 63
++
++static const u8 setup_0[64] = { 0x42, 0x01 };
++static const u8 setup_1[64] = { 0x0a, 0x04, 0x90, 0x03 };
++static const u8 setup_2[64] = { 0x0a, 0x04, 0x00, 0x0c };
++static const u8 setup_3[64] = { 0x0a, 0x04, 0x12, 0x10 };
++static const u8 setup_4[64] = { 0x0a, 0x04, 0x00, 0x06 };
++static const u8 setup_5[64] = { 0x0a, 0x04, 0x00, 0x0e };
++static const u8 setup_6[64] = { 0x0a, 0x04, 0x00, 0x0e, 0x01 };
++static const u8 *const setup_arr[] = { setup_0, setup_1, setup_2, setup_3, setup_4, setup_5, setup_6 };
++static const unsigned int setup_arr_sizes[] = {
++	ARRAY_SIZE(setup_0),
++	ARRAY_SIZE(setup_1),
++	ARRAY_SIZE(setup_2),
++	ARRAY_SIZE(setup_3),
++	ARRAY_SIZE(setup_4),
++	ARRAY_SIZE(setup_5),
++	ARRAY_SIZE(setup_6)
++};
++
++static const unsigned long t248_params =
++	PARAM_SPRING_LEVEL
++	| PARAM_DAMPER_LEVEL
++	| PARAM_FRICTION_LEVEL
++	| PARAM_RANGE
++	| PARAM_GAIN
++	;
++
++static const signed short t248_effects[] = {
++	FF_CONSTANT,
++	FF_RAMP,
++	FF_SPRING,
++	FF_DAMPER,
++	FF_FRICTION,
++	FF_INERTIA,
++	FF_PERIODIC,
++	FF_SINE,
++	FF_TRIANGLE,
++	FF_SQUARE,
++	FF_SAW_UP,
++	FF_SAW_DOWN,
++	FF_AUTOCENTER,
++	FF_GAIN,
++	-1
++};
++
++/* TODO: sort through this stuff */
++static u8 t248_pc_rdesc_fixed[] = {
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x04, /* Usage (Joystick) */
++	0xa1, 0x01, /* Collection (Application) */
++	0x09, 0x01, /* Usage (Pointer) */
++	0xa1, 0x00, /* Collection (Physical) */
++	0x85, 0x07, /* Report ID (7) */
++	0x09, 0x30, /* Usage (X) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x27, 0xff, 0xff, 0x00, 0x00, /* Logical maximum (65535) */
++	0x35, 0x00, /* Physical minimum (0) */
++	0x47, 0xff, 0xff, 0x00, 0x00, /* Physical maximum (65535) */
++	0x75, 0x10, /* Report size (16) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x31, /* Usage (Y) TODO: clutch? */
++	0x26, 0xff, 0x03, /* Logical maximum (1023) */
++	0x46, 0xff, 0x03, /* Physical maximum (1023) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x35, /* Usage (Rz) TODO: brake? */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x36, /* Usage (Slider) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x75, 0x08, /* Report size (8) */
++	0x26, 0xff, 0x00, /* Logical maximum (255) */
++	0x46, 0xff, 0x00, /* Physical maximum (255) */
++	0x09, 0x40, /* Usage (Vx) TODO: what is this? */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x41, /* Usage (Vy) TODO: --||-- */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x33, /* Usage (Rx) TODO: --||-- */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x34, /* Usage (Ry) TODO: --||-- */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x32, /* Usage (Z) TODO: --||-- (gas?) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x37, /* Usage (Dial) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x01, /* Usage minimum (1) */
++	0x29, 0x1a, /* Usage maximum (13) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x45, 0x01, /* Physical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x1a, /* Report count (26) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x75, 0x06, /* Report size (6) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x03, /* Usage (Variable, Absolute, Constant) */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x39, /* Usage (Hat Switch) */
++	0x25, 0x07, /* Logical maximum (7) */
++	0x46, 0x3b, 0x01, /* Physical maximum (315) */
++	0x55, 0x00, /* Unit exponent (0) */
++	0x65, 0x14, /* Unit (Eng rot, Angular Pos) */
++	0x75, 0x04, /* Report size (4) */
++	0x81, 0x42, /* Input (Variable, Absolute, NullState) */
++	0x65, 0x00, /* Input (None) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x85, 0x60, /* Report ID (96), prev 10 */
++	0x06, 0x00, 0xff, /* Usage page (Vendor 1) */
++	0x09, 0x60, /* Usage (96), prev 10 */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x3f, /* Report count (63) */
++	0x26, 0xff, 0x00, /* Logical maximum (256) */
++	0x46, 0xff, 0x00, /* Physical maximum (256) */
++	0x91, 0x02, /* Output (Variable, Absolute) */
++	0x85, 0x02, /* Report ID (2) */
++	0x09, 0x02, /* Usage (2) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x14, /* Usage (20) */
++	0x85, 0x14, /* Report ID (20) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0xc0, /* End collection */
++	0xc0, /* End collection */
++};
++
++static int t248_interrupts(struct t300rs_device_entry *t248)
++{
++	u8 *send_buf = kmalloc(256, GFP_KERNEL);
++	struct usb_interface *usbif = to_usb_interface(t248->hdev->dev.parent);
++	struct usb_host_endpoint *ep;
++	int ret, trans, b_ep, i;
++
++	if (!send_buf) {
++		hid_err(t248->hdev, "failed allocating send buffer\n");
++		return -ENOMEM;
++	}
++
++	ep = &usbif->cur_altsetting->endpoint[1];
++	b_ep = ep->desc.bEndpointAddress;
++
++	for (i = 0; i < ARRAY_SIZE(setup_arr); ++i) {
++		memcpy(send_buf, setup_arr[i], setup_arr_sizes[i]);
++
++		ret = usb_interrupt_msg(t248->usbdev,
++				usb_sndintpipe(t248->usbdev, b_ep),
++				send_buf, setup_arr_sizes[i],
++				&trans,
++				USB_CTRL_SET_TIMEOUT);
++
++		if (ret) {
++			hid_err(t248->hdev, "setup data couldn't be sent\n");
++			goto err;
++		}
++	}
++
++err:
++	kfree(send_buf);
++	return ret;
++}
++
++static int t248_wheel_destroy(void *data)
++{
++	struct t300rs_device_entry *t300rs = data;
++
++	if (!t300rs)
++		return -ENODEV;
++
++	kfree(t300rs->send_buffer);
++	kfree(t300rs);
++	return 0;
++}
++
++static int t248_set_range(void *data, uint16_t value)
++{
++	struct t300rs_device_entry *t248 = data;
++
++	if (value < 140) {
++		hid_info(t248->hdev, "value %i too small, clamping to 140\n", value);
++		value = 140;
++	}
++
++	if (value > 900) {
++		hid_info(t248->hdev, "value %i too large, clamping to 900\n", value);
++		value = 900;
++	}
++
++	return t300rs_set_range(data, value);
++}
++
++static int t248_send_open(struct t300rs_device_entry *t248)
++{
++	int r1, r2;
++	t248->send_buffer[0] = 0x01;
++	t248->send_buffer[1] = 0x04;
++	if ((r1 = t300rs_send_int(t248)))
++		return r1;
++
++	t248->send_buffer[0] = 0x01;
++	t248->send_buffer[1] = 0x05;
++	if ((r2 = t300rs_send_int(t248)))
++		return r2;
++
++	return 0;
++}
++
++static int t248_open(void *data, int open_mode)
++{
++	struct t300rs_device_entry *t248 = data;
++
++	if (!t248)
++		return -ENODEV;
++
++	if (open_mode)
++		t248_send_open(t248);
++
++	return t248->open(t248->input_dev);
++}
++
++static int t248_send_close(struct t300rs_device_entry *t248)
++{
++	int r1, r2;
++	t248->send_buffer[0] = 0x01;
++	t248->send_buffer[1] = 0x05;
++	if ((r1 = t300rs_send_int(t248)))
++		return r1;
++
++	t248->send_buffer[0] = 0x01;
++	t248->send_buffer[1] = 0x00;
++	if ((r2 = t300rs_send_int(t248)))
++		return r2;
++
++	return 0;
++}
++
++static int t248_close(void *data, int open_mode)
++{
++	struct t300rs_device_entry *t248 = data;
++
++	if (!t248)
++		return -ENODEV;
++
++	if (open_mode)
++		t248_send_close(t248);
++
++	t248->close(t248->input_dev);
++	return 0;
++}
++
++static int t248_wheel_init(struct tmff2_device_entry *tmff2, int open_mode)
++{
++	struct t300rs_device_entry *t248 = kzalloc(sizeof(struct t300rs_device_entry),
++						   GFP_KERNEL);
++	struct list_head *report_list;
++	int ret;
++
++
++	if (!t248) {
++		ret = -ENOMEM;
++		goto t248_err;
++	}
++
++	t248->hdev = tmff2->hdev;
++	t248->input_dev = tmff2->input_dev;
++	t248->usbdev = to_usb_device(tmff2->hdev->dev.parent->parent);
++	t248->buffer_length = T248_BUFFER_LENGTH;
++
++	t248->send_buffer = kzalloc(t248->buffer_length, GFP_KERNEL);
++	if (!t248->send_buffer) {
++		ret = -ENOMEM;
++		goto send_err;
++	}
++
++	report_list = &t248->hdev->report_enum[HID_OUTPUT_REPORT].report_list;
++	t248->report = list_entry(report_list->next, struct hid_report, list);
++	t248->ff_field = t248->report->field[0];
++
++	t248->open = t248->input_dev->open;
++	t248->close = t248->input_dev->close;
++
++	if ((ret = t248_interrupts(t248)))
++		goto interrupt_err;
++
++	/* everything went OK */
++	tmff2->data = t248;
++	tmff2->params = t248_params;
++	tmff2->max_effects = T248_MAX_EFFECTS;
++	memcpy(tmff2->supported_effects, t248_effects, sizeof(t248_effects));
++
++	if (!open_mode)
++		t248_send_open(t248);
++
++	hid_info(t248->hdev, "force feedback for T248\n");
++	return 0;
++
++interrupt_err:
++send_err:
++	kfree(t248);
++t248_err:
++	hid_err(tmff2->hdev, "failed initializing T248\n");
++	return ret;
++}
++
++static __u8 *t248_wheel_fixup(struct hid_device *hdev, __u8 *rdesc,
++		unsigned int *rsize)
++{
++	rdesc = t248_pc_rdesc_fixed;
++	*rsize = sizeof(t248_pc_rdesc_fixed);
++	return rdesc;
++}
++
++int t248_populate_api(struct tmff2_device_entry *tmff2)
++{
++	tmff2->play_effect = t300rs_play_effect;
++	tmff2->upload_effect = t300rs_upload_effect;
++	tmff2->update_effect = t300rs_update_effect;
++	tmff2->stop_effect = t300rs_stop_effect;
++
++	tmff2->set_gain = t300rs_set_gain;
++	tmff2->set_autocenter = t300rs_set_autocenter;
++	/* T248 only has 900 degree range, instead of T300RS 1080 */
++	tmff2->set_range = t248_set_range;
++	tmff2->wheel_fixup = t248_wheel_fixup;
++
++	tmff2->open = t248_open;
++	tmff2->close = t248_close;
++
++	tmff2->wheel_init = t248_wheel_init;
++	tmff2->wheel_destroy = t248_wheel_destroy;
++
++	return 0;
++}
+diff --git a/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.c b/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.c
+new file mode 100644
+index 000000000000..39665303953c
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.c
+@@ -0,0 +1,1560 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/usb.h>
++#include <linux/hid.h>
++#include "../hid-tmff2.h"
++
++#define T300RS_MAX_EFFECTS 16
++#define T300RS_NORM_BUFFER_LENGTH 63
++#define T300RS_PS4_BUFFER_LENGTH 31
++
++#define T300RS_DEFAULT_ATTACHMENT 0x06
++#define T300RS_F1_ATTACHMENT 0x03
++
++static const unsigned long t300rs_params =
++	PARAM_SPRING_LEVEL
++	| PARAM_DAMPER_LEVEL
++	| PARAM_FRICTION_LEVEL
++	| PARAM_GAIN
++	| PARAM_RANGE
++	| PARAM_ALT_MODE
++	;
++
++static const signed short t300rs_effects[] = {
++	FF_CONSTANT,
++	FF_RAMP,
++	FF_SPRING,
++	FF_DAMPER,
++	FF_FRICTION,
++	FF_INERTIA,
++	FF_PERIODIC,
++	FF_SINE,
++	FF_TRIANGLE,
++	FF_SQUARE,
++	FF_SAW_UP,
++	FF_SAW_DOWN,
++	FF_AUTOCENTER,
++	FF_GAIN,
++	-1
++};
++
++struct __packed t300rs_fw_response {
++	uint8_t unused1[2];
++	uint8_t fw_version;
++	uint8_t unused2;
++};
++
++
++struct __packed t300rs_packet_header {
++	uint8_t zero1;
++	uint8_t id;
++	uint8_t code;
++};
++
++struct __packed t300rs_setup_header {
++	uint8_t cmd;
++	uint8_t code;
++};
++
++struct __packed t300rs_packet_envelope {
++	uint16_t attack_length;
++	uint16_t attack_level;
++	uint16_t fade_length;
++	uint16_t fade_level;
++};
++
++struct __packed t300rs_packet_timing {
++	uint8_t start_marker;
++	uint16_t duration;
++	uint8_t zero1[2];
++	uint16_t offset;
++	uint8_t zero2;
++	uint16_t end_marker;
++};
++
++struct usb_ctrlrequest t300rs_fw_request = {
++	.bRequestType = 0xc1,
++	.bRequest = 86,
++	.wValue = 0,
++	.wIndex = 0,
++	.wLength = 8
++};
++
++struct t300rs_data {
++	unsigned long quirks;
++	void *device_props;
++};
++
++static u8 t300rs_rdesc_nrm_fixed[] = {
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x04, /* Usage (Joystick) */
++	0xa1, 0x01, /* Collection (Application) */
++	0x09, 0x01, /* Usage (Pointer) */
++	0xa1, 0x00, /* Collection (Physical) */
++	0x85, 0x07, /* Report ID (7) */
++	0x09, 0x30, /* Usage (X) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x27, 0xff, 0xff, 0x00, 0x00, /* Logical maximum (65535) */
++	0x35, 0x00, /* Physical minimum (0) */
++	0x47, 0xff, 0xff, 0x00, 0x00, /* Physical maximum (65535) */
++	0x75, 0x10, /* Report size (16) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x35, /* Usage (Rz) (Brake) */
++	0x26, 0xff, 0x03, /* Logical maximum (1023) */
++	0x46, 0xff, 0x03, /* Physical maximum (1023) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x32, /* Usage (Z) (Gas) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x31, /* Usage (Y) (Clutch) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x01, /* Usage minimum (1) */
++	0x29, 0x0d, /* Usage maximum (13) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x45, 0x01, /* Physical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x0d, /* Report count (13) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x75, 0x0b, /* Report size (13) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x03, /* Usage (Variable, Absolute, Constant) */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x39, /* Usage (Hat Switch) */
++	0x25, 0x07, /* Logical maximum (7) */
++	0x46, 0x3b, 0x01, /* Physical maximum (315) */
++	0x55, 0x00, /* Unit exponent (0) */
++	0x65, 0x14, /* Unit (Eng Rot, Angular Pos) */
++	0x75, 0x04, /* Report size (4) */
++	0x81, 0x42, /* Input (Variable, Absolute, NullState) */
++	0x65, 0x00, /* Unit (None) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x85, 0x60, /* Report ID (96), prev 10 */
++	0x06, 0x00, 0xff, /* Usage page (Vendor 1) */
++	0x09, 0x60, /* Usage (96), prev 10 */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x3f, /* Report count (63) */
++	0x26, 0xff, 0x7f, /* Logical maximum (32767) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x46, 0xff, 0x7f, /* Physical maximum (32767) */
++	0x36, 0x00, 0x80, /* Physical minimum (-32768) */
++	0x91, 0x02, /* Output (Variable, Absolute) */
++	0x85, 0x02, /* Report ID (2) */
++	0x09, 0x02, /* Usage (2) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x14, /* Usage (20) */
++	0x85, 0x14, /* Report ID (20) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0xc0, /* End collection */
++	0xc0, /* End collection */
++};
++
++static u8 t300rs_rdesc_adv_fixed[] = {
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x04, /* Usage (Joystick) */
++	0xa1, 0x01, /* Collection (Application) */
++	0x09, 0x01, /* Usage (Pointer) */
++	0xa1, 0x00, /* Collection (Physical) */
++	0x85, 0x07, /* Report ID (7) */
++	0x09, 0x30, /* Usage (X) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x27, 0xff, 0xff, 0x00, 0x00, /* Logical maximum (65535) */
++	0x35, 0x00, /* Physical minimum (0) */
++	0x47, 0xff, 0xff, 0x00, 0x00, /* Physical maximum (65535) */
++	0x75, 0x10, /* Report size (16) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x31, /* Usage (Y) */
++	0x26, 0xff, 0x03, /* Logical maximum (1023) */
++	0x46, 0xff, 0x03, /* Physical maximum (1023) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x35, /* Usage (Rz) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x36, /* Usage (Slider) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) ? */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x01, /* Usage minimum (1) */
++	0x29, 0x19, /* Usage maximum (25) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x45, 0x01, /* Physical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x19, /* Report count (25) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x75, 0x03, /* Report size (3) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x39, /* Usage (Hat Switch) */
++	0x25, 0x07, /* Logical maximum (7) */
++	0x46, 0x3b, 0x01, /* Physical maximum (315) */
++	0x55, 0x00, /* Unit exponent (0) */
++	0x65, 0x14, /* Unit (Eng Rot, Angular Pos) */
++	0x75, 0x04, /* Report size (4) */
++	0x81, 0x42, /* Input (Variable, Absolute, NullState) */
++	0x65, 0x00, /* Unit (None) */
++	0x85, 0x60, /* Report ID (96), prev 10 */
++	0x06, 0x00, 0xff, /* Usage page (Vendor 1) */
++	0x09, 0x60, /* Usage (96), prev 10 (why?) */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x3f, /* Report count (63) */
++	0x26, 0xff, 0x00, /* Logical maximum (255) */
++	0x46, 0xff, 0x00, /* Physical maximum (255) */
++	0x91, 0x02, /* Output (Variable, Absolute) */
++	0x85, 0x02, /* Report ID (2) */
++	0x09, 0x02, /* Usage (Mouse) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x14, /* Usage (20) */
++	0x85, 0x14, /* Report ID (20) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0xc0, /* End collection */
++	0xc0, /* End collection */
++};
++
++static u8 t300rs_rdesc_ps4_fixed[] = {
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x05, /* Usage (GamePad) */
++	0xa1, 0x01, /* Collection (Application) */
++	0x85, 0x01, /* Report ID (1) */
++	0x09, 0x00, /* Usage (U) (was X) */
++	0x09, 0x00, /* Usage (U) (was Y) */
++	0x09, 0x00, /* Usage (U) (was Z) */
++	0x09, 0x00, /* Usage (U) (was Rz)*/
++	0x15, 0x00, /* Logical minimum (0) */
++	0x26, 0xff, 0x00, /* Logical maximum (255) */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x04, /* Report count (4) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x39, /* Usage (Hat Switch) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x25, 0x07, /* Logical maximum (7)*/
++	0x35, 0x00, /* Physical minimum (0) */
++	0x46, 0x3b, 0x01, /* Physical maximum (315) */
++	0x65, 0x14, /* Unit (Eng Rot, Angular Pos) */
++	0x75, 0x04, /* Report size (4) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x42, /* Input (Variable, Absolute, NullState) */
++	0x65, 0x00, /* Input (None) */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x01, /* Usage minimum (1) */
++	0x29, 0x0e, /* Usage maximum (14) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x0e, /* Report size (14) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x06, 0x00, 0xff, /* Usage page (Vendor 1) */
++	0x09, 0x20, /* Usage (32) */
++	0x75, 0x06, /* Report size (6) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x00, /* Usage (U) (was Rx)*/
++	0x09, 0x00, /* Usage (U) (was Ry) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x26, 0xff, 0x00, /* Logical maximum (255) */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x02, /* Report count (2) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x05, 0x01, /* Usage page (Vendor 1) */
++	/* constant zero? */
++	0x09, 0x00, /* Usage (33) */
++	0x95, 0x21, /* Report count (33) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	/* wheel */
++	0x09, 0x30, /* Usage (X) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x27, 0xff, 0xff, 0x00, 0x00, /* Logical maximum (65535) */
++	0x35, 0x00, /* Physical minimum (0) */
++	0x47, 0xff, 0xff, 0x00, 0x00, /* Physical maximum (65535) */
++	0x75, 0x10, /* Report size (16) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	/* gas */
++	0x09, 0x31, /* Usage (Y) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	/* brake */
++	0x09, 0x32, /* Usage (Z) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	/* clutch */
++	0x09, 0x35, /* Usage (Rz) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	/* stick shifter (check model no) */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x0f, /* Usage minimum (15) */
++	0x29, 0x17, /* Usage maximum (23) */
++	0x15, 0x00, /* Logical minimum (1) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x08, /* Report count (8) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	/* no clue */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x00, /* Usage (U) */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x0c, /* Report count (12) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	/* continue unmodified */
++	0x06, 0x00, 0xff, /* Usage page (Vendor defined 1) */
++	0x85, 0x60, /* Report ID (5) (change to 0x60?) */
++	0x09, 0x60, /* Usage (34) (change to 0x60?) */
++	0x95, 0x1f, /* Report count (31) () */
++	0x91, 0x02, /* Output (Variable, Absolute) */
++	0x85, 0x03, /* Report ID (3) */
++	0x0a, 0x21, 0x27, /* ??? */
++	0x95, 0x2f, /* Report count (47) */
++	0xb1, 0x02, /* Feature (Data, Var, Abs) */
++	0xc0, /* End collection */
++
++	/* From here on out no clue */
++	0x06, 0xf0,
++	0xff, 0x09,
++	0x40, 0xa1,
++	0x01, 0x85,
++	0xf0, 0x09,
++	0x47, 0x95,
++	0x3f, 0xb1,
++	0x02, 0x85,
++	0xf1, 0x09,
++	0x48, 0x95,
++	0x3f, 0xb1,
++	0x02, 0x85,
++	0xf2, 0x09,
++	0x49, 0x95,
++	0x0f, 0xb1,
++	0x02, 0x85,
++	0xf3, 0x0a,
++	0x01, 0x47,
++	0x95, 0x07,
++	0xb1, 0x02,
++	0xc0,
++};
++
++static u8 condition_values[] = {
++	0xfe, 0xff, 0xfe, 0xff, 0xfe,
++	0xff, 0xfe, 0xff
++};
++
++static uint16_t t300rs_calculate_length(uint16_t length)
++{
++	/* translate infinite effect length from Linux's 0 to the wheel's 0xffff */
++	if (length == 0)
++		return 0xffff;
++
++	return length;
++}
++
++static int16_t t300rs_calculate_constant_level(int16_t level, uint16_t direction)
++{
++	level = (level * fixp_sin16(direction * 360 / 0x10000)) / 0x7fff;
++
++	/* the Windows driver uses the range [-16385;16381] */
++	level = level / 2;
++
++	return level;
++}
++
++static void t300rs_calculate_periodic_values(struct ff_effect *effect)
++{
++	struct ff_periodic_effect *periodic = &effect->u.periodic;
++	int16_t headroom;
++
++	periodic->magnitude = (periodic->magnitude * fixp_sin16(effect->direction * 360 / 0x10000)) / 0x7fff;
++
++	if (periodic->magnitude < 0){
++		/* the wheel handles positive magnitudes only */
++		periodic->magnitude = -periodic->magnitude;
++
++		/* to give the expected result 180 deg is added to the phase */
++		periodic->phase = (periodic->phase + (0x10000 / 2)) % 0x10000;
++	}
++
++	/* the interval [0; 32677[ is used by the wheel for the [0; 360[ degree phase shift */
++	periodic->phase = periodic->phase * 32677 / 0x10000;
++
++	headroom = 0x7fff - periodic->magnitude;
++	/* magnitude + offset cannot be outside the valid magnitude range, */
++	/* otherwise the wheel behaves incorrectly */
++	periodic->offset = clamp(periodic->offset, -headroom, headroom);
++}
++
++static uint16_t t300rs_condition_max_saturation(uint16_t effect_type)
++{
++	if(effect_type == FF_SPRING)
++		return 0x6aa6;
++
++	return 0x7ffc;
++}
++
++static uint8_t t300rs_condition_effect_type(uint16_t effect_type)
++{
++	if(effect_type == FF_SPRING)
++		return 0x06;
++
++	return 0x07;
++}
++
++static int16_t t300rs_calculate_coefficient(int16_t coeff, uint16_t effect_type)
++{
++	uint8_t input_level;
++
++	switch (effect_type)
++	{
++	case FF_SPRING:
++		input_level = spring_level;
++		break;
++	case FF_DAMPER:
++		input_level = damper_level;
++		break;
++	case FF_FRICTION:
++		input_level = friction_level;
++		break;
++	default:
++		input_level = 100;
++		break;
++	}
++
++	return coeff * input_level / 100;
++}
++
++static uint16_t t300rs_calculate_saturation(uint16_t sat, uint16_t effect_type)
++{
++	uint16_t max = t300rs_condition_max_saturation(effect_type);
++
++	if(sat == 0)
++		return max;
++
++	return sat * max / 0xffff;
++}
++
++static void t300rs_calculate_deadband(int16_t *out_rband, int16_t *out_lband,
++		uint16_t deadband, int16_t offset)
++{
++	/* max deadband value is 0x7fff in either direction */
++	/* deadband is the width of the deadzone, one direction is half of it */
++	*out_rband = clamp(offset + (deadband / 2), -0x7fff, 0x7fff);
++	*out_lband = clamp(offset - (deadband / 2), -0x7fff, 0x7fff);
++}
++
++static void t300rs_calculate_ramp_parameters(uint16_t *out_slope,
++		int16_t *out_center,
++		uint8_t *out_invert,
++		struct ff_effect *effect)
++{
++	struct ff_ramp_effect *ramp = &effect->u.ramp;
++
++	int16_t start_level, end_level;
++
++	start_level = (ramp->start_level * fixp_sin16(effect->direction * 360 / 0x10000)) / 0x7fff;
++	end_level = (ramp->end_level * fixp_sin16(effect->direction * 360 / 0x10000)) / 0x7fff;
++
++	*out_slope = abs(start_level - end_level) / 2;
++	*out_center = (start_level + end_level) / 2;
++
++	*out_invert = (start_level < end_level) ? 0x04 : 0x05;
++}
++
++int t300rs_send_buf(struct t300rs_device_entry *t300rs, u8 *send_buffer, size_t len)
++{
++	int i;
++	/* check that send_buffer fits into our report */
++	if (len > t300rs->buffer_length)
++		return -EINVAL;
++
++	/* fill with actual data */
++	for (i = 0; i < len; ++i)
++		t300rs->ff_field->value[i] = send_buffer[i];
++
++	/* fill the rest with zeroes */
++	for (i = len; i < t300rs->buffer_length; ++i)
++		t300rs->ff_field->value[i] = 0;
++
++	hid_hw_request(t300rs->hdev, t300rs->report, HID_REQ_SET_REPORT);
++	return 0;
++}
++
++int t300rs_send_int(struct t300rs_device_entry *t300rs)
++{
++	t300rs_send_buf(t300rs, t300rs->send_buffer, t300rs->buffer_length);
++	memset(t300rs->send_buffer, 0, t300rs->buffer_length);
++
++	return 0;
++}
++
++static void t300rs_fill_header(struct t300rs_packet_header *packet_header,
++		uint8_t id, uint8_t code)
++{
++	packet_header->id = id + 1;
++	packet_header->code = code;
++}
++
++int t300rs_play_effect(void *data, struct tmff2_effect_state *state)
++{
++	struct t300rs_device_entry *t300rs = data;
++	struct __packed t300rs_packet_play {
++		struct t300rs_packet_header header;
++		uint8_t code;
++		uint16_t count;
++	} *play_packet = (struct t300rs_packet_play *)t300rs->send_buffer;
++
++	int ret;
++
++
++	t300rs_fill_header(&play_packet->header, state->effect.id, 0x89);
++	play_packet->code = 0x41;
++
++	if (state->count == 0 || state->count >= 65535)
++		play_packet->count = 0;
++	else
++		play_packet->count = cpu_to_le16(state->count);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed starting effect play\n");
++
++	return ret;
++}
++
++int t300rs_stop_effect(void *data, struct tmff2_effect_state *state)
++{
++	struct t300rs_device_entry *t300rs = data;
++	struct __packed t300rs_packet_stop {
++		struct t300rs_packet_header header;
++		uint8_t value;
++	} *stop_packet = (struct t300rs_packet_stop *)t300rs->send_buffer;
++
++	int ret;
++
++
++	t300rs_fill_header(&stop_packet->header, state->effect.id, 0x89);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed stopping effect play\n");
++
++	return ret;
++}
++
++static void t300rs_fill_envelope(struct t300rs_packet_envelope *packet_envelope,
++		struct ff_envelope *envelope)
++{
++	// Note: Minimal length limitations are not enforced,
++	// as testing shows that the wheel can handle lower values well
++	packet_envelope->attack_length = cpu_to_le16(envelope->attack_length);
++	packet_envelope->attack_level = cpu_to_le16(envelope->attack_level);
++	packet_envelope->fade_length = cpu_to_le16(envelope->fade_length);
++	packet_envelope->fade_level = cpu_to_le16(envelope->fade_level);
++}
++
++static int t300rs_is_envelope_changed(struct ff_envelope *new,
++	struct ff_envelope *old)
++{
++	return new->attack_length != old->attack_length
++			|| new->attack_level != old->attack_level
++			|| new->fade_length != old->fade_length
++			|| new->fade_level != old->fade_level;
++}
++
++static void t300rs_fill_timing(struct t300rs_packet_timing *packet_timing,
++		uint16_t duration, uint16_t offset){
++	packet_timing->start_marker = 0x4f;
++
++	packet_timing->duration = cpu_to_le16(duration);
++	packet_timing->offset = cpu_to_le16(offset);
++
++	packet_timing->end_marker = 0xffff;
++}
++
++static int t300rs_update_constant(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	struct ff_effect old = state->old;
++	struct ff_constant_effect constant = effect.u.constant;
++	struct ff_constant_effect constant_old = old.u.constant;
++	struct __packed t300rs_packet_mod_constant {
++		struct t300rs_packet_header header;
++		uint16_t magnitude;
++		struct t300rs_packet_envelope envelope;
++		uint8_t effect_type;
++		uint8_t update_type;
++		uint16_t duration;
++		uint16_t offset;
++	} *packet_mod_constant = (struct t300rs_packet_mod_constant *)t300rs->send_buffer;
++
++	int ret = 0;
++	int16_t level, old_level;
++	uint16_t length, old_length;
++
++	level = t300rs_calculate_constant_level(constant.level, effect.direction);
++	old_level = t300rs_calculate_constant_level(constant_old.level, old.direction);
++
++	length = t300rs_calculate_length(effect.replay.length);
++	old_length = t300rs_calculate_length(old.replay.length);
++
++	if (!t300rs_is_envelope_changed(&constant.envelope, &constant_old.envelope)
++			&& level == old_level
++			&& length == old_length
++			&& effect.replay.delay == old.replay.delay)
++		return ret;
++
++	t300rs_fill_header(&packet_mod_constant->header, effect.id, 0x6a);
++	packet_mod_constant->magnitude = cpu_to_le16(level);
++
++	t300rs_fill_envelope(&packet_mod_constant->envelope, &constant.envelope);
++
++	packet_mod_constant->effect_type = 0x00;
++	packet_mod_constant->update_type = 0x45;
++	packet_mod_constant->duration = cpu_to_le16(length);
++	packet_mod_constant->offset = cpu_to_le16(effect.replay.delay);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed modifying constant effect\n");
++
++	return ret;
++}
++
++static int t300rs_update_ramp(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	struct ff_effect old = state->old;
++	struct ff_ramp_effect ramp = effect.u.ramp;
++	struct ff_ramp_effect ramp_old = old.u.ramp;
++	struct __packed t300rs_packet_mod_ramp {
++		struct t300rs_packet_header header;
++		uint8_t type;
++		uint16_t slope;
++		uint16_t center;
++		uint16_t length;
++		struct t300rs_packet_envelope envelope;
++		uint8_t effect_type;
++		uint8_t update_type;
++		uint16_t length2;
++		uint16_t offset;
++	} *packet_mod_ramp = (struct t300rs_packet_mod_ramp *)t300rs->send_buffer;
++
++	int ret = 0;
++
++	uint8_t invert, old_invert;
++	uint16_t slope, old_slope, length, old_length;
++	int16_t center, old_center;
++
++	t300rs_calculate_ramp_parameters(&slope, &center, &invert, &effect);
++	t300rs_calculate_ramp_parameters(&old_slope, &old_center, &old_invert, &old);
++
++	length = t300rs_calculate_length(effect.replay.length);
++	old_length = t300rs_calculate_length(old.replay.length);
++
++	if (!t300rs_is_envelope_changed(&ramp.envelope, &ramp_old.envelope)
++			&& slope == old_slope
++			&& center == old_center
++			&& invert == old_invert
++			&& length == old_length
++			&& effect.replay.delay == old.replay.delay)
++		return ret;
++
++	t300rs_fill_header(&packet_mod_ramp->header, effect.id, 0x6e);
++	packet_mod_ramp->type = 0x0b;
++	packet_mod_ramp->slope = cpu_to_le16(slope);
++	packet_mod_ramp->center = cpu_to_le16(center);
++	packet_mod_ramp->length = cpu_to_le16(length);
++
++	t300rs_fill_envelope(&packet_mod_ramp->envelope, &ramp.envelope);
++
++	packet_mod_ramp->effect_type = invert;
++	packet_mod_ramp->update_type = 0x45;
++	packet_mod_ramp->length2 = packet_mod_ramp->length;
++	packet_mod_ramp->offset = cpu_to_le16(effect.replay.delay);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed modifying ramp effect\n");
++
++	return ret;
++}
++
++static int t300rs_update_condition(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	struct ff_effect old = state->old;
++	struct ff_condition_effect cond = effect.u.condition[0];
++	struct ff_condition_effect cond_old = old.u.condition[0];
++	struct __packed t300rs_packet_mod_condition
++	{
++		struct t300rs_packet_header header;
++		uint16_t right_coeff;
++		uint16_t left_coeff;
++		uint16_t right_deadband;
++		uint16_t left_deadband;
++		uint16_t right_saturation;
++		uint16_t left_saturation;
++		uint8_t effect_type;
++		uint8_t update_type;
++		uint16_t duration;
++		uint16_t delay;
++	} *packet_mod_condition = (struct t300rs_packet_mod_condition *)t300rs->send_buffer;
++
++	int ret = 0;
++	uint16_t duration, duration_old;
++	uint16_t right_sat, right_sat_old, left_sat, left_sat_old;
++	uint16_t right_coeff, right_coeff_old, left_coeff, left_coeff_old;
++	int16_t right_deadband, right_deadband_old, left_deadband, left_deadband_old;
++
++	right_coeff = t300rs_calculate_coefficient(cond.right_coeff, effect.type);
++	right_coeff_old = t300rs_calculate_coefficient(cond_old.right_coeff, old.type);
++
++	left_coeff = t300rs_calculate_coefficient(cond.left_coeff, effect.type);
++	left_coeff_old = t300rs_calculate_coefficient(cond_old.left_coeff, old.type);
++
++	t300rs_calculate_deadband(&right_deadband, &left_deadband,
++		cond.deadband, cond.center);
++	t300rs_calculate_deadband(&right_deadband_old, &left_deadband_old,
++		cond_old.deadband, cond_old.center);
++
++	right_sat = t300rs_calculate_saturation(cond.right_saturation, effect.type);
++	right_sat_old = t300rs_calculate_saturation(cond_old.right_saturation, old.type);
++
++	left_sat = t300rs_calculate_saturation(cond.left_saturation, effect.type);
++	left_sat_old = t300rs_calculate_saturation(cond_old.left_saturation, old.type);
++
++	duration = t300rs_calculate_length(effect.replay.length);
++	duration_old = t300rs_calculate_length(old.replay.length);
++
++	if (right_coeff == right_coeff_old
++			&& left_coeff == left_coeff_old
++			&& right_deadband == right_deadband_old
++			&& left_deadband == left_deadband_old
++			&& right_sat == right_sat_old
++			&& left_sat == left_sat_old
++			&& duration == duration_old
++			&& effect.replay.delay == old.replay.delay)
++		return ret;
++
++	packet_mod_condition->right_coeff = cpu_to_le16(right_coeff);
++	packet_mod_condition->left_coeff = cpu_to_le16(left_coeff);
++	packet_mod_condition->right_deadband = cpu_to_le16(right_deadband);
++	packet_mod_condition->left_deadband = cpu_to_le16(left_deadband);
++	packet_mod_condition->right_saturation = cpu_to_le16(right_sat);
++	packet_mod_condition->left_saturation = cpu_to_le16(left_sat);
++	packet_mod_condition->effect_type = 0x06;
++	packet_mod_condition->update_type = 0x45;
++	packet_mod_condition->duration = cpu_to_le16(duration);
++	packet_mod_condition->delay = cpu_to_le16(effect.replay.delay);
++
++	t300rs_fill_header(&packet_mod_condition->header, effect.id, 0x4c);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed modifying condition effect\n");
++
++	return ret;
++}
++
++static int t300rs_update_periodic(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	struct ff_effect old = state->old;
++	struct __packed t300rs_packet_mod_periodic {
++		struct t300rs_packet_header header;
++		uint8_t type;
++		uint16_t magnitude;
++		uint16_t offset;
++		uint16_t phase;
++		uint16_t period;
++		struct t300rs_packet_envelope envelope;
++		uint8_t effect_type;
++		uint8_t update_type;
++		uint16_t duration;
++		uint16_t play_offset;
++	} *packet_mod_periodic = (struct t300rs_packet_mod_periodic *)t300rs->send_buffer;
++
++	struct ff_periodic_effect periodic, periodic_old;
++	int ret = 0;
++	uint16_t length, old_length;
++
++	t300rs_calculate_periodic_values(&effect);
++	periodic = effect.u.periodic;
++
++	t300rs_calculate_periodic_values(&old);
++	periodic_old = old.u.periodic;
++
++	length = t300rs_calculate_length(effect.replay.length);
++	old_length = t300rs_calculate_length(old.replay.length);
++
++	if (!t300rs_is_envelope_changed(&periodic.envelope, &periodic_old.envelope)
++			&& periodic.magnitude == periodic_old.magnitude
++			&& periodic.offset == periodic_old.offset
++			&& periodic.phase == periodic_old.phase
++			&& periodic.period == periodic_old.period
++			&& length == old_length
++			&& effect.replay.delay == old.replay.delay)
++		return ret;
++
++	t300rs_fill_header(&packet_mod_periodic->header, effect.id, 0x6e);
++	packet_mod_periodic->type = 0x0f;
++	packet_mod_periodic->magnitude = cpu_to_le16(periodic.magnitude);
++	packet_mod_periodic->offset = cpu_to_le16(periodic.offset);
++	packet_mod_periodic->phase = cpu_to_le16(periodic.phase);
++	packet_mod_periodic->period = cpu_to_le16(periodic.period);
++
++	t300rs_fill_envelope(&packet_mod_periodic->envelope, &periodic.envelope);
++
++	packet_mod_periodic->effect_type = periodic.waveform - 0x57;
++	packet_mod_periodic->update_type = 0x45;
++	packet_mod_periodic->duration = cpu_to_le16(length);
++	packet_mod_periodic->play_offset = cpu_to_le16(effect.replay.delay);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed modifying periodic effect\n");
++
++	return ret;
++}
++
++static int t300rs_upload_constant(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	struct ff_constant_effect constant = state->effect.u.constant;
++	struct __packed t300rs_packet_constant {
++		struct t300rs_packet_header header;
++		uint16_t level;
++		struct t300rs_packet_envelope envelope;
++		uint8_t zero;
++		struct t300rs_packet_timing timing;
++	} *packet_constant = (struct t300rs_packet_constant *)t300rs->send_buffer;
++
++	int16_t level;
++	uint16_t duration, offset;
++
++	int ret;
++
++	level = t300rs_calculate_constant_level(constant.level, effect.direction);
++	duration = t300rs_calculate_length(effect.replay.length);
++
++	offset = effect.replay.delay;
++
++	t300rs_fill_header(&packet_constant->header, effect.id, 0x6a);
++
++	packet_constant->level = cpu_to_le16(level);
++
++	t300rs_fill_envelope(&packet_constant->envelope, &constant.envelope);
++	t300rs_fill_timing(&packet_constant->timing, duration, offset);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed uploading constant effect\n");
++
++	return ret;
++}
++
++static int t300rs_upload_ramp(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	struct ff_ramp_effect ramp = state->effect.u.ramp;
++	struct __packed t300rs_packet_ramp {
++		struct t300rs_packet_header header;
++		uint16_t slope;
++		uint16_t center;
++		uint8_t zero1[2];
++		uint16_t duration;
++		uint16_t marker;
++		struct t300rs_packet_envelope envelope;
++		uint8_t invert;
++		struct t300rs_packet_timing timing;
++	} *packet_ramp = (struct t300rs_packet_ramp *)t300rs->send_buffer;
++
++	int ret;
++	uint8_t invert;
++	uint16_t slope, offset, duration;
++	int16_t center;
++
++	t300rs_calculate_ramp_parameters(&slope, &center, &invert, &effect);
++
++	duration = t300rs_calculate_length(effect.replay.length);
++	offset = effect.replay.delay;
++
++	t300rs_fill_header(&packet_ramp->header, effect.id, 0x6b);
++
++	packet_ramp->slope = cpu_to_le16(slope);
++	packet_ramp->center = cpu_to_le16(center);
++	packet_ramp->duration = cpu_to_le16(duration);
++
++	packet_ramp->marker = cpu_to_le16(0x8000);
++
++	t300rs_fill_envelope(&packet_ramp->envelope, &ramp.envelope);
++
++	packet_ramp->invert = invert;
++	t300rs_fill_timing(&packet_ramp->timing, duration, offset);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed uploading ramp");
++
++	return ret;
++}
++
++static int t300rs_upload_condition(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	/* we only care about the first axis */
++	struct ff_condition_effect cond = state->effect.u.condition[0];
++	struct __packed t300rs_packet_condition {
++		struct t300rs_packet_header header;
++		int16_t right_coeff;
++		int16_t left_coeff;
++		int16_t right_deadband;
++		int16_t left_deadband;
++		uint16_t right_saturation;
++		uint16_t left_saturation;
++		uint8_t hardcoded[ARRAY_SIZE(condition_values)];
++		uint16_t max_right_saturation;
++		uint16_t max_left_saturation;
++		uint8_t type;
++		struct t300rs_packet_timing timing;
++	} *packet_condition = (struct t300rs_packet_condition *)t300rs->send_buffer;
++
++	int ret;
++	uint16_t duration, right_sat, left_sat, right_coeff, left_coeff, max_sat, offset;
++	int16_t right_deadband, left_deadband;
++
++	right_coeff = t300rs_calculate_coefficient(cond.right_coeff, effect.type);
++	left_coeff = t300rs_calculate_coefficient(cond.left_coeff, effect.type);
++
++	t300rs_calculate_deadband(&right_deadband, &left_deadband,
++		cond.deadband, cond.center);
++
++	right_sat = t300rs_calculate_saturation(cond.right_saturation, effect.type);
++	left_sat = t300rs_calculate_saturation(cond.left_saturation, effect.type);
++
++	duration = t300rs_calculate_length(effect.replay.length);
++
++	offset = effect.replay.delay;
++
++	t300rs_fill_header(&packet_condition->header, effect.id, 0x64);
++
++	packet_condition->right_coeff = cpu_to_le16(right_coeff);
++	packet_condition->left_coeff = cpu_to_le16(left_coeff);
++	packet_condition->right_deadband = cpu_to_le16(right_deadband);
++	packet_condition->left_deadband = cpu_to_le16(left_deadband);
++	packet_condition->right_saturation = cpu_to_le16(right_sat);
++	packet_condition->left_saturation = cpu_to_le16(left_sat);
++
++	memcpy(&packet_condition->hardcoded, condition_values,
++		ARRAY_SIZE(condition_values));
++
++	max_sat = t300rs_condition_max_saturation(effect.type);
++	/* it seems that the maximum values do not affect the wheel. */
++	packet_condition->max_right_saturation = cpu_to_le16(max_sat);
++	packet_condition->max_left_saturation = cpu_to_le16(max_sat);
++	packet_condition->type = t300rs_condition_effect_type(effect.type);
++
++	t300rs_fill_timing(&packet_condition->timing, duration, offset);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed uploading condition\n");
++
++	return ret;
++}
++
++static int t300rs_upload_periodic(struct t300rs_device_entry *t300rs,
++		struct tmff2_effect_state *state)
++{
++	struct ff_effect effect = state->effect;
++	struct __packed t300rs_packet_periodic {
++		struct t300rs_packet_header header;
++		uint16_t magnitude;
++		uint16_t periodic_offset;
++		uint16_t phase;
++		uint16_t period;
++		uint16_t marker;
++		struct t300rs_packet_envelope envelope;
++		uint8_t waveform;
++		struct t300rs_packet_timing timing;
++	} *packet_periodic = (struct t300rs_packet_periodic *)t300rs->send_buffer;
++
++	struct ff_periodic_effect periodic;
++	int ret;
++	uint16_t duration, period, phase, offset, periodic_offset;
++	int16_t magnitude;
++
++	t300rs_calculate_periodic_values(&effect);
++	periodic = effect.u.periodic;
++	duration = t300rs_calculate_length(effect.replay.length);
++	offset = effect.replay.delay;
++	magnitude = periodic.magnitude;
++	period = periodic.period;
++	phase = periodic.phase;
++	periodic_offset = periodic.offset;
++
++	t300rs_fill_header(&packet_periodic->header, effect.id, 0x6b);
++
++	packet_periodic->magnitude = cpu_to_le16(magnitude);
++	packet_periodic->periodic_offset = cpu_to_le16(periodic_offset);
++	packet_periodic->phase = cpu_to_le16(phase);
++	packet_periodic->period = cpu_to_le16(period);
++
++	packet_periodic->marker = cpu_to_le16(0x8000);
++
++	t300rs_fill_envelope(&packet_periodic->envelope, &periodic.envelope);
++
++	packet_periodic->waveform = periodic.waveform - 0x57;
++
++	t300rs_fill_timing(&packet_periodic->timing, duration, offset);
++
++	ret = t300rs_send_int(t300rs);
++	if (ret)
++		hid_err(t300rs->hdev, "failed uploading periodic effect");
++
++	return ret;
++}
++
++int t300rs_update_effect(void *data, struct tmff2_effect_state *state)
++{
++	struct t300rs_device_entry *t300rs = data;
++	switch (state->effect.type) {
++		case FF_CONSTANT:
++			return t300rs_update_constant(t300rs, state);
++		case FF_RAMP:
++			return t300rs_update_ramp(t300rs, state);
++		case FF_SPRING:
++		case FF_DAMPER:
++		case FF_FRICTION:
++		case FF_INERTIA:
++			return t300rs_update_condition(t300rs, state);
++		case FF_PERIODIC:
++			return t300rs_update_periodic(t300rs, state);
++		default:
++			hid_err(t300rs->hdev, "invalid effect type: %x",
++					state->effect.type);
++			return -1;
++	}
++}
++
++int t300rs_upload_effect(void *data, struct tmff2_effect_state *state)
++{
++	struct t300rs_device_entry *t300rs = data;
++	switch (state->effect.type) {
++		case FF_CONSTANT:
++			return t300rs_upload_constant(t300rs, state);
++		case FF_RAMP:
++			return t300rs_upload_ramp(t300rs, state);
++		case FF_SPRING:
++		case FF_DAMPER:
++		case FF_FRICTION:
++		case FF_INERTIA:
++			return t300rs_upload_condition(t300rs, state);
++		case FF_PERIODIC:
++			return t300rs_upload_periodic(t300rs, state);
++		default:
++			hid_err(t300rs->hdev, "invalid effect type: %x",
++					state->effect.type);
++			return -1;
++	}
++}
++
++static int t300rs_switch_mode(void *data, uint16_t mode)
++{
++	struct t300rs_device_entry *t300rs = data;
++	if (!t300rs)
++		return -ENODEV;
++
++	if(t300rs->mode == mode) /* already in specified mode */
++		return 0;
++
++	if (mode == 0)
++		/* go to normal mode */
++		usb_control_msg(t300rs->usbdev,
++				usb_sndctrlpipe(t300rs->usbdev, 0),
++				83, 0x41, 5, 0, 0, 0,
++				USB_CTRL_SET_TIMEOUT
++				);
++	else if (mode == 1)
++		/* go to advanced mode */
++		usb_control_msg(t300rs->usbdev,
++				usb_sndctrlpipe(t300rs->usbdev, 0),
++				83, 0x41, 3, 0, 0, 0,
++				USB_CTRL_SET_TIMEOUT
++				);
++	else
++		hid_warn(t300rs->hdev, "mode %i not supported\n", mode);
++
++
++	return 0;
++}
++
++static struct t300rs_alt_modes {
++	char *id;
++	char *label;
++	uint16_t mode;
++} t300rs_modes[] = {
++	{"base", "T300RS base", 0},
++	{"F1", "T300RS with F1 wheel attachment", 1}
++};
++
++static ssize_t t300rs_alt_mode_show(void *data, char *buf)
++{
++	struct t300rs_device_entry *t300rs = data;
++	ssize_t count = 0;
++	int i;
++	if (!t300rs)
++		return -ENODEV;
++
++	if (t300rs->attachment != T300RS_F1_ATTACHMENT)
++		/* we only support one base mode */
++		return scnprintf(buf, PAGE_SIZE, "%s: %s *\n",
++				t300rs_modes[0].id, t300rs_modes[0].label);
++
++	for (i = 0; i < ARRAY_SIZE(t300rs_modes); ++i) {
++		count += scnprintf(buf + count, PAGE_SIZE - count, "%s: %s",
++				t300rs_modes[i].id, t300rs_modes[i].label);
++
++		if (count >= PAGE_SIZE - 1)
++			return count;
++
++		if (t300rs_modes[i].mode == t300rs->mode)
++			count += scnprintf(buf + count, PAGE_SIZE - count, " *\n");
++		else
++			count += scnprintf(buf + count, PAGE_SIZE - count, "\n");
++
++		if (count >= PAGE_SIZE - 1)
++			return count;
++	}
++
++	return count;
++}
++
++static ssize_t t300rs_alt_mode_store(void *data, const char *buf, size_t count)
++{
++	struct t300rs_device_entry *t300rs = data;
++	int i, len, mode_len;
++	char *lbuf;
++	if (!t300rs)
++		return -ENODEV;
++
++	if (t300rs->attachment != T300RS_F1_ATTACHMENT)
++		return count; /* don't do anything */
++
++	lbuf = kasprintf(GFP_KERNEL, "%s", buf);
++	if (!lbuf)
++		return -ENOMEM;
++
++	len = strlen(buf);
++	for (i = 0; i < ARRAY_SIZE(t300rs_modes); ++i) {
++		mode_len = strlen(t300rs_modes[i].id);
++		if (mode_len > len)
++			continue;
++
++		if (strncmp(lbuf, t300rs_modes[i].id, mode_len) == 0) {
++			t300rs_switch_mode(data, t300rs_modes[i].mode);
++			break;
++		}
++	}
++
++	kfree(lbuf);
++	return count;
++}
++
++int t300rs_set_autocenter(void *data, uint16_t value)
++{
++	struct t300rs_device_entry *t300rs = data;
++	struct __packed t300rs_packet_autocenter {
++		struct t300rs_setup_header header;
++		uint16_t value;
++	} *autocenter_packet;
++	int ret;
++
++	if (!t300rs)
++		return -ENODEV;
++
++	/* TODO: this should probably also use a separately allocated buffer?
++	 * someone might change autocentering while we're updating the buffer
++	 * which would cause corruption */
++	autocenter_packet = (struct t300rs_packet_autocenter *)t300rs->send_buffer;
++
++	autocenter_packet->header.cmd = 0x08;
++	autocenter_packet->header.code = 0x04;
++	autocenter_packet->value = cpu_to_le16(0x01);
++
++	if ((ret = t300rs_send_int(t300rs))) {
++		hid_err(t300rs->hdev, "failed setting autocenter");
++		return ret;
++	}
++
++	autocenter_packet->header.cmd = 0x08;
++	autocenter_packet->header.code = 0x03;
++
++	autocenter_packet->value = cpu_to_le16(value);
++
++	if ((ret = t300rs_send_int(t300rs)))
++		hid_err(t300rs->hdev, "failed setting autocenter");
++
++	return ret;
++}
++
++int t300rs_set_gain(void *data, uint16_t gain)
++{
++	struct t300rs_device_entry *t300rs = data;
++	struct __packed t300rs_packet_gain {
++		struct t300rs_setup_header header;
++	} *gain_packet;
++	int ret;
++
++	if (!t300rs)
++		return -ENODEV;
++
++	gain_packet = (struct t300rs_packet_gain *)t300rs->send_buffer;
++	gain_packet->header.cmd = 0x02;
++	gain_packet->header.code = (gain >> 8) & 0xff;
++
++	if ((ret = t300rs_send_int(t300rs)))
++		hid_err(t300rs->hdev, "failed setting gain: %i\n", ret);
++
++	return ret;
++}
++
++int t300rs_set_range(void *data, uint16_t value)
++{
++	struct t300rs_device_entry *t300rs = data;
++	/* it's important that we don't use t300rs->send_buffer, as range can be
++	 * set from outside of the FFB environment, and we don't want to
++	 * accidentally overwrite any data. */
++	u8 *send_buffer = kzalloc(t300rs->buffer_length, GFP_KERNEL);
++	uint16_t scaled_value;
++	int ret;
++
++	if (value < 40) {
++		hid_info(t300rs->hdev, "value %i too small, clamping to 40\n", value);
++		value = 40;
++	}
++
++	if (value > 1080) {
++		hid_info(t300rs->hdev, "value %i too large, clamping to 1080\n", value);
++		value = 1080;
++	}
++
++	if (!send_buffer) {
++		ret = -EINVAL;
++		hid_err(t300rs->hdev, "could not allocate send_buffer\n");
++		goto err;
++	}
++
++	scaled_value = value * 0x3c;
++	send_buffer[0] = 0x08;
++	send_buffer[1] = 0x11;
++	send_buffer[2] = scaled_value & 0xff;
++	send_buffer[3] = scaled_value >> 8;
++
++	if ((ret = t300rs_send_buf(t300rs, send_buffer, t300rs->buffer_length)))
++		hid_warn(t300rs->hdev, "failed setting range\n");
++
++	/* since everythin went OK, update the current range */
++	range = value;
++err:
++	kfree(send_buffer);
++	return ret;
++}
++
++static int t300rs_send_open(struct t300rs_device_entry *t300rs)
++{
++	struct __packed t300rs_packet_open {
++		struct t300rs_setup_header header;
++	} *open_packet;
++
++	open_packet = (struct t300rs_packet_open *)t300rs->send_buffer;
++	open_packet->header.cmd = 0x01;
++	open_packet->header.code = 0x05;
++
++	return t300rs_send_int(t300rs);
++}
++
++static int t300rs_send_close(struct t300rs_device_entry *t300rs)
++{
++	struct __packed t300rs_packet_open {
++		struct t300rs_setup_header header;
++	} *open_packet;
++
++	open_packet = (struct t300rs_packet_open *)t300rs->send_buffer;
++	open_packet->header.cmd = 0x01;
++
++	return t300rs_send_int(t300rs);
++}
++
++int t300rs_open(void *data, int open_mode)
++{
++	struct t300rs_device_entry *t300rs = data;
++	if (!t300rs)
++		return -ENODEV;
++
++	if (open_mode && t300rs_send_open(t300rs))
++		hid_warn(t300rs->hdev, "failed sending open command\n");
++
++	return t300rs->open(t300rs->input_dev);
++}
++
++int t300rs_close(void *data, int open_mode)
++{
++	struct t300rs_device_entry *t300rs = data;
++	int ret;
++
++	if (!t300rs)
++		return -ENODEV;
++
++	if (open_mode && (ret = t300rs_send_close(t300rs)))
++		hid_warn(t300rs->hdev, "failed sending close command\n");
++
++	t300rs->close(t300rs->input_dev);
++	return ret;
++}
++
++static int t300rs_check_firmware(struct t300rs_device_entry *t300rs)
++{
++	int ret = 0;
++	struct t300rs_fw_response *fw_response =
++		kzalloc(sizeof(struct t300rs_fw_response), GFP_KERNEL);
++
++	if (!fw_response) {
++		hid_err(t300rs->hdev, "could not allocate fw_response\n");
++		return -ENOMEM;
++	}
++
++	/* fetch firmware version */
++	ret = usb_control_msg(t300rs->usbdev,
++			usb_rcvctrlpipe(t300rs->usbdev, 0),
++			t300rs_fw_request.bRequest,
++			t300rs_fw_request.bRequestType,
++			t300rs_fw_request.wValue,
++			t300rs_fw_request.wIndex,
++			fw_response,
++			t300rs_fw_request.wLength,
++			USB_CTRL_SET_TIMEOUT
++			);
++
++	if (ret < 0) {
++		hid_err(t300rs->hdev, "could not fetch firmware version: %i\n", ret);
++		goto out;
++	}
++
++	/* educated guess */
++	if (fw_response->fw_version < 31 && ret >= 0) {
++		hid_warn(t300rs->hdev,
++				"firmware version %i might be too old, consider updating\n",
++				fw_response->fw_version
++		       );
++
++		hid_info(t300rs->hdev, "note: this has to be done through Windows.\n");
++	}
++
++	/* everything OK */
++	ret = 0;
++
++out:
++	kfree(fw_response);
++	return ret;
++}
++
++static int t300rs_get_attachment(struct t300rs_device_entry *t300rs)
++{
++	/* taken directly from hid_tminit */
++	struct __packed t300rs_attachment_response
++	{
++		uint16_t type;
++
++		union {
++			struct __packed {
++				uint16_t field0;
++				uint16_t field1;
++				uint8_t attachment;
++				uint8_t model;
++				uint16_t field2;
++				uint16_t field3;
++				uint16_t field4;
++				uint16_t field5;
++			} a;
++
++			struct __packed {
++				uint16_t field0;
++				uint16_t field1;
++				uint8_t attachment;
++				uint8_t model;
++			} b;
++		};
++	} *response = kzalloc(GFP_KERNEL, sizeof(struct t300rs_attachment_response));
++	struct usb_ctrlrequest t300rs_attachment_rq = {
++		.bRequestType = 0xc1,
++		.bRequest = 73,
++		.wValue = 0,
++		.wIndex = 0,
++		.wLength = sizeof(struct t300rs_attachment_response)
++	};
++	int ret, attachment;
++	if (!response)
++		return -ENODEV;
++
++	ret = usb_control_msg(t300rs->usbdev,
++			usb_rcvctrlpipe(t300rs->usbdev, 0),
++			t300rs_attachment_rq.bRequest,
++			t300rs_attachment_rq.bRequestType,
++			t300rs_attachment_rq.wValue,
++			t300rs_attachment_rq.wIndex,
++			response,
++			sizeof(struct t300rs_attachment_response),
++			USB_CTRL_SET_TIMEOUT
++			);
++
++	if (ret < 0) {
++		hid_err(t300rs->hdev, "could not fetch attachment: %i\n", ret);
++		goto out;
++	}
++
++	if (response->type == cpu_to_le16(0x49)) {
++		attachment = response->a.attachment;
++	} else if (response->type == cpu_to_le16(0x47)) {
++		attachment = response->b.attachment;
++	} else {
++		hid_err(t300rs->hdev,
++				"unknown packet type %hx\n, please contact a maintainer",
++				response->type);
++		ret = -EINVAL;
++		goto out;
++	}
++
++	kfree(response);
++	return attachment;
++
++out:
++	kfree(response);
++	return ret;
++}
++
++static int t300rs_wheel_init(struct tmff2_device_entry *tmff2, int open_mode)
++{
++	struct t300rs_device_entry *t300rs = kzalloc(sizeof(struct t300rs_device_entry), GFP_KERNEL);
++	struct list_head *report_list;
++	int ret;
++
++	if (!t300rs) {
++		ret = -ENOMEM;
++		goto t300rs_err;
++	}
++
++	t300rs->hdev = tmff2->hdev;
++	t300rs->input_dev = tmff2->input_dev;
++	t300rs->usbdev = to_usb_device(tmff2->hdev->dev.parent->parent);
++
++	if(t300rs->hdev->product == TMT300RS_PS4_NORM_ID)
++		t300rs->buffer_length = T300RS_PS4_BUFFER_LENGTH;
++	else
++		t300rs->buffer_length = T300RS_NORM_BUFFER_LENGTH;
++
++	t300rs->send_buffer = kzalloc(t300rs->buffer_length, GFP_KERNEL);
++	if (!t300rs->send_buffer) {
++		ret = -ENOMEM;
++		goto send_err;
++	}
++
++	if ((ret = t300rs_check_firmware(t300rs)))
++		goto firmware_err;
++
++	report_list = &t300rs->hdev->report_enum[HID_OUTPUT_REPORT].report_list;
++
++	/* because we set the rdesc, we know exactly which report and field to use */
++	t300rs->report = list_entry(report_list->next, struct hid_report, list);
++	t300rs->ff_field = t300rs->report->field[0];
++
++	t300rs->open = t300rs->input_dev->open;
++	t300rs->close = t300rs->input_dev->close;
++
++	/* TODO: PS4 advanced mode? */
++	alt_mode = (t300rs->mode = (t300rs->hdev->product == TMT300RS_PS3_ADV_ID));
++	if ((t300rs->attachment = t300rs_get_attachment(t300rs)) < 0)
++		t300rs->attachment = T300RS_DEFAULT_ATTACHMENT;
++
++	/* everythin went OK */
++	tmff2->data = t300rs;
++	tmff2->params = t300rs_params;
++	tmff2->max_effects = T300RS_MAX_EFFECTS;
++	memcpy(tmff2->supported_effects, t300rs_effects, sizeof(t300rs_effects));
++
++	if (!open_mode)
++		t300rs_send_open(t300rs);
++
++	hid_info(t300rs->hdev, "force feedback for T300RS\n");
++	return 0;
++
++firmware_err:
++	kfree(t300rs->send_buffer);
++send_err:
++	kfree(t300rs);
++t300rs_err:
++	hid_err(tmff2->hdev, "failed initializing T300RS\n");
++	return ret;
++}
++
++static int t300rs_wheel_destroy(void *data)
++{
++	struct t300rs_device_entry *t300rs = data;
++	if (!t300rs)
++		return -ENODEV;
++
++	kfree(t300rs->send_buffer);
++	kfree(t300rs);
++	return 0;
++}
++
++static __u8 *t300rs_wheel_fixup(struct hid_device *hdev, __u8 *rdesc,
++		unsigned int *rsize)
++{
++	switch (hdev->product) {
++		case TMT300RS_PS3_NORM_ID:
++		/* normal PS3 mode */
++		rdesc = t300rs_rdesc_nrm_fixed;
++		*rsize = sizeof(t300rs_rdesc_nrm_fixed);
++		break;
++
++		case TMT300RS_PS4_NORM_ID:
++		/* PS4 normal mode */
++		rdesc = t300rs_rdesc_ps4_fixed;
++		*rsize = sizeof(t300rs_rdesc_ps4_fixed);
++		break;
++
++		case TMT300RS_PS3_ADV_ID:
++		/* PS3 advanced mode */
++		rdesc = t300rs_rdesc_adv_fixed;
++		*rsize = sizeof(t300rs_rdesc_adv_fixed);
++		break;
++	}
++
++	return rdesc;
++}
++
++int t300rs_populate_api(struct tmff2_device_entry *tmff2)
++{
++	/* set callbacks */
++	tmff2->play_effect = t300rs_play_effect;
++	tmff2->upload_effect = t300rs_upload_effect;
++	tmff2->update_effect = t300rs_update_effect;
++	tmff2->stop_effect = t300rs_stop_effect;
++
++	tmff2->wheel_init = t300rs_wheel_init;
++	tmff2->wheel_destroy = t300rs_wheel_destroy;
++
++	tmff2->open = t300rs_open;
++	tmff2->close = t300rs_close;
++	tmff2->set_gain = t300rs_set_gain;
++	tmff2->set_range = t300rs_set_range;
++	tmff2->switch_mode = t300rs_switch_mode;
++	tmff2->alt_mode_show = t300rs_alt_mode_show;
++	tmff2->alt_mode_store = t300rs_alt_mode_store;
++	tmff2->set_autocenter = t300rs_set_autocenter;
++	tmff2->wheel_fixup = t300rs_wheel_fixup;
++
++	return 0;
++}
+diff --git a/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.h b/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.h
+new file mode 100644
+index 000000000000..2305f4b4c88e
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#ifndef __HID_TMT300RS_H
++#define __HID_TMT300RS_H
++
++#include "../hid-tmff2.h"
++
++int t300rs_populate_api(struct tmff2_device_entry *tmff2);
++
++#endif
+diff --git a/drivers/custom/hid-tmff2/src/tmtsxw/hid-tmtsxw.c b/drivers/custom/hid-tmff2/src/tmtsxw/hid-tmtsxw.c
+new file mode 100644
+index 000000000000..b8ee1fdea466
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/tmtsxw/hid-tmtsxw.c
+@@ -0,0 +1,324 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/usb.h>
++#include <linux/hid.h>
++#include "../hid-tmff2.h"
++
++#define TMTSXW_MAX_EFFECTS 16
++#define TMTSXW_BUFFER_LENGTH 63
++
++static const u8 setup_0[64] = { 0x42, 0x01 };
++static const u8 setup_1[64] = { 0x0a, 0x04, 0x90, 0x03 };
++static const u8 setup_2[64] = { 0x0a, 0x04, 0x00, 0x0c };
++static const u8 setup_3[64] = { 0x0a, 0x04, 0x12, 0x10 };
++static const u8 setup_4[64] = { 0x0a, 0x04, 0x00, 0x06 };
++static const u8 setup_5[64] = { 0x0a, 0x04, 0x00, 0x0e };
++static const u8 setup_6[64] = { 0x0a, 0x04, 0x00, 0x0e, 0x01 };
++static const u8 *const setup_arr[] = { setup_0, setup_1, setup_2, setup_3, setup_4, setup_5, setup_6 };
++static const unsigned int setup_arr_sizes[] = {
++	ARRAY_SIZE(setup_0),
++	ARRAY_SIZE(setup_1),
++	ARRAY_SIZE(setup_2),
++	ARRAY_SIZE(setup_3),
++	ARRAY_SIZE(setup_4),
++	ARRAY_SIZE(setup_5),
++	ARRAY_SIZE(setup_6)
++};
++
++static const unsigned long tsxw_params =
++	PARAM_SPRING_LEVEL
++	| PARAM_DAMPER_LEVEL
++	| PARAM_FRICTION_LEVEL
++	| PARAM_RANGE
++	| PARAM_GAIN
++	;
++
++static const signed short tsxw_effects[] = {
++	FF_CONSTANT,
++	FF_RAMP,
++	FF_SPRING,
++	FF_DAMPER,
++	FF_FRICTION,
++	FF_INERTIA,
++	FF_PERIODIC,
++	FF_SINE,
++	FF_TRIANGLE,
++	FF_SQUARE,
++	FF_SAW_UP,
++	FF_SAW_DOWN,
++	FF_AUTOCENTER,
++	FF_GAIN,
++	-1
++};
++
++/* TODO: sort through this stuff */
++static u8 tsxw_pc_rdesc_fixed[] = {
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x04, /* Usage (Joystick) */
++	0xa1, 0x01, /* Collection (Application) */
++	0x09, 0x01, /* Usage (Pointer) */
++	0xa1, 0x00, /* Collection (Physical) */
++	0x85, 0x07, /* Report ID (7) */
++	0x09, 0x30, /* Usage (X) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x27, 0xff, 0xff, 0x00, 0x00, /* Logical maximum (65535) */
++	0x35, 0x00, /* Physical minimum (0) */
++	0x47, 0xff, 0xff, 0x00, 0x00, /* Physical maximum (65535) */
++	0x75, 0x10, /* Report size (16) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x35, /* Usage (Rz) (Brake) */
++	0x26, 0xff, 0x03, /* Logical maximum (1023) */
++	0x46, 0xff, 0x03, /* Physical maximum (1023) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x32, /* Usage (Z) (Gas) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x31, /* Usage (Y) (Clutch) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x01, /* Usage minimum (1) */
++	0x29, 0x0d, /* Usage maximum (13) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x45, 0x01, /* Physical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x0d, /* Report count (13) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x75, 0x0b, /* Report size (13) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x03, /* Usage (Variable, Absolute, Constant) */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x39, /* Usage (Hat Switch) */
++	0x25, 0x07, /* Logical maximum (7) */
++	0x46, 0x3b, 0x01, /* Physical maximum (315) */
++	0x55, 0x00, /* Unit exponent (0) */
++	0x65, 0x14, /* Unit (Eng Rot, Angular Pos) */
++	0x75, 0x04, /* Report size (4) */
++	0x81, 0x42, /* Input (Variable, Absolute, NullState) */
++	0x65, 0x00, /* Unit (None) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x85, 0x60, /* Report ID (96), prev 10 */
++	0x06, 0x00, 0xff, /* Usage page (Vendor 1) */
++	0x09, 0x60, /* Usage (96), prev 10 */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x3f, /* Report count (63) */
++	0x26, 0xff, 0x7f, /* Logical maximum (32767) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x46, 0xff, 0x7f, /* Physical maximum (32767) */
++	0x36, 0x00, 0x80, /* Physical minimum (-32768) */
++	0x91, 0x02, /* Output (Variable, Absolute) */
++	0x85, 0x02, /* Report ID (2) */
++	0x09, 0x02, /* Usage (2) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x14, /* Usage (20) */
++	0x85, 0x14, /* Report ID (20) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0xc0, /* End collection */
++	0xc0, /* End collection */
++};
++
++static int tsxw_interrupts(struct t300rs_device_entry *tsxw)
++{
++	u8 *send_buf = kmalloc(256, GFP_KERNEL);
++	struct usb_interface *usbif = to_usb_interface(tsxw->hdev->dev.parent);
++	struct usb_host_endpoint *ep;
++	int ret, trans, b_ep, i;
++
++	if (!send_buf) {
++		hid_err(tsxw->hdev, "failed allocating send buffer\n");
++		return -ENOMEM;
++	}
++
++	ep = &usbif->cur_altsetting->endpoint[1];
++	b_ep = ep->desc.bEndpointAddress;
++
++	for (i = 0; i < ARRAY_SIZE(setup_arr); ++i) {
++		memcpy(send_buf, setup_arr[i], setup_arr_sizes[i]);
++
++		ret = usb_interrupt_msg(tsxw->usbdev,
++				usb_sndintpipe(tsxw->usbdev, b_ep),
++				send_buf, setup_arr_sizes[i],
++				&trans,
++				USB_CTRL_SET_TIMEOUT);
++
++		if (ret) {
++			hid_err(tsxw->hdev, "setup data couldn't be sent\n");
++			goto err;
++		}
++	}
++
++err:
++	kfree(send_buf);
++	return ret;
++}
++
++static int tsxw_wheel_destroy(void *data)
++{
++	struct t300rs_device_entry *t300rs = data;
++
++	if (!t300rs)
++		return -ENODEV;
++
++	kfree(t300rs->send_buffer);
++	kfree(t300rs);
++	return 0;
++}
++
++static int tsxw_set_range(void *data, uint16_t value)
++{
++	struct t300rs_device_entry *tsxw = data;
++
++	if (value < 140) {
++		hid_info(tsxw->hdev, "value %i too small, clamping to 140\n", value);
++		value = 140;
++	}
++
++	if (value > 1080) {
++		hid_info(tsxw->hdev, "value %i too large, clamping to 1080\n", value);
++		value = 1080;
++	}
++
++	return t300rs_set_range(data, value);
++}
++
++static int tsxw_send_open(struct t300rs_device_entry *tsxw)
++{
++	int r1, r2;
++	tsxw->send_buffer[0] = 0x01;
++	tsxw->send_buffer[1] = 0x04;
++	if ((r1 = t300rs_send_int(tsxw)))
++		return r1;
++
++	tsxw->send_buffer[0] = 0x01;
++	tsxw->send_buffer[1] = 0x05;
++	if ((r2 = t300rs_send_int(tsxw)))
++		return r2;
++
++	return 0;
++}
++
++static int tsxw_open(void *data, int open_mode)
++{
++	struct t300rs_device_entry *tsxw = data;
++
++	if (!tsxw)
++		return -ENODEV;
++
++	if (open_mode)
++		tsxw_send_open(tsxw);
++
++	return tsxw->open(tsxw->input_dev);
++}
++
++static int tsxw_send_close(struct t300rs_device_entry *tsxw)
++{
++	int r1, r2;
++	tsxw->send_buffer[0] = 0x01;
++	tsxw->send_buffer[1] = 0x05;
++	if ((r1 = t300rs_send_int(tsxw)))
++		return r1;
++
++	tsxw->send_buffer[0] = 0x01;
++	tsxw->send_buffer[1] = 0x00;
++	if ((r2 = t300rs_send_int(tsxw)))
++		return r2;
++
++	return 0;
++}
++
++static int tsxw_close(void *data, int open_mode)
++{
++	struct t300rs_device_entry *tsxw = data;
++
++	if (!tsxw)
++		return -ENODEV;
++
++	if (open_mode)
++		tsxw_send_close(tsxw);
++
++	tsxw->close(tsxw->input_dev);
++	return 0;
++}
++
++static int tsxw_wheel_init(struct tmff2_device_entry *tmff2, int open_mode)
++{
++	struct t300rs_device_entry *tsxw = kzalloc(sizeof(struct t300rs_device_entry),
++						   GFP_KERNEL);
++	struct list_head *report_list;
++	int ret;
++
++
++	if (!tsxw) {
++		ret = -ENOMEM;
++		goto tsxw_err;
++	}
++
++	tsxw->hdev = tmff2->hdev;
++	tsxw->input_dev = tmff2->input_dev;
++	tsxw->usbdev = to_usb_device(tmff2->hdev->dev.parent->parent);
++	tsxw->buffer_length = TMTSXW_BUFFER_LENGTH;
++
++	tsxw->send_buffer = kzalloc(tsxw->buffer_length, GFP_KERNEL);
++	if (!tsxw->send_buffer) {
++		ret = -ENOMEM;
++		goto send_err;
++	}
++
++	report_list = &tsxw->hdev->report_enum[HID_OUTPUT_REPORT].report_list;
++	tsxw->report = list_entry(report_list->next, struct hid_report, list);
++	tsxw->ff_field = tsxw->report->field[0];
++
++	tsxw->open = tsxw->input_dev->open;
++	tsxw->close = tsxw->input_dev->close;
++
++	if ((ret = tsxw_interrupts(tsxw)))
++		goto interrupt_err;
++
++	/* everything went OK */
++	tmff2->data = tsxw;
++	tmff2->params = tsxw_params;
++	tmff2->max_effects = TMTSXW_MAX_EFFECTS;
++	memcpy(tmff2->supported_effects, tsxw_effects, sizeof(tsxw_effects));
++
++	if (!open_mode)
++		tsxw_send_open(tsxw);
++
++	hid_info(tsxw->hdev, "force feedback for TS-XW\n");
++	return 0;
++
++interrupt_err:
++send_err:
++	kfree(tsxw);
++tsxw_err:
++	hid_err(tmff2->hdev, "failed initializing TS-XW\n");
++	return ret;
++}
++
++static __u8 *tsxw_wheel_fixup(struct hid_device *hdev, __u8 *rdesc,
++		unsigned int *rsize)
++{
++	rdesc = tsxw_pc_rdesc_fixed;
++	*rsize = sizeof(tsxw_pc_rdesc_fixed);
++	return rdesc;
++}
++
++int tsxw_populate_api(struct tmff2_device_entry *tmff2)
++{
++	tmff2->play_effect = t300rs_play_effect;
++	tmff2->upload_effect = t300rs_upload_effect;
++	tmff2->update_effect = t300rs_update_effect;
++	tmff2->stop_effect = t300rs_stop_effect;
++
++	tmff2->set_gain = t300rs_set_gain;
++	tmff2->set_autocenter = t300rs_set_autocenter;
++	/* TS-XW has 1080 degree range, just like T300RS 1080 */
++	tmff2->set_range = tsxw_set_range;
++	tmff2->wheel_fixup = tsxw_wheel_fixup;
++
++	tmff2->open = tsxw_open;
++	tmff2->close = tsxw_close;
++
++	tmff2->wheel_init = tsxw_wheel_init;
++	tmff2->wheel_destroy = tsxw_wheel_destroy;
++
++	return 0;
++}
+diff --git a/drivers/custom/hid-tmff2/src/tmtx/hid-tmtx.c b/drivers/custom/hid-tmff2/src/tmtx/hid-tmtx.c
+new file mode 100644
+index 000000000000..857886c62152
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/tmtx/hid-tmtx.c
+@@ -0,0 +1,324 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/usb.h>
++#include <linux/hid.h>
++#include "../hid-tmff2.h"
++
++#define TMTX_MAX_EFFECTS 16
++#define TMTX_BUFFER_LENGTH 63
++
++static const u8 setup_0[64] = { 0x42, 0x01 };
++static const u8 setup_1[64] = { 0x0a, 0x04, 0x90, 0x03 };
++static const u8 setup_2[64] = { 0x0a, 0x04, 0x00, 0x0c };
++static const u8 setup_3[64] = { 0x0a, 0x04, 0x12, 0x10 };
++static const u8 setup_4[64] = { 0x0a, 0x04, 0x00, 0x06 };
++static const u8 setup_5[64] = { 0x0a, 0x04, 0x00, 0x0e };
++static const u8 setup_6[64] = { 0x0a, 0x04, 0x00, 0x0e, 0x01 };
++static const u8 *const setup_arr[] = { setup_0, setup_1, setup_2, setup_3, setup_4, setup_5, setup_6 };
++static const unsigned int setup_arr_sizes[] = {
++	ARRAY_SIZE(setup_0),
++	ARRAY_SIZE(setup_1),
++	ARRAY_SIZE(setup_2),
++	ARRAY_SIZE(setup_3),
++	ARRAY_SIZE(setup_4),
++	ARRAY_SIZE(setup_5),
++	ARRAY_SIZE(setup_6)
++};
++
++static const unsigned long tx_params =
++	PARAM_SPRING_LEVEL
++	| PARAM_DAMPER_LEVEL
++	| PARAM_FRICTION_LEVEL
++	| PARAM_RANGE
++	| PARAM_GAIN
++	;
++
++static const signed short tx_effects[] = {
++	FF_CONSTANT,
++	FF_RAMP,
++	FF_SPRING,
++	FF_DAMPER,
++	FF_FRICTION,
++	FF_INERTIA,
++	FF_PERIODIC,
++	FF_SINE,
++	FF_TRIANGLE,
++	FF_SQUARE,
++	FF_SAW_UP,
++	FF_SAW_DOWN,
++	FF_AUTOCENTER,
++	FF_GAIN,
++	-1
++};
++
++/* TODO: sort through this stuff */
++static u8 tx_pc_rdesc_fixed[] = {
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x04, /* Usage (Joystick) */
++	0xa1, 0x01, /* Collection (Application) */
++	0x09, 0x01, /* Usage (Pointer) */
++	0xa1, 0x00, /* Collection (Physical) */
++	0x85, 0x07, /* Report ID (7) */
++	0x09, 0x30, /* Usage (X) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x27, 0xff, 0xff, 0x00, 0x00, /* Logical maximum (65535) */
++	0x35, 0x00, /* Physical minimum (0) */
++	0x47, 0xff, 0xff, 0x00, 0x00, /* Physical maximum (65535) */
++	0x75, 0x10, /* Report size (16) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x35, /* Usage (Rz) (Brake) */
++	0x26, 0xff, 0x03, /* Logical maximum (1023) */
++	0x46, 0xff, 0x03, /* Physical maximum (1023) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x32, /* Usage (Z) (Gas) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x31, /* Usage (Y) (Clutch) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x01, /* Usage minimum (1) */
++	0x29, 0x0d, /* Usage maximum (13) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x45, 0x01, /* Physical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x0d, /* Report count (13) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x75, 0x0b, /* Report size (13) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x03, /* Usage (Variable, Absolute, Constant) */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x39, /* Usage (Hat Switch) */
++	0x25, 0x07, /* Logical maximum (7) */
++	0x46, 0x3b, 0x01, /* Physical maximum (315) */
++	0x55, 0x00, /* Unit exponent (0) */
++	0x65, 0x14, /* Unit (Eng Rot, Angular Pos) */
++	0x75, 0x04, /* Report size (4) */
++	0x81, 0x42, /* Input (Variable, Absolute, NullState) */
++	0x65, 0x00, /* Unit (None) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x85, 0x60, /* Report ID (96), prev 10 */
++	0x06, 0x00, 0xff, /* Usage page (Vendor 1) */
++	0x09, 0x60, /* Usage (96), prev 10 */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x3f, /* Report count (63) */
++	0x26, 0xff, 0x7f, /* Logical maximum (32767) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x46, 0xff, 0x7f, /* Physical maximum (32767) */
++	0x36, 0x00, 0x80, /* Physical minimum (-32768) */
++	0x91, 0x02, /* Output (Variable, Absolute) */
++	0x85, 0x02, /* Report ID (2) */
++	0x09, 0x02, /* Usage (2) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x14, /* Usage (20) */
++	0x85, 0x14, /* Report ID (20) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0xc0, /* End collection */
++	0xc0, /* End collection */
++};
++
++static int tx_interrupts(struct t300rs_device_entry *tx)
++{
++	u8 *send_buf = kmalloc(256, GFP_KERNEL);
++	struct usb_interface *usbif = to_usb_interface(tx->hdev->dev.parent);
++	struct usb_host_endpoint *ep;
++	int ret, trans, b_ep, i;
++
++	if (!send_buf) {
++		hid_err(tx->hdev, "failed allocating send buffer\n");
++		return -ENOMEM;
++	}
++
++	ep = &usbif->cur_altsetting->endpoint[1];
++	b_ep = ep->desc.bEndpointAddress;
++
++	for (i = 0; i < ARRAY_SIZE(setup_arr); ++i) {
++		memcpy(send_buf, setup_arr[i], setup_arr_sizes[i]);
++
++		ret = usb_interrupt_msg(tx->usbdev,
++				usb_sndintpipe(tx->usbdev, b_ep),
++				send_buf, setup_arr_sizes[i],
++				&trans,
++				USB_CTRL_SET_TIMEOUT);
++
++		if (ret) {
++			hid_err(tx->hdev, "setup data couldn't be sent\n");
++			goto err;
++		}
++	}
++
++err:
++	kfree(send_buf);
++	return ret;
++}
++
++static int tx_wheel_destroy(void *data)
++{
++	struct t300rs_device_entry *t300rs = data;
++
++	if (!t300rs)
++		return -ENODEV;
++
++	kfree(t300rs->send_buffer);
++	kfree(t300rs);
++	return 0;
++}
++
++static int tx_set_range(void *data, uint16_t value)
++{
++	struct t300rs_device_entry *tx = data;
++
++	if (value < 140) {
++		hid_info(tx->hdev, "value %i too small, clamping to 140\n", value);
++		value = 140;
++	}
++
++	if (value > 900) {
++		hid_info(tx->hdev, "value %i too large, clamping to 900\n", value);
++		value = 900;
++	}
++
++	return t300rs_set_range(data, value);
++}
++
++static int tx_send_open(struct t300rs_device_entry *tx)
++{
++	int r1, r2;
++	tx->send_buffer[0] = 0x01;
++	tx->send_buffer[1] = 0x04;
++	if ((r1 = t300rs_send_int(tx)))
++		return r1;
++
++	tx->send_buffer[0] = 0x01;
++	tx->send_buffer[1] = 0x05;
++	if ((r2 = t300rs_send_int(tx)))
++		return r2;
++
++	return 0;
++}
++
++static int tx_open(void *data, int open_mode)
++{
++	struct t300rs_device_entry *tx = data;
++
++	if (!tx)
++		return -ENODEV;
++
++	if (open_mode)
++		tx_send_open(tx);
++
++	return tx->open(tx->input_dev);
++}
++
++static int tx_send_close(struct t300rs_device_entry *tx)
++{
++	int r1, r2;
++	tx->send_buffer[0] = 0x01;
++	tx->send_buffer[1] = 0x05;
++	if ((r1 = t300rs_send_int(tx)))
++		return r1;
++
++	tx->send_buffer[0] = 0x01;
++	tx->send_buffer[1] = 0x00;
++	if ((r2 = t300rs_send_int(tx)))
++		return r2;
++
++	return 0;
++}
++
++static int tx_close(void *data, int open_mode)
++{
++	struct t300rs_device_entry *tx = data;
++
++	if (!tx)
++		return -ENODEV;
++
++	if (open_mode)
++		tx_send_close(tx);
++
++	tx->close(tx->input_dev);
++	return 0;
++}
++
++static int tx_wheel_init(struct tmff2_device_entry *tmff2, int open_mode)
++{
++	struct t300rs_device_entry *tx = kzalloc(sizeof(struct t300rs_device_entry),
++						 GFP_KERNEL);
++	struct list_head *report_list;
++	int ret;
++
++
++	if (!tx) {
++		ret = -ENOMEM;
++		goto tx_err;
++	}
++
++	tx->hdev = tmff2->hdev;
++	tx->input_dev = tmff2->input_dev;
++	tx->usbdev = to_usb_device(tmff2->hdev->dev.parent->parent);
++	tx->buffer_length = TMTX_BUFFER_LENGTH;
++
++	tx->send_buffer = kzalloc(tx->buffer_length, GFP_KERNEL);
++	if (!tx->send_buffer) {
++		ret = -ENOMEM;
++		goto send_err;
++	}
++
++	report_list = &tx->hdev->report_enum[HID_OUTPUT_REPORT].report_list;
++	tx->report = list_entry(report_list->next, struct hid_report, list);
++	tx->ff_field = tx->report->field[0];
++
++	tx->open = tx->input_dev->open;
++	tx->close = tx->input_dev->close;
++
++	if ((ret = tx_interrupts(tx)))
++		goto interrupt_err;
++
++	/* everything went OK */
++	tmff2->data = tx;
++	tmff2->params = tx_params;
++	tmff2->max_effects = TMTX_MAX_EFFECTS;
++	memcpy(tmff2->supported_effects, tx_effects, sizeof(tx_effects));
++
++	if (!open_mode)
++		tx_send_open(tx);
++
++	hid_info(tx->hdev, "force feedback for TX\n");
++	return 0;
++
++interrupt_err:
++send_err:
++	kfree(tx);
++tx_err:
++	hid_err(tmff2->hdev, "failed initializing TX\n");
++	return ret;
++}
++
++static __u8 *tx_wheel_fixup(struct hid_device *hdev, __u8 *rdesc,
++		unsigned int *rsize)
++{
++	rdesc = tx_pc_rdesc_fixed;
++	*rsize = sizeof(tx_pc_rdesc_fixed);
++	return rdesc;
++}
++
++int tx_populate_api(struct tmff2_device_entry *tmff2)
++{
++	tmff2->play_effect = t300rs_play_effect;
++	tmff2->upload_effect = t300rs_upload_effect;
++	tmff2->update_effect = t300rs_update_effect;
++	tmff2->stop_effect = t300rs_stop_effect;
++
++	tmff2->set_gain = t300rs_set_gain;
++	tmff2->set_autocenter = t300rs_set_autocenter;
++	/* TX only has 900 degree range, instead of T300RS 1080 */
++	tmff2->set_range = tx_set_range;
++	tmff2->wheel_fixup = tx_wheel_fixup;
++
++	tmff2->open = tx_open;
++	tmff2->close = tx_close;
++
++	tmff2->wheel_init = tx_wheel_init;
++	tmff2->wheel_destroy = tx_wheel_destroy;
++
++	return 0;
++}
+# ----------------------------------------
+# Module: t150
+# Version: 1.0
+# ----------------------------------------
+diff --git a/drivers/custom/t150/files/etc/udev/rules.d/10-t150.rules b/drivers/custom/t150/files/etc/udev/rules.d/10-t150.rules
+new file mode 100644
+index 000000000000..049a3914d9fc
+--- /dev/null
++++ b/drivers/custom/t150/files/etc/udev/rules.d/10-t150.rules
+@@ -0,0 +1,6 @@
++# make the t150 appear like a joystick
++#SUBSYSTEM=="input", ATTRS{name}=="Thrustmaster T150 steering wheel", MODE="0666", ENV{ID_INPUT_JOYSTICK}="1"
++
++# Set up
++#SUBSYSTEM=="input", ATTRS{name}=="Thrustmaster T150 steering wheel", MODE="0666", ENV{ID_MODEL_ID}="b677"
++#SUBSYSTEM=="input", ATTRS{name}=="Thrustmaster T150 steering wheel", MODE="0666", ENV{ID_VENDOR_ID}="044f"
+diff --git a/drivers/custom/t150/hid-t150/Makefile b/drivers/custom/t150/hid-t150/Makefile
+new file mode 100644
+index 000000000000..7834b98bcaef
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/Makefile
+@@ -0,0 +1,8 @@
++obj-m += hid-t150.o
++KDIR ?= /lib/modules/$(shell uname -r)/build
++
++all:
++	$(MAKE) -C $(KDIR) M=$(shell pwd) modules
++
++clean:
++	$(MAKE) -C $(KDIR) M=$(shell pwd) clean
+diff --git a/drivers/custom/t150/hid-t150/attributes.c b/drivers/custom/t150/hid-t150/attributes.c
+new file mode 100644
+index 000000000000..b34c035e6698
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/attributes.c
+@@ -0,0 +1,188 @@
++static inline int t150_init_attributes(struct t150 *t150)
++{
++	int errno;
++
++	// Before making avaible the syfs attrbiutes we try to set them to some default
++	// @FIXME I do not know if it is desiradable to wait for URBs in probe() method...
++	t150_setup_task(t150);
++
++	errno = device_create_file(&t150->hid_device->dev, &dev_attr_autocenter);
++	if(errno)
++		return errno;
++
++	errno = device_create_file(&t150->hid_device->dev, &dev_attr_enable_autocenter);
++	if(errno)
++		goto err1;
++
++	errno = device_create_file(&t150->hid_device->dev, &dev_attr_range);
++	if(errno)
++		goto err2;
++
++	errno = device_create_file(&t150->hid_device->dev, &dev_attr_gain);
++	if(errno)
++		goto err3;
++
++	errno = device_create_file(&t150->hid_device->dev, &dev_attr_firmware_version);
++	if(errno)
++		goto err4;
++
++	return 0;
++
++err4:	device_remove_file(&t150->hid_device->dev, &dev_attr_firmware_version);
++err3:	device_remove_file(&t150->hid_device->dev, &dev_attr_range);
++err2:	device_remove_file(&t150->hid_device->dev, &dev_attr_enable_autocenter);
++err1:	device_remove_file(&t150->hid_device->dev, &dev_attr_autocenter);
++	return errno;
++}
++
++static inline void t150_free_attributes(struct t150 *t150)
++{
++	device_remove_file(&t150->hid_device->dev, &dev_attr_autocenter);
++	device_remove_file(&t150->hid_device->dev, &dev_attr_enable_autocenter);
++	device_remove_file(&t150->hid_device->dev, &dev_attr_range);
++	device_remove_file(&t150->hid_device->dev, &dev_attr_gain);
++	device_remove_file(&t150->hid_device->dev, &dev_attr_firmware_version);
++}
++
++/**/
++static ssize_t t150_store_return_force(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	uint16_t nforce;
++	struct t150 *t150 = dev_get_drvdata(dev);
++
++	// If mallformed input leave...
++	if(kstrtou16(buf, 10, &nforce))
++		return count;
++
++	t150_set_autocenter(t150, nforce);
++
++	return count;
++}
++
++static ssize_t t150_show_return_force(struct device *dev, struct device_attribute *attr,char * buf )
++{
++	int len;
++	struct t150 *t150 = dev_get_drvdata(dev);
++	unsigned long flags;
++
++	spin_lock_irqsave(&t150->settings.access_lock, flags);
++	len = sprintf(buf, "%d\n", t150->settings.autocenter_force);
++	spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++
++	return len;
++}
++
++static ssize_t t150_store_simulate_return_force(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	bool use;
++	struct t150 *t150 = dev_get_drvdata(dev);
++
++	// If mallformed input leave...
++	if(!kstrtobool(buf, &use))
++		t150_set_enable_autocenter(t150, use);	
++
++	return count;
++}
++
++static ssize_t t150_show_simulate_return_force(struct device *dev, struct device_attribute *attr,char * buf)
++{
++	int len;
++	struct t150 *t150 = dev_get_drvdata(dev);
++	unsigned long flags;
++	spin_lock_irqsave(&t150->settings.access_lock, flags);
++	len = sprintf(buf, "%c\n", t150->settings.autocenter_enabled ? 'y' : 'n');
++	spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++
++	return len;
++}
++
++static ssize_t t150_store_range(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	uint16_t range;
++	int dev_max_range;
++
++	struct t150 *t150 = dev_get_drvdata(dev);
++
++	// If mallformed input leave...
++	if(kstrtou16(buf, 10, &range))
++		return count;
++
++	if(t150->hid_device->product == USB_T150_PRODUCT_ID)
++		dev_max_range = 1080;
++	else if (t150->hid_device->product == USB_TMX_PRODUCT_ID)
++		dev_max_range = 900;
++
++	if(range < 270)
++		range = 270;
++	else if (range > dev_max_range)
++		range = dev_max_range;
++
++	range = DIV_ROUND_CLOSEST((range * 0xffff), dev_max_range);
++
++	t150_set_range(t150, range);
++
++	return count;
++}
++
++static ssize_t t150_show_range(struct device *dev, struct device_attribute *attr,char * buf )
++{
++	int len;
++	struct t150 *t150 = dev_get_drvdata(dev);
++	unsigned long flags;
++
++	int dev_max_range;
++
++	if(t150->hid_device->product == USB_T150_PRODUCT_ID)
++		dev_max_range = 1080;
++	else if (t150->hid_device->product == USB_TMX_PRODUCT_ID)
++		dev_max_range = 900;
++
++	spin_lock_irqsave(&t150->settings.access_lock, flags);
++	len = sprintf(buf, "%d\n", DIV_ROUND_CLOSEST(t150->settings.range * dev_max_range, 0xffff));
++	spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++
++	return len;
++}
++
++static ssize_t t150_store_ffb_intensity(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count)
++{
++	uint16_t nforce;
++	struct t150 *t150 = dev_get_drvdata(dev);
++
++	// If mallformed input leave...
++	if(kstrtou16(buf, 10, &nforce))
++		return count;
++
++	t150_set_gain(t150, nforce);
++	return count;
++}
++
++static ssize_t t150_show_ffb_intensity(struct device *dev, struct device_attribute *attr,char * buf )
++{
++	int len;
++	struct t150 *t150 = dev_get_drvdata(dev);
++	unsigned long flags;
++
++	spin_lock_irqsave(&t150->settings.access_lock, flags);
++	len = sprintf(buf, "%d\n", t150->settings.gain);
++	spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++
++	return len;
++}
++
++ssize_t t150_show_fw_version(struct device *dev, struct device_attribute *attr,char * buf )
++{
++	int len;
++	struct t150 *t150 = dev_get_drvdata(dev);
++	unsigned long flags;
++
++	spin_lock_irqsave(&t150->settings.access_lock, flags);
++	len = sprintf(buf, "%d\n", t150->settings.firmware_version);
++	spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++
++	return len;
++}
+diff --git a/drivers/custom/t150/hid-t150/attributes.h b/drivers/custom/t150/hid-t150/attributes.h
+new file mode 100644
+index 000000000000..119b95ced577
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/attributes.h
+@@ -0,0 +1,49 @@
++/********************************************************************
++ *			             SYSF STUFF
++ *
++ *        This section contains the handlers for the
++ *          attributes created in the sysfs when a
++ *             wheel is plugged into the host
++ *******************************************************************/
++/***/
++
++static inline int t150_init_attributes(struct t150 *t150);
++static inline void t150_free_attributes(struct t150 *t150);
++
++static ssize_t t150_store_return_force(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count);
++static ssize_t t150_show_return_force(struct device *dev, struct device_attribute *attr,char * buf );
++static ssize_t t150_store_simulate_return_force(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count);
++static ssize_t t150_show_simulate_return_force(struct device *dev, struct device_attribute *attr,char * buf );
++static ssize_t t150_store_range(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count);
++static ssize_t t150_show_range(struct device *dev, struct device_attribute *attr,char * buf );
++static ssize_t t150_store_ffb_intensity(struct device *dev, struct device_attribute *attr,
++	const char *buf, size_t count);
++static ssize_t t150_show_ffb_intensity(struct device *dev, struct device_attribute *attr,char * buf );
++static ssize_t t150_show_fw_version(struct device *dev, struct device_attribute *attr,char * buf );
++
++
++/** Attribute used to set how much strong is the simulated "spring" that makes
++ * the wheel center back when steered.
++ * Input is a decimal value between 0 and 65535*/
++static DEVICE_ATTR(autocenter, 0664, t150_show_return_force, t150_store_return_force);
++
++/** Attribute used to set if the wheel has to activate the auto-centering of the
++ *  wheel. If setted to true ffb to center will be ignored
++ * Input is a boolean value*/
++static DEVICE_ATTR(enable_autocenter, 0664, t150_show_simulate_return_force, t150_store_simulate_return_force);
++
++/** Attribute used to set the wheel max rotation in degrees.
++ * Input is a decimal value between between 270 and 1080*/
++static DEVICE_ATTR(range, 0664, t150_show_range, t150_store_range);
++
++/** 
++ * How strong the ffb effects are reproduced on the wheel
++ * Input is a decimal value between between 0 and 65535*/
++static DEVICE_ATTR(gain, 0664, t150_show_ffb_intensity, t150_store_ffb_intensity);
++
++/**
++ * Read-only, returns the current firmware version of the Wheel*/
++static DEVICE_ATTR(firmware_version, 0444, t150_show_fw_version, 0);
+diff --git a/drivers/custom/t150/hid-t150/forcefeedback.c b/drivers/custom/t150/hid-t150/forcefeedback.c
+new file mode 100644
+index 000000000000..c1f3cb8e9c90
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/forcefeedback.c
+@@ -0,0 +1,429 @@
++/** Callback to free urb when a ffb request is completed */
++static void t150_ff_free_urb(struct urb *urb) 
++{
++	//struct t150 *t150 = urb->context;
++	kfree(urb->transfer_buffer);
++	usb_free_urb(urb);
++}
++
++/**
++ * Creates an usb URB to be sent to wheel for ffb operations
++ * @param t150 our wheel
++ * @param buffer_size how large alloc the urb
++ * @returns a ptr to URB if no error, 0 otherwise
++ */
++static struct urb* t150_ff_alloc_urb(struct t150 *t150, const size_t buffer_size)
++{
++	struct urb *urb;
++
++	void *buffer = kzalloc(buffer_size, GFP_KERNEL);
++	if(!buffer)
++		return 0;
++
++	urb = usb_alloc_urb(0, GFP_KERNEL);
++	if(!urb) {
++		kfree(buffer);
++		return 0;
++	}
++
++	usb_fill_int_urb(
++		urb,
++		t150->usb_device,
++		t150->pipe_out,
++		buffer,
++		buffer_size,
++		donothing_callback,
++		t150,
++		t150->bInterval_out
++	); 
++
++	return urb;
++}
++
++/** 
++ * This macro is called in the probe function when the wheel input
++ * is beign setted up
++ * @param t150 a pointer to our wheel
++ * @returns 0 if no error, less than 0 if an error occured. 
++ */
++static inline int t150_init_ffb(struct t150 *t150)
++{
++	int errno, i;
++
++	for (i = 0; i < t150_ffb_effects_length; i++)
++		set_bit(t150_ffb_effects[i], t150->joystick->ffbit);
++
++	// input core will automatically free force feedback structures when device is destroyed.
++	errno = input_ff_create(t150->joystick, FF_MAX_EFFECTS);
++	
++	if(errno) {
++		hid_err(t150->hid_device, "error create ff :(. errno=%i\n", errno);
++		return errno;
++	}
++
++	t150->joystick->ff->upload = t150_ff_upload;
++	t150->joystick->ff->erase = t150_ff_erase;
++	t150->joystick->ff->playback = t150_ff_play;
++	t150->joystick->ff->set_gain = t150_ff_set_gain;
++
++	return 0;
++}
++
++/**
++ * macro to clean up the ffb stuff of a whell. It's to be called
++ * when probe failed to init or when the wheel is disconnected
++ * @param t150 a pointer to our wheel
++ */
++static inline void t150_free_ffb(struct t150 *t150)
++{
++	unsigned int i, j;
++
++	for(i = 0; i < FF_MAX_EFFECTS; i++)
++		for(j = 0; j < 3; j++) {
++			if(! t150->update_ffb_urbs[i][j])
++				continue;
++
++			usb_kill_urb(t150->update_ffb_urbs[i][j]);
++			kfree(t150->update_ffb_urbs[i][j]->transfer_buffer);
++			usb_free_urb(t150->update_ffb_urbs[i][j]);
++		}
++}
++
++static void t150_ff_preapre_first(struct ff_first *ff_first, struct ff_effect *effect)
++{
++	struct ff_envelope *ff_envelope;
++
++	switch (effect->type) {
++	case FF_CONSTANT:
++		ff_envelope = &effect->u.constant.envelope;
++		ff_first->f0 = T150_FF_FIRST_CODE_CONSTANT;
++		break;
++	case FF_PERIODIC:
++		ff_envelope = &effect->u.periodic.envelope;
++		ff_first->f0 = T150_FF_FIRST_CODE_PERIODIC;
++		break;
++	case FF_DAMPER:
++	case FF_SPRING:
++		ff_envelope = 0;
++		ff_first->f0 = T150_FF_FIRST_CODE_CONDITION;
++		break;
++	default:
++		ff_envelope = 0;
++		break;
++	}
++
++	ff_first->pk_id0 = effect->id * 0x1c + 0x1c;
++	ff_first->f1 = 0;
++	ff_first->f2 = 0x46;
++	ff_first->f3 = 0x54;
++
++	/* Some effects do not use those fields */
++	if(ff_envelope) {
++		ff_first->attack_length = cpu_to_le16(ff_envelope->attack_length);
++		// @FIXME the attack and fade levels are wrong !
++		ff_first->attack_level  = ff_envelope->attack_level / 0x1fff;
++		ff_first->fade_length = cpu_to_le16(ff_envelope->attack_length);
++		ff_first->fade_level  = ff_envelope->fade_level / 0x1fff;
++	}
++}
++
++/**
++ * This function prepares an update packet to update an already uploaded effected
++ * or when we're uploading a new effect
++ * @param ff_update the usb packed data to prepare
++ * @param effect the effect to be updated
++ */
++static void t150_ff_prepare_update(struct ff_update *ff_update, struct ff_effect *effect)
++{
++	int32_t level = 0;
++
++	ff_update->pk_id1 = effect->id * 0x1c + 0x0e;
++	ff_update->f1 = 0x00;
++
++	switch (effect->type) {
++	case FF_PERIODIC:
++	default:
++		ff_update->effect_class = T150_FF_UPDATE_CODE_PERIODIC;
++
++		ff_update->effect.periodic.magnitude = word_high(effect->u.periodic.magnitude);
++		ff_update->effect.periodic.offset = word_high(effect->u.periodic.offset);
++		ff_update->effect.periodic.phase = effect->u.periodic.phase / ( (360*100) / 0xff) ; // Check if correct
++		ff_update->effect.periodic.period = cpu_to_le16(effect->u.periodic.period);
++		break;
++	case FF_CONSTANT:
++		ff_update->effect_class = T150_FF_UPDATE_CODE_CONSTANT;
++
++		/* Not sure if really necessary. Done only for the ffmvforce utility :P */
++		level = effect->u.constant.level * fixp_sin16(effect->direction / ( 0xFFFF / 360 )) * +1;
++		level >>= 15; // int only
++
++		ff_update->effect.constant.level = (level / 0x01ff);
++		break;
++	case FF_SPRING:
++		ff_update->effect_class = T150_FF_UPDATE_CODE_CONDITION;
++
++		ff_update->effect.condition.right_coeff = effect->u.condition[0].right_coeff / 0x147;
++		ff_update->effect.condition.left_coeff = effect->u.condition[0].left_coeff / 0x147;
++
++		ff_update->effect.condition.center = cpu_to_le16(
++			effect->u.condition[0].center / (0x7fff / 0x01f4) 
++		);
++		ff_update->effect.condition.deadband = cpu_to_le16(
++			effect->u.condition[0].deadband / (0xffff /0x03e8)
++		);
++
++		ff_update->effect.condition.right_sat = effect->u.condition[0].right_saturation / 0x030c;
++		ff_update->effect.condition.left_sat = effect->u.condition[0].left_saturation / 0x030c;
++		break;
++	case FF_DAMPER:
++		ff_update->effect_class = T150_FF_UPDATE_CODE_CONDITION;
++
++		ff_update->effect.condition.right_coeff = effect->u.condition[0].right_coeff / 0x147;
++		ff_update->effect.condition.left_coeff = effect->u.condition[0].left_coeff / 0x147;
++
++		ff_update->effect.condition.center = cpu_to_le16(
++			effect->u.condition[0].center / (0x7fff / 0x01f4) 
++		);
++		ff_update->effect.condition.deadband = cpu_to_le16(
++			effect->u.condition[0].deadband / (0xffff /0x03e8)
++		);
++
++		ff_update->effect.condition.right_sat = effect->u.condition[0].right_saturation / 0x028f;
++		ff_update->effect.condition.left_sat = effect->u.condition[0].left_saturation / 0x028f;
++
++		break;
++	}
++}
++
++static void t150_ff_prepare_commit(struct ff_commit *ff_commit, struct ff_effect *effect)
++{
++	ff_commit->f0 = 0x01;
++	ff_commit->id = effect->id;
++	if(effect->replay.length) // Ugly hack(?) per Assetto Corsa :P
++		ff_commit->length = cpu_to_le16(effect->replay.length);
++	else
++		ff_commit->length = cpu_to_le16(0xffff);
++	ff_commit->f1 = 0;
++	ff_commit->f2 = 0;
++	ff_commit->pk_id1 = effect->id * 0x1c + 0x0e;
++	ff_commit->f3 = 0;
++	ff_commit->pk_id0 = effect->id * 0x1c + 0x1c;
++	ff_commit->f4 = 0;
++	ff_commit->delay = word_high(effect->replay.delay);
++	ff_commit->f5 = 0;
++
++	switch (effect->type) {
++	case FF_PERIODIC:
++		switch (effect->u.periodic.waveform) {
++		case FF_SINE:
++		default:
++			ff_commit->effect_type = cpu_to_le16(T150_FF_COMMIT_CODE_SINE);
++			break;
++		case FF_SAW_UP:
++			ff_commit->effect_type = cpu_to_le16(T150_FF_COMMIT_CODE_SAW_UP);
++			break;
++		case FF_SAW_DOWN:
++			ff_commit->effect_type = cpu_to_le16(T150_FF_COMMIT_CODE_SAW_DOWN);
++			break;
++		}
++		break;
++	case FF_CONSTANT:
++		ff_commit->effect_type = cpu_to_le16(T150_FF_COMMIT_CODE_CONSTANT);
++		break;
++	case FF_SPRING:
++		ff_commit->effect_type = cpu_to_le16(T150_FF_COMMIT_CODE_SPRING);
++		break;
++	case FF_DAMPER:
++		ff_commit->effect_type = cpu_to_le16(T150_FF_COMMIT_CODE_DAMPER);
++		break;
++	default:
++		printk(KERN_ERR "t150: unknown effect type: %i\n", effect->type);
++	}
++}
++
++/**
++ * Function called to upload an effect to the wheel.
++ * An effect has to be sent to the wheel fragmented in 3 usb request.
++ * @param dev the input_dev
++ * @param effect the effect to upload
++ * @param old If I have to update an already uploaded effect this is not 0
++ * 
++ * @return 0 if no errors occured
++ */
++static int t150_ff_upload(struct input_dev *dev, struct ff_effect *effect, struct ff_effect *old)
++{
++	struct t150 *t150 = input_get_drvdata(dev);
++	int errno = 0;
++
++	struct ff_first ff_first_old, ff_first_new;
++	struct ff_update ff_update_old, ff_update_new;
++	struct ff_commit ff_commit_old, ff_commit_new;
++
++	// No need to re-upload the same effect....
++	if(!T150_FF_BLIND_COMPUTE_EFFECT && old && memcmp(effect, old, sizeof(struct ff_effect)) == 0)
++		return 0;
++
++	// If URBs were already allocated we can re-use them....
++	// Alloc first urb
++	if(! t150->update_ffb_urbs[effect->id][0])
++		t150->update_ffb_urbs[effect->id][0] = t150_ff_alloc_urb(t150, sizeof(struct ff_first));
++
++	if(! t150->update_ffb_urbs[effect->id][0])
++		return -ENOMEM;
++
++	// Alloc second urb
++	if(! t150->update_ffb_urbs[effect->id][1])
++		t150->update_ffb_urbs[effect->id][1] = t150_ff_alloc_urb(t150, sizeof(struct ff_update));
++
++	if(! t150->update_ffb_urbs[effect->id][1])
++		goto free0;
++
++	// Alloc third urb
++	if(! t150->update_ffb_urbs[effect->id][2])
++		t150->update_ffb_urbs[effect->id][2] = t150_ff_alloc_urb(t150, sizeof(struct ff_commit));
++
++	if(! t150->update_ffb_urbs[effect->id][2])
++		goto free1;	
++
++	/** Preparing effect */
++	t150_ff_preapre_first(&ff_first_new, effect);
++	t150_ff_prepare_update(&ff_update_new, effect);
++	t150_ff_prepare_commit(&ff_commit_new, effect);
++
++	if(old) {
++		t150_ff_preapre_first(&ff_first_old, old);
++		t150_ff_prepare_update(&ff_update_old, old);
++		t150_ff_prepare_commit(&ff_commit_old, old);
++	}
++	
++	/** Submiting the effect to the wheel 
++	 * If an old is present and the result packet are the same we skip an URB
++	 * unless you define T150_FF_BLIND_UPLOAD as true
++	 */
++	if(T150_FF_BLIND_UPLOAD || !old || memcmp(&ff_first_old, &ff_first_new, sizeof(struct ff_first))){
++		usb_kill_urb(t150->update_ffb_urbs[effect->id][0]);
++
++		memcpy(t150->update_ffb_urbs[effect->id][0]->transfer_buffer, &ff_first_new, sizeof(struct ff_first));
++		errno = usb_submit_urb(t150->update_ffb_urbs[effect->id][0], GFP_ATOMIC);
++		if(errno) {
++			hid_err(t150->hid_device, "submitting ffb 0 urb of effect %d, error %d\n", effect->id ,errno);
++			return errno;
++		}
++	}
++
++	if(T150_FF_BLIND_UPLOAD || !old || memcmp(&ff_update_old, &ff_update_new, sizeof(struct ff_update))){
++		usb_kill_urb(t150->update_ffb_urbs[effect->id][1]);
++
++		memcpy(t150->update_ffb_urbs[effect->id][1]->transfer_buffer, &ff_update_new, sizeof(struct ff_update));
++		errno = usb_submit_urb(t150->update_ffb_urbs[effect->id][1], GFP_ATOMIC);
++		if(errno) {
++			hid_err(t150->hid_device, "submitting ffb 1 urb of effect %d, error %d\n", effect->id ,errno);
++			return errno;
++		}
++	}
++
++	if(T150_FF_BLIND_UPLOAD || !old || memcmp(&ff_commit_old, &ff_commit_new, sizeof(struct ff_commit))){
++		usb_kill_urb(t150->update_ffb_urbs[effect->id][2]);
++
++		memcpy(t150->update_ffb_urbs[effect->id][2]->transfer_buffer, &ff_commit_new, sizeof(struct ff_commit));
++		errno = usb_submit_urb(t150->update_ffb_urbs[effect->id][2], GFP_ATOMIC);
++		if(errno) {
++			hid_err(t150->hid_device, "submitting ffb 2 urb of effect %d, error %d\n", effect->id ,errno);
++			return errno;
++		}
++	}
++
++	return 0;
++
++free1:	t150_ff_free_urb(t150->update_ffb_urbs[effect->id][1]);
++	t150->update_ffb_urbs[effect->id][1] = 0;
++free0:	t150_ff_free_urb(t150->update_ffb_urbs[effect->id][0]);
++	t150->update_ffb_urbs[effect->id][0] = 0;
++	return -ENOMEM;
++}
++
++/**
++ * Function used to erase an effect already uploaded to the Wheel
++ * @param dev 
++ * @param effect_id the ID of the effect to be erased
++ * 
++ * @return 0 if no errors occured
++ */
++static int t150_ff_erase(struct input_dev *dev, int effect_id)
++{
++	/** When an effect is destroyed also a request to stop it is sent to 
++	 * t150_ff_play. Observing the Windows's driver seems there isn't any
++	 * specific packet to explicity destory the effect, so we return success (0)
++	 * to notify the Kernel that the id can be freed and re-used for another
++	 * effect. 
++	 */
++	return 0;
++}
++
++/**
++ * Function used to play an effect already uploaded to the Wheel
++ * If times==0 then the function will send to the wheel a request
++ * to stop playing the effect.
++ * @param dev 
++ * @param effect_id the ID of the effect to be played
++ * @param times how many times the effect should be played. If the effect
++ * 	is beign erased a play request in times=0 is also sent.
++ * 
++ * @return 0 if no errors occured
++ */
++static int t150_ff_play(struct input_dev *dev, int effect_id, int times)
++{
++	struct t150 *t150 = input_get_drvdata(dev);
++	struct urb *urb;
++	struct ff_change_effect_status *ff_change;
++	int errno;
++
++	// Alloc urb
++	urb = t150_ff_alloc_urb(t150, sizeof(struct ff_change_effect_status));
++	if(!urb)
++		return -ENOMEM;
++	ff_change = urb->transfer_buffer;
++
++	ff_change->f0 = 0x41;
++	ff_change->id = effect_id;
++	ff_change->mode = times ? 0x41 : 0x00; // Play or stop ?
++	ff_change->times = times ? times : 0x01;
++
++	urb->complete = t150_ff_free_urb;
++	errno = usb_submit_urb(urb, GFP_KERNEL);
++	if(errno)
++		hid_err(t150->hid_device, "unable to send URB to play effect n %d, errno %d\n", effect_id ,errno);
++
++	return errno;
++}
++
++/**
++ * @param dev
++ * @param gain 0xFFFF = 100% of gain
++ */
++static void t150_ff_set_gain(struct input_dev *dev, uint16_t gain)
++{
++	struct t150 *t150 = input_get_drvdata(dev);
++	int errno;
++	struct urb *urb;
++	struct ff_change_gain *ff_change;
++	unsigned long flags;
++
++	urb = t150_ff_alloc_urb(t150, sizeof(struct ff_change_gain));
++	if(!urb)
++		return; // -NOMEM
++
++	ff_change = urb->transfer_buffer;
++
++	ff_change->f0 = 0x43;
++	ff_change->gain = gain;
++
++	spin_lock_irqsave(&t150->settings.access_lock, flags);
++	t150->settings.gain = ff_change->gain;
++	spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++
++	urb->complete = t150_ff_free_urb;
++	errno = usb_submit_urb(urb, GFP_KERNEL);
++	if(errno)
++		hid_err(t150->hid_device, "unable to send URB to set gain, errno %i\n", errno);
++}
+diff --git a/drivers/custom/t150/hid-t150/forcefeedback.h b/drivers/custom/t150/hid-t150/forcefeedback.h
+new file mode 100644
+index 000000000000..8865ad4a7f23
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/forcefeedback.h
+@@ -0,0 +1,173 @@
++#define T150_FF_BLIND_COMPUTE_EFFECT		false
++#define T150_FF_BLIND_UPLOAD			false
++
++#define T150_FF_FIRST_CODE_CONSTANT		0x02
++#define T150_FF_FIRST_CODE_PERIODIC		0x02
++#define T150_FF_FIRST_CODE_CONDITION		0x05
++
++#define T150_FF_UPDATE_CODE_CONSTANT		0x03
++#define T150_FF_UPDATE_CODE_PERIODIC		0x04
++#define T150_FF_UPDATE_CODE_CONDITION		0x05
++
++#define T150_FF_COMMIT_CODE_CONSTANT		0x4000
++#define T150_FF_COMMIT_CODE_SINE		0x4022
++#define T150_FF_COMMIT_CODE_SAW_UP		0x4023
++#define T150_FF_COMMIT_CODE_SAW_DOWN		0x4024
++#define T150_FF_COMMIT_CODE_SPRING		0x4040
++#define T150_FF_COMMIT_CODE_DAMPER		0x4041
++
++
++struct __packed ff_periodic
++{
++	/** Truncked value of maginute on 16 bit */
++	int8_t		magnitude;
++	/** Trunked value of offset  */
++	int8_t		offset;
++	/** Phase where 0x00 = 0° and 0xff = 360° */
++	uint8_t		phase;
++	/** Period in milliseconds */
++	uint16_t	period;
++};
++
++struct __packed ff_constant
++{
++	/** the level of the effect  */
++	int8_t		level;
++};
++
++struct __packed ff_condition
++{
++	/** between [-100, +100] = [0x9c, 0x64] */
++	int8_t		right_coeff;
++	/** between [-100, +100] = [0x9c, 0x64] */
++	int8_t		left_coeff;
++	/** between [-500, +500] = [0xfe0c, 0x01f4] */
++	int16_t		center;
++	/** between [0, +1000] = [0x0000, 0x03e8] */
++	int16_t		deadband;
++	/** between if spring [0x00, 0x54]; if damper [0x00, 0x64] */
++	uint8_t		right_sat;
++	/** between if spring [0x00, 0x54]; if damper [0x00, 0x64] **/
++	uint8_t		left_sat;
++
++};
++
++/** This is the rappresentation of the packet used to start 
++ * loading a new effect to the wheel.
++ * 
++ * On the Windows's driver is sent before all the others
++ */
++struct __packed ff_first 
++{
++	uint8_t		f0;
++	/** Seems is effect_id * 0x1c + 0x1c */
++	uint8_t		pk_id0;
++	uint8_t		f1;
++	/** Attack length in milliseconds */
++	uint16_t	attack_length;
++	/** Do not know how it works */
++	uint8_t		attack_level;
++	/** Fade length in milliseconds */
++	uint16_t	fade_length;
++	/** Do not know how it works */
++	uint8_t		fade_level;
++	/** Always 0x46 ? */
++	uint8_t		f2;
++	/** Always 0x54 ?*/
++	uint8_t		f3;
++};
++
++/** This is the rappresentation of the packet used to load the
++ * informations of updatable effects.
++ * 
++ * On the Windows's driver is sent after ff_first and before ff_commit
++ * when uploading a new effect; it's sent alone when uploading an already
++ * existing effect
++ */
++struct __packed ff_update
++{
++	/** 0x04 for periodic, 0x03 for const*/
++	uint8_t		effect_class;
++	/** seems is effect_id * 0x1c + 0x0e */
++	uint8_t		pk_id1;
++	uint8_t		f1;
++
++	/** Fields specific to effect class */
++	union {
++		struct ff_periodic periodic;
++		struct ff_constant constant;
++		struct ff_condition condition;
++	} effect;
++};
++
++/** This is the rappresentation of the packet used to commit a new
++ * effect into the wheel.
++ * The wheel can associate the others packtest to this packet by 
++ * using the pk_id1 and pk_id0 keys
++ * 
++ * On the Windows's driver is sent after ff_first and ff_update
++ */
++struct __packed ff_commit
++{
++	uint8_t		f0;
++	uint8_t		id;
++	/** Effect code */
++	uint16_t	effect_type;
++	/** Length of the effect in milliseconds */
++	uint16_t	length;
++	/** Do not know how it works */
++	uint16_t	f1;
++	uint8_t		f2;
++	/** seems is effect_id * 0x1c + 0x0e */
++	uint8_t		pk_id1;
++	uint8_t		f3;
++	/** Seems is effect_id * 0x1c + 0x1c */
++	uint8_t		pk_id0;
++	uint8_t		f4;
++	/** Delay in milliseconds */
++	uint8_t		delay;
++	uint8_t		f5;
++};
++
++struct __packed ff_change_effect_status
++{
++	uint8_t f0;
++	uint8_t id;
++	uint8_t mode;
++	uint8_t times;
++};
++
++struct __packed ff_change_gain
++{
++	uint8_t f0;
++	uint16_t gain;
++};
++
++union __packed ff_change
++{
++	struct ff_change_effect_status effect;
++	struct ff_change_gain gain;
++};
++
++static int t150_init_ffb(struct t150 *t150);
++static void t150_free_ffb(struct t150 *t150);
++
++static int t150_ff_upload(struct input_dev *dev, struct ff_effect *effect, struct ff_effect *old);
++static int t150_ff_erase(struct input_dev *dev, int effect_id);
++static int t150_ff_play(struct input_dev *dev, int effect_id, int value);
++static void t150_ff_set_gain(struct input_dev *dev, uint16_t gain);
++
++static uint8_t t150_ffb_effects_length = 8;
++static const int16_t t150_ffb_effects[] = {
++	FF_GAIN,
++
++	FF_PERIODIC,
++	FF_SINE,
++	FF_SAW_UP,
++	FF_SAW_DOWN,
++
++	FF_CONSTANT,
++
++	FF_SPRING,
++	FF_DAMPER
++};
+diff --git a/drivers/custom/t150/hid-t150/hid-t150.c b/drivers/custom/t150/hid-t150/hid-t150.c
+new file mode 100644
+index 000000000000..e155196db628
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/hid-t150.c
+@@ -0,0 +1,220 @@
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/usb.h>
++#include <linux/usb/ch9.h>
++#include <linux/completion.h>
++#include <linux/input.h>
++#include <linux/usb/input.h>
++#include <linux/sysfs.h>
++#include <linux/device.h>
++#include <linux/fixp-arith.h>
++#include <linux/spinlock.h>
++#include <linux/hid.h>
++
++#include "hid-t150.h"
++#include "input.h"
++#include "attributes.h"
++#include "settings.h"
++#include "forcefeedback.h"
++#include "packet.h"
++
++static void donothing_callback(struct urb *urb) {}
++
++/** Init for a t150 data struct
++ * @param t150 pointer to the t150 structor to init
++ * @param interface pointer to usb interface which the wheel is connected to
++ */
++static inline int t150_constructor(struct t150 *t150,struct hid_device *hid_device)
++{
++	int i, error_code = 0;
++	struct usb_endpoint_descriptor *ep, *ep_irq_in = 0, *ep_irq_out = 0;
++	struct usb_interface *interface = to_usb_interface(hid_device->dev.parent);
++
++	t150->usb_device = interface_to_usbdev(interface);
++	t150->hid_device = hid_device;
++
++	// Saving ref to t150
++	dev_set_drvdata(&t150->usb_device->dev, t150);
++	hid_set_drvdata(hid_device, t150);
++
++	error_code = hid_parse(hid_device);
++	if (error_code) {
++		hid_err(hid_device, "hid_parse() failed\n");
++		return error_code;
++	}
++
++	error_code = hid_hw_start(hid_device, HID_CONNECT_DEFAULT & ~HID_CONNECT_FF);
++	if (error_code) {
++		hid_err(hid_device, "hid_hw_start() failed\n");
++		return error_code;
++	}
++
++	mutex_init(&t150->lock);
++	spin_lock_init(&t150->settings.access_lock);
++
++	// Path used for the input subsystem
++	usb_make_path(t150->usb_device, t150->dev_path, sizeof(t150->dev_path));
++	strlcat(t150->dev_path, "/input0", sizeof(t150->dev_path));
++
++	// From xpad.c
++	for (i = 0; i < 2; i++) {
++		ep = &interface->cur_altsetting->endpoint[i].desc;
++
++		if (usb_endpoint_xfer_int(ep))
++			if (usb_endpoint_dir_in(ep))
++				ep_irq_in = ep;
++			else
++				ep_irq_out = ep;
++	}
++
++	if (!ep_irq_in || !ep_irq_out) {
++		error_code = -ENODEV;
++		goto error3;
++	}
++
++	t150->pipe_in = usb_rcvintpipe(t150->usb_device, ep_irq_in->bEndpointAddress);
++	t150->pipe_out= usb_sndintpipe(t150->usb_device, ep_irq_out->bEndpointAddress);
++
++	t150->bInterval_in = ep_irq_in->bInterval;
++	t150->bInterval_out = ep_irq_out->bInterval;
++
++	error_code = t150_init_input(t150);
++	if(error_code)
++		goto error4;
++
++	error_code = t150_init_ffb(t150);
++	if(error_code)
++		goto error5;
++	
++	error_code = t150_init_attributes(t150);
++	if(error_code)
++		goto error6;
++
++	return 0;
++
++error6: t150_free_ffb(t150);
++error5: t150_free_input(t150);
++error4:	;
++error3: hid_hw_stop(hid_device);
++	return error_code;
++}
++
++static int t150_probe(struct hid_device *hid_device, const struct hid_device_id *id)
++{
++	int error_code = 0;
++	struct t150 *t150;
++
++	// Create new t150 struct
++	t150 = kzalloc(sizeof(struct t150), GFP_KERNEL);
++	if(!t150)
++		return -ENOMEM;
++
++	error_code = t150_constructor(t150, hid_device);
++	if(error_code)
++		goto error0;
++
++	return 0;
++
++error0: kfree(t150);
++	return error_code;
++}
++
++static void t150_remove(struct hid_device *hid_device)
++{
++	struct t150 *t150 = hid_get_drvdata(hid_device);;
++
++	hid_info(t150->hid_device, "T150RS Wheel removed. Bye\n");
++
++	// Force feedback 
++	t150_free_ffb(t150);
++
++	// input deregister
++	t150_free_input(t150);
++
++	// sysf free
++	t150_free_attributes(t150);
++
++	// Stop hid
++	hid_hw_close(hid_device);
++	hid_hw_stop(hid_device);
++
++	// t150 free
++	kfree(t150);
++}
++
++#include "attributes.c"
++#include "input.c"
++#include "settings.c"
++#include "forcefeedback.c"
++
++
++/********************************************************************
++ *			MODULE STUFF
++ *
++ *******************************************************************/
++
++static struct hid_device_id t150_table[] =
++{
++	{ HID_USB_DEVICE(USB_THRUSTMASTER_VENDOR_ID, USB_T150_PRODUCT_ID) },
++	{ HID_USB_DEVICE(USB_THRUSTMASTER_VENDOR_ID, USB_TMX_PRODUCT_ID) },
++	{} /* Terminating entry */
++};
++MODULE_DEVICE_TABLE (hid, t150_table);
++
++static struct hid_driver t150_driver =
++{
++	.name = "hid-t150",
++	.id_table = t150_table,
++	.probe = t150_probe,
++	.remove = t150_remove,
++	.raw_event = t150_update_input
++};
++
++static int __init t150_init(void)
++{
++	int errno = -ENOMEM;
++	packet_input_open = kzalloc(sizeof(uint16_t), GFP_KERNEL);
++	if(!packet_input_open)
++		goto err0;
++
++	packet_input_what = kzalloc(sizeof(uint16_t), GFP_KERNEL);
++	if(!packet_input_what)
++		goto err1;
++
++	packet_input_close = kzalloc(sizeof(uint16_t), GFP_KERNEL);
++	if(!packet_input_close)
++		goto err2;
++
++	*packet_input_open = cpu_to_le16(0x0442);
++	*packet_input_what = cpu_to_le16(0x0542);
++	*packet_input_close = cpu_to_le16(0x0042);
++
++	errno = hid_register_driver(&t150_driver);
++	if(errno)
++		goto err3;
++	else
++		return 0;
++
++err3:	kfree(packet_input_close);
++err2:	kfree(packet_input_what);
++err1:	kfree(packet_input_open);
++err0:	return errno;
++}
++
++static void __exit t150_exit(void)
++{
++	kfree(packet_input_open);
++	kfree(packet_input_what);
++	kfree(packet_input_close);
++
++	hid_unregister_driver(&t150_driver);
++}
++
++module_init(t150_init);
++module_exit(t150_exit);
++
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Dario Pagani <>");
++MODULE_DESCRIPTION("ThrustMaster T150 steering wheel driver");
+diff --git a/drivers/custom/t150/hid-t150/hid-t150.h b/drivers/custom/t150/hid-t150/hid-t150.h
+new file mode 100644
+index 000000000000..d4fba46f8d07
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/hid-t150.h
+@@ -0,0 +1,81 @@
++#include <linux/mutex.h>
++
++#define USB_THRUSTMASTER_VENDOR_ID	0x044f
++#define USB_T150_PRODUCT_ID		0xb677
++#define USB_TMX_PRODUCT_ID		0xb67f
++
++struct joy_state_packet;
++struct ff_first;
++struct ff_second;
++struct ff_third;
++union ff_change;
++
++struct t150
++{
++	struct usb_device *usb_device;
++	struct hid_device *hid_device;
++
++	// Stuff to read from the wheel
++	int pipe_in;
++	uint8_t bInterval_in;
++
++	// Stuff to write to the wheel
++	int pipe_out;
++	uint8_t bInterval_out;
++
++	// Input api stuff
++	char dev_path[128];
++	struct input_dev *joystick;
++
++	struct urb *update_ffb_urbs[FF_MAX_EFFECTS][3];
++	unsigned update_ffb_free_slot;
++
++	struct mutex lock;
++
++	struct {
++		spinlock_t access_lock;
++
++		uint16_t autocenter_force;
++		bool autocenter_enabled;
++		uint16_t range;
++		uint16_t gain;
++
++		uint8_t firmware_version;
++	} settings;
++};
++
++/**
++ * Simple macro to make a word from two bytes
++ * @low the low part of a word
++ * @high the high part of a word
++ */
++static inline uint16_t make_word(const uint8_t low, const uint8_t high)
++{
++	return ((uint16_t)low | ((uint8_t)(high) << 8));
++}
++
++static inline uint8_t word_high(const uint16_t word)
++{
++	return word >> 8;
++}
++
++static inline uint8_t word_low(const uint16_t word)
++{
++	return word;
++}
++
++static inline void printP(uint8_t const *const bytes, const size_t length)
++{
++	int i;
++	char printstr[202] = "t150: ";
++
++	if(length > 64) // Packet too big :/
++		return;
++
++	for(i = 0; i < length; i++)
++		sprintf( printstr + (6 + i*3),"%02hhX ", bytes[i]);
++
++	sprintf(printstr + (6 + length*3),"\n");
++
++	printk(printstr);
++}
+diff --git a/drivers/custom/t150/hid-t150/input.c b/drivers/custom/t150/hid-t150/input.c
+new file mode 100644
+index 000000000000..aae66338f6f4
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/input.c
+@@ -0,0 +1,83 @@
++/**
++ * This function initializes the input system for
++ * @t150 pointer to our device
++ */
++static inline int t150_init_input(struct t150 *t150)
++{
++	struct hid_input *hidinput = list_entry(t150->hid_device->inputs.next, struct hid_input, list);
++	t150->joystick = hidinput->input;
++	
++	input_set_drvdata(t150->joystick, t150);
++
++	t150->joystick->open = t150_input_open;
++	t150->joystick->close = t150_input_close;
++
++	return 0;
++}
++
++static inline void t150_free_input(struct t150 *t150)
++{
++}
++
++static int t150_input_open(struct input_dev *dev)
++{
++	struct t150 *t150 = input_get_drvdata(dev);
++	int boh, ret;
++
++	ret = usb_interrupt_msg(
++		t150->usb_device,
++		t150->pipe_out,
++		packet_input_open, 2, &boh,
++		8
++	);
++
++	if(ret)
++		return ret;
++
++	ret = hid_hw_open(t150->hid_device);
++
++	return ret;
++}
++
++static void t150_input_close(struct input_dev *dev)
++{
++	struct t150 *t150 = input_get_drvdata(dev);
++	int boh, i;
++
++	hid_hw_close(t150->hid_device);
++
++	// Send magic codes
++	for(i = 0; i < 2; i++)
++		usb_interrupt_msg(
++			t150->usb_device,
++			t150->pipe_out,
++			packet_input_what, 2, &boh,
++			8
++		);
++
++	usb_interrupt_msg(
++		t150->usb_device,
++		t150->pipe_out,
++		packet_input_close, 2, &boh,
++		8
++	);
++}
++
++/**
++ * This function updates the current input status of the joystick
++ * @t150 target wheel
++ * @ss   new status to register
++ */
++static int t150_update_input(struct hid_device *hdev, struct hid_report *report, uint8_t *packet_raw, int size)
++{	
++	struct t150_state_packet *packet = (struct t150_state_packet*)packet_raw;
++
++	if(packet->type != STATE_PACKET_INPUT)
++	{
++		hid_warn(hdev, "recived a packet that is not an input state :/\n");
++		printP(packet_raw, size);
++		return -1; // @TODO 
++	}
++
++	return 0;
++}
+diff --git a/drivers/custom/t150/hid-t150/input.h b/drivers/custom/t150/hid-t150/input.h
+new file mode 100644
+index 000000000000..b0140e95a07f
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/input.h
+@@ -0,0 +1,12 @@
++struct t150_state_packet;
++
++static inline int t150_init_input(struct t150 *t150);
++static inline void t150_free_input(struct t150 *t150);
++static int t150_input_open(struct input_dev *dev);
++static void t150_input_close(struct input_dev *dev);
++static int t150_update_input(struct hid_device *hdev, struct hid_report *report, uint8_t *packet_raw, int size);
++
++static uint16_t *packet_input_open = 0;
++/** It seems it's used to purge all uploaded effects from the wheel, not sure */
++static uint16_t *packet_input_what = 0;
++static uint16_t *packet_input_close = 0; 
+diff --git a/drivers/custom/t150/hid-t150/packet.h b/drivers/custom/t150/hid-t150/packet.h
+new file mode 100644
+index 000000000000..6022fd0fb057
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/packet.h
+@@ -0,0 +1,10 @@
++#define STATE_PACKET_INPUT 0x07
++
++/**
++ * All data is stored in little endian
++ */
++struct __packed t150_state_packet
++{
++	/** 0x07 if this packet contains the wheel current input status */
++	uint8_t		type;
++};
+\ No newline at end of file
+diff --git a/drivers/custom/t150/hid-t150/settings.c b/drivers/custom/t150/hid-t150/settings.c
+new file mode 100644
+index 000000000000..0024e5796766
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/settings.c
+@@ -0,0 +1,195 @@
++/**
++ * @param t150 ptr to t150
++ * @param gain a value between 0x00 and 0xffff where 0xffff is 100% gain
++ * @return 0 on success @see usb_interrupt_msg for return codes
++ */
++static int t150_set_gain(struct t150 *t150, uint16_t gain)
++{
++	int boh, errno;
++	uint8_t *buffer = kzalloc(2, GFP_KERNEL);
++	unsigned long flags;
++
++	buffer[0] = 0x43;
++	buffer[1] = gain;
++
++	mutex_lock(&t150->lock);
++
++	// Send to the wheel desidered return force
++	errno = usb_interrupt_msg(
++		t150->usb_device,
++		t150->pipe_out,
++		buffer,
++		2, &boh,
++		SETTINGS_TIMEOUT
++	);
++
++	if(!errno) {
++		spin_lock_irqsave(&t150->settings.access_lock, flags);
++		t150->settings.gain = gain;
++		spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++	} else {
++		hid_err(t150->hid_device, "Operation set gain failed with code %d", errno);
++	}
++
++	mutex_unlock(&t150->lock);
++
++	kfree(buffer);
++
++	return errno;
++}
++
++/**
++ * @param autocenter_force a value between 0 and 65535, is the strength of the autocenter effect
++ */
++static __always_inline int t150_set_autocenter(struct t150 *t150, uint16_t autocenter_force)
++{
++	uint8_t *buffer = kzalloc(4, GFP_KERNEL);
++	int errno;
++	unsigned long flags;
++
++	mutex_lock(&t150->lock);
++
++	errno = t150_settings_set40(t150, SET40_RETURN_FORCE, DIV_ROUND_CLOSEST((autocenter_force * 100), 0xffff), buffer);
++
++	if(!errno) {
++		spin_lock_irqsave(&t150->settings.access_lock, flags);
++		t150->settings.autocenter_force = autocenter_force;
++		spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++	}
++
++	mutex_unlock(&t150->lock);
++
++	kfree(buffer);
++	return errno;
++}
++
++/**
++ * @param enable true if the autocenter effect is to be kept enabled when the input
++ * 	is opened. The autocentering effect is always active while no input are open
++ */
++static __always_inline int t150_set_enable_autocenter(struct t150 *t150, bool enable)
++{
++	uint8_t *buffer = kzalloc(4, GFP_KERNEL);
++	int errno;
++	unsigned long flags;
++
++	mutex_lock(&t150->lock);
++
++	errno = t150_settings_set40(t150, SET40_USE_RETURN_FORCE, enable, buffer);
++
++	if(!errno) {
++		spin_lock_irqsave(&t150->settings.access_lock, flags);
++		t150->settings.autocenter_enabled = enable;
++		spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++	}
++
++	mutex_unlock(&t150->lock);
++
++	kfree(buffer);
++	return errno;
++}
++
++/**
++ * @param range a value between 0x0000 and 0xffff where 0xffff is 1080°
++ * 	wheel range
++ */
++static __always_inline int t150_set_range(struct t150 *t150, uint16_t range)
++{
++	uint8_t *buffer = kzalloc(4, GFP_KERNEL);
++	int errno;
++	unsigned long flags;
++
++	mutex_lock(&t150->lock);
++
++	errno = t150_settings_set40(t150, SET40_RANGE, range, buffer);
++
++	if(!errno) {
++		spin_lock_irqsave(&t150->settings.access_lock, flags);
++		t150->settings.range = range;
++		spin_unlock_irqrestore(&t150->settings.access_lock, flags);
++	}
++
++	mutex_unlock(&t150->lock);
++
++	kfree(buffer);
++	return errno;
++}
++
++
++/**
++ * @t150 pointer to t150
++ * @operation number of operation
++ * @argument the argument to pass with the request
++ * @buffer a buffer of at least 4 BYTES!
++ * @return 0 on success @see usb_interrupt_msg for return codes
++ */
++static int t150_settings_set40(
++	struct t150 *t150, operation_t operation, uint16_t argument, void *buffer_
++)
++{
++	int boh, errno;
++	struct operation40 *buffer = buffer_;
++	buffer->code = 0x40;
++	buffer->operation = operation;
++	buffer->argument = cpu_to_le16(argument);
++
++	// Send to the wheel desidered return force
++	errno = usb_interrupt_msg(
++		t150->usb_device,
++		t150->pipe_out,
++		buffer,
++		sizeof(struct operation40), &boh,
++		SETTINGS_TIMEOUT
++	);
++
++	if(errno)
++		hid_err(t150->hid_device, "errno %d during operation 0x40 0x%02hhX with argument (big endian) %04hhX",
++			errno, operation, argument);
++
++	return errno;
++}
++
++static int t150_setup_task(struct t150 *t150)
++{
++	int errno = 0;
++	uint8_t *fw_version;
++
++	fw_version = kzalloc(8, GFP_KERNEL);
++
++	// Retrive current version
++	mutex_lock(&t150->lock);
++	
++	errno = usb_control_msg(
++		t150->usb_device,
++		usb_rcvctrlpipe(t150->usb_device, 0),
++		86, 0xc1, 0, 0, fw_version, 8, SETTINGS_TIMEOUT
++	);
++
++	mutex_unlock(&t150->lock);
++
++	if(errno < 0)
++		hid_err(t150->hid_device, "Error %d while sending the control URB to retrive firmware version\n", errno);
++	else
++		t150->settings.firmware_version = fw_version[1];
++
++	errno = t150_set_gain(t150, 0xbffe); // ~75%
++	if(errno)
++		hid_err(t150->hid_device, "Error %d while setting the t150 default gain\n", errno);
++
++	errno = t150_set_enable_autocenter(t150, false);
++	if(errno)
++		hid_err(t150->hid_device, "Error %d while setting the t150 default enable_autocenter\n", errno);
++
++	errno = t150_set_autocenter(t150, 0x7fff);
++	if(errno)
++		hid_err(t150->hid_device, "Error %d while setting the t150 default autocenter\n", errno);
++
++	errno = t150_set_range(t150, 0xffff);
++	if(errno)
++		hid_err(t150->hid_device, "Error %d while setting the t150 default range\n", errno);
++
++	hid_info(t150->hid_device,  "Setup completed! Firmware version is %d\n", t150->settings.firmware_version);
++
++	kfree(fw_version);
++	return errno;
++}
+diff --git a/drivers/custom/t150/hid-t150/settings.h b/drivers/custom/t150/hid-t150/settings.h
+new file mode 100644
+index 000000000000..c85654a7346e
+--- /dev/null
++++ b/drivers/custom/t150/hid-t150/settings.h
+@@ -0,0 +1,36 @@
++#define SETTINGS_TIMEOUT 10
++
++typedef uint8_t operation_t;
++#define SET40_RETURN_FORCE		0x03
++#define SET40_USE_RETURN_FORCE		0x04
++#define SET40_RANGE			0x11
++
++struct operation40
++{
++	uint8_t		code; // MUST BE 0x40
++	operation_t	operation;
++	uint16_t	argument;
++};
++
++/** [SEEMS LIKE IT'S NOT NEEDED :P] Packet to send to the Wheel when we do not want to edit its settings anymore **/
++#define SET42_STOP_WHEEL_SETTINGS	0x00
++/** [SEEMS LIKE IT'S NOT NEEDED :P] Packet to send to the Wheel when we want to edit its settings **/
++#define SET42_START_WHEEL_SETTINGS	0x04
++/** [SEEMS LIKE IT'S NOT NEEDED :P] Packet to send to the Wheel when we want to apply the new settings **/
++#define SET42_APPLY_WHEEL_SETTINGS	0x05
++
++struct opertation42
++{
++	uint8_t		code; // MUST BE 0x42
++	operation_t	operation;
++};
++
++static int t150_settings_set40(struct t150 *t150, operation_t operation, 
++	uint16_t argument, void *buffer);
++
++static int t150_set_gain(struct t150 *t150, uint16_t gain);
++static __always_inline int t150_set_autocenter(struct t150 *t150, uint16_t autocenter_force);
++static __always_inline int t150_set_enable_autocenter(struct t150 *t150, bool enable);
++static __always_inline int t150_set_range(struct t150 *t150, uint16_t range);
++
++static int t150_setup_task(struct t150 *t150);
