@@ -51,7 +51,7 @@ jobs:
         with:
           path: |
             ccache
-            /var/lib/containers/storage
+          # /var/lib/containers/storage
           key: ${{ steps.ccache.outputs.ccache_key }}
           restore-keys: |
             ccache-${{ matrix.arch }}*
@@ -116,7 +116,7 @@ jobs:
         with:
           path: |
             ccache
-            /var/lib/containers/storage
+          # /var/lib/containers/storage
           key: ${{ steps.ccache.outputs.ccache_key }}
 
       # - name: Separate debuginfo into different folder
