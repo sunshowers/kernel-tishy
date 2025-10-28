@@ -35,6 +35,8 @@ jobs:
       - name: Setup ccache
         id: ccache
         run: |
+          TARFILE_RELEASE=$(sed -n 's/^%define[[:space:]]\+tarfile_release[[:space:]]\+//p' kernel.spec)
+          echo "ccache_key=ccache-${{ matrix.arch }}-${TARFILE_RELEASE}" >> $GITHUB_OUTPUT
           CCACHE_USE=${{ (startsWith(github.ref, 'refs/heads/bazzite-') || startsWith(github.ref, 'refs/tags/') ) && '1' || '0' }}
           CCACHE_WRITE=${{ startsWith(github.ref, 'refs/heads/bazzite-') && '1' || '0' }}
           CCACHE_READONLY=${{ startsWith(github.ref, 'refs/heads/bazzite-') && '' || 'true' }}
@@ -49,8 +51,10 @@ jobs:
         with:
           path: |
             ccache
-          # /var/lib/containers/storage
-          key: ccache-${{ matrix.arch }}
+            /var/lib/containers/storage
+          key: ${{ steps.ccache.outputs.ccache_key }}
+          restore-keys: |
+            ccache-${{ matrix.arch }}
 
       - name: Create Build Environment
         run: |
@@ -112,8 +116,8 @@ jobs:
         with:
           path: |
             ccache
-          # /var/lib/containers/storage
-          key: ccache-${{ matrix.arch }}
+            /var/lib/containers/storage
+          key: ${{ steps.ccache.outputs.ccache_key }}
 
       # - name: Separate debuginfo into different folder
       #   run: |
