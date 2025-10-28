@@ -6,6 +6,8 @@
 
 set -e
 
+CCACHE_USE=${CCACHE_USE:-1}
+
 # Check we are in a container before we nuke the pesign dir
 if [ -z "$container" ]; then
     echo "Error: This script should be run inside the build container."
@@ -128,6 +130,15 @@ sudo rm -rf /etc/pki/pesign
 sudo cp -r certs/pki/ubluesign /etc/pki/pesign
 sudo chown -R root:root /etc/pki/pesign
 sudo chmod -R 755 /etc/pki/pesign
+
+if [ "$CCACHE_USE" -eq 1 ]; then
+    echo "Using ccache for build"
+    export PATH="/usr/lib64/ccache:/usr/lib/ccache:$PATH"
+    export CC="ccache gcc"
+    export CXX="ccache g++"
+    export CCACHE_MAXSIZE="4.5G"
+    export CCACHE_DIR="$(pwd)/ccache"
+fi
 
 rpmbuild \
   --define '_topdir   %(pwd)/build' \

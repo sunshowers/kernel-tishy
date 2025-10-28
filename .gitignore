@@ -11,3 +11,4 @@ ccache
 NVIDIA-Linux*
 *.tar.gz
 certs
+.*-release

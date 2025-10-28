@@ -31,6 +31,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Setup ccache
+        id: ccache
+        run: |
+          CCACHE_USE=${{ (startsWith(github.ref, 'refs/heads/bazzite-') || startsWith(github.ref, 'refs/tags/') ) && '1' || '0' }}
+          CCACHE_WRITE=${{ startsWith(github.ref, 'refs/heads/bazzite-') && '1' || '0' }}
+          CCACHE_READONLY=${{ startsWith(github.ref, 'refs/heads/bazzite-') && '0' || '1' }}
+          echo "ccache_use=$CCACHE_USE" >> $GITHUB_OUTPUT
+          echo "ccache_write=$CCACHE_WRITE" >> $GITHUB_OUTPUT
+          echo "ccache_readonly=$CCACHE_READONLY" >> $GITHUB_OUTPUT
+
+      - name: Restore ccache
+        if: ${{ steps.ccache.outputs.ccache_use == '1' }}
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ccache
+          # /var/lib/containers/storage
+          key: ccache-${{ matrix.arch }}
 
       - name: Create Build Environment
         run: |
@@ -38,6 +58,7 @@ jobs:
           sudo podman build . --tag 'fedora_builder' \
             --build-arg UID=$(id -u) --build-arg GID=$(id -g) \
             --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
+          sudo podman image prune -f
 
       - name: Load Universal Blue Keys
         if: (github.ref_type == 'tag' && (contains(github.ref_name, '-ba') || contains(github.ref_name, '-rc')))
@@ -71,13 +92,28 @@ jobs:
 
       - name: Compile Kernel
         run: |
+          # Use ccache if:
+          # We have a cache hit and ccache is enabled for use
+          # OR we are writing to ccache (bazzite- branch)
+          CCACHE_USE=${{ ((steps.ccache.outputs.ccache_use == '1' && steps.restore.outputs.cache-hit == '1') || steps.ccache.outputs.ccache_write == '1') && '1' || '0' }}
           sudo podman run --rm -v $(pwd):/workspace -e UID=$UID -e GID=$GID \
               -e ARCH=${{ matrix.arch }} -e FEDORA_VERSION=${{ matrix.fedora_version }} \
+              --env CCACHE_USE="$CCACHE_USE" \
+              --env CCACHE_READONLY=${{ steps.ccache.outputs.ccache_readonly }} \
               fedora_builder bash ./build.sh \
               | grep -v ".o: warning: objtool:"
 
           # We are signed, remove certs
           rm -rf ./certs
+
+      - name: Backup ccache
+        if: ${{ steps.ccache.outputs.ccache_write == '1' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ccache
+          # /var/lib/containers/storage
+          key: ccache-${{ matrix.arch }}
 
       - name: Separate debuginfo into different folder
         run: |
