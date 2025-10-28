@@ -401,6 +401,7 @@ Summary: The Linux kernel
 %if %{with_bazzite}
 %define with_tools 1
 %define with_debug 0
+%define with_debuginfo 0
 %define with_realtime 0
 %define with_realtime_arm64_64k 0
 %define with_vdso_install 0
