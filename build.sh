@@ -136,7 +136,7 @@ if [ "$CCACHE_USE" -eq 1 ]; then
     export PATH="/usr/lib64/ccache:/usr/lib/ccache:$PATH"
     export CC="ccache gcc"
     export CXX="ccache g++"
-    export CCACHE_MAXSIZE="4.5G"
+    export CCACHE_MAXSIZE="2G"
     export CCACHE_DIR="$(pwd)/ccache"
 fi
 
