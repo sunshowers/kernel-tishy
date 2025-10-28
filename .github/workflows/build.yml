@@ -109,11 +109,6 @@ jobs:
           # We are signed, remove certs
           rm -rf ./certs
 
-          # Change ccache perms
-          if [ -d "./ccache" ]; then
-            sudo chown -R $UID:$GID ./ccache
-          fi
-
       - name: Backup ccache
         if: ${{ steps.ccache.outputs.ccache_write == '1' }}
         uses: actions/cache/save@v4
