@@ -51035,8 +51035,8 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/Kconfig                           |   2 +
  drivers/Makefile                          |   2 +
  drivers/custom/.gitignore                 |   3 +
- drivers/custom/Kconfig                    | 115 ++++++++++
- drivers/custom/Makefile                   |  41 ++++
+ drivers/custom/Kconfig                    | 109 ++++++++++
+ drivers/custom/Makefile                   |  40 ++++
  drivers/custom/ayaneo_platform            |   1 +
  drivers/custom/ayn_platform               |   1 +
  drivers/custom/bmi260                     |   1 +
@@ -51063,7 +51063,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  tools/objtool/builtin-check.c             |   1 +
  tools/objtool/check.c                     |   3 +
  tools/objtool/include/objtool/builtin.h   |   1 +
- 32 files changed, 499 insertions(+), 2 deletions(-)
+ 32 files changed, 492 insertions(+), 2 deletions(-)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -51192,10 +51192,10 @@ index 000000000000..b9adbda1674e
 \ No newline at end of file
 diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
 new file mode 100644
-index 000000000000..84a35902d070
+index 000000000000..9a86a6f61037
 --- /dev/null
 +++ b/drivers/custom/Kconfig
-@@ -0,0 +1,115 @@
+@@ -0,0 +1,109 @@
 +config AYN
 +    tristate "AYN Platform Driver"
 +    help
@@ -51219,12 +51219,6 @@ index 000000000000..84a35902d070
 +    help
 +        XONEDO driver for Linux. Link:
 +        https://github.com/bazzite-org/xonedo
-+
-+config XPADNEO
-+    tristate "Xpadneo Driver"
-+    help
-+        Xpadneo driver for Linux. Link:
-+        https://github.com/atar-axis/xpadneo
 +
 +config FANATEC
 +    tristate "Fanatec Driver"
@@ -51314,16 +51308,15 @@ index 000000000000..84a35902d070
 \ No newline at end of file
 diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
 new file mode 100644
-index 000000000000..eef3c34c6da7
+index 000000000000..6bb34e96d0a6
 --- /dev/null
 +++ b/drivers/custom/Makefile
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,40 @@
 +obj-$(CONFIG_AYN) += ayn_platform/
 +obj-$(CONFIG_AYANEO) += ayaneo_platform/
 +obj-$(CONFIG_BMI260) += bmi260/
 +
 +obj-$(CONFIG_XONEDO) += xonedo/
-+obj-$(CONFIG_XPADNEO) += xpadneo/hid-xpadneo/src/
 +obj-$(CONFIG_FANATEC) += fanatecff/
 +obj-$(CONFIG_LG4FF) += lg4ff/
 +obj-$(CONFIG_GCAOC) += gcadapter_oc/
@@ -51753,11 +51746,11 @@ index 000000000000..c394f8fb2c16
 +Subproject commit c394f8fb2c168932055c2577247c42390198d7c9
 diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
 new file mode 160000
-index 000000000000..b1cd46868954
+index 000000000000..2c06de29e95b
 --- /dev/null
 +++ b/drivers/custom/xonedo
 @@ -0,0 +1 @@
-+Subproject commit b1cd46868954d2b1331611890322d54e5fcb0c49
++Subproject commit 2c06de29e95bbe9beebb81924f4b7324f0eb6591
 diff --git a/drivers/custom/zenergy b/drivers/custom/zenergy
 new file mode 160000
 index 000000000000..310ed88b13c6
