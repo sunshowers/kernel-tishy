@@ -54,7 +54,7 @@ jobs:
             /var/lib/containers/storage
           key: ${{ steps.ccache.outputs.ccache_key }}
           restore-keys: |
-            ccache-${{ matrix.arch }}
+            ccache-${{ matrix.arch }}*
 
       - name: Create Build Environment
         run: |
