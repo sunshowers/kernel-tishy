@@ -51031,12 +51031,12 @@ when that module goes out the wayside.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .gitmodules                               |  57 +++++
+ .gitmodules                               |  63 ++++++
  drivers/Kconfig                           |   2 +
  drivers/Makefile                          |   2 +
  drivers/custom/.gitignore                 |   3 +
- drivers/custom/Kconfig                    | 109 ++++++++++
- drivers/custom/Makefile                   |  40 ++++
+ drivers/custom/Kconfig                    | 121 +++++++++++
+ drivers/custom/Makefile                   |  44 ++++
  drivers/custom/ayaneo_platform            |   1 +
  drivers/custom/ayn_platform               |   1 +
  drivers/custom/bmi260                     |   1 +
@@ -51047,6 +51047,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/custom/fanatecff                  |   1 +
  drivers/custom/framework                  |   1 +
  drivers/custom/gcadapter_oc               |   1 +
+ drivers/custom/hid-tmff2                  |   1 +
  drivers/custom/kvfm                       |   1 +
  drivers/custom/lg4ff                      |   1 +
  drivers/custom/modprobe.conf              |   1 +
@@ -51056,6 +51057,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/custom/razer                      |   1 +
  drivers/custom/system76                   |   1 +
  drivers/custom/system76_io                |   1 +
+ drivers/custom/t150                       |   1 +
  drivers/custom/v4l2loopback               |   1 +
  drivers/custom/xonedo                     |   1 +
  drivers/custom/zenergy                    |   1 +
@@ -51063,7 +51065,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  tools/objtool/builtin-check.c             |   1 +
  tools/objtool/check.c                     |   3 +
  tools/objtool/include/objtool/builtin.h   |   1 +
- 32 files changed, 492 insertions(+), 2 deletions(-)
+ 34 files changed, 516 insertions(+), 2 deletions(-)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -51078,6 +51080,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  create mode 160000 drivers/custom/fanatecff
  create mode 160000 drivers/custom/framework
  create mode 160000 drivers/custom/gcadapter_oc
+ create mode 160000 drivers/custom/hid-tmff2
  create mode 160000 drivers/custom/kvfm
  create mode 160000 drivers/custom/lg4ff
  create mode 100644 drivers/custom/modprobe.conf
@@ -51087,16 +51090,17 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  create mode 160000 drivers/custom/razer
  create mode 160000 drivers/custom/system76
  create mode 160000 drivers/custom/system76_io
+ create mode 160000 drivers/custom/t150
  create mode 160000 drivers/custom/v4l2loopback
  create mode 160000 drivers/custom/xonedo
  create mode 160000 drivers/custom/zenergy
 
 diff --git a/.gitmodules b/.gitmodules
 new file mode 100644
-index 000000000000..5d95c074d1e0
+index 000000000000..495d57ed3c0c
 --- /dev/null
 +++ b/.gitmodules
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,63 @@
 +[submodule "drivers/custom/ayn_platform"]
 +	path = drivers/custom/ayn_platform
 +	url = https://github.com/bazzite-org/ayn-platform
@@ -51154,6 +51158,12 @@ index 000000000000..5d95c074d1e0
 +[submodule "drivers/custom/fanatecff"]
 +	path = drivers/custom/fanatecff
 +	url = https://github.com/gotzl/hid-fanatecff
++[submodule "drivers/custom/hid-tmff2"]
++	path = drivers/custom/hid-tmff2
++	url = https://github.com/Kimplul/hid-tmff2
++[submodule "drivers/custom/t150"]
++	path = drivers/custom/t150
++	url = https://github.com/scarburato/t150_driver
 diff --git a/drivers/Kconfig b/drivers/Kconfig
 index 4915a63866b0..f3796a10e278 100644
 --- a/drivers/Kconfig
@@ -51192,10 +51202,10 @@ index 000000000000..b9adbda1674e
 \ No newline at end of file
 diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
 new file mode 100644
-index 000000000000..9a86a6f61037
+index 000000000000..778f6188e9a5
 --- /dev/null
 +++ b/drivers/custom/Kconfig
-@@ -0,0 +1,109 @@
+@@ -0,0 +1,121 @@
 +config AYN
 +    tristate "AYN Platform Driver"
 +    help
@@ -51231,6 +51241,18 @@ index 000000000000..9a86a6f61037
 +    help
 +        New LG4FF driver for Linux. Link:
 +        https://github.com/berarma/new-lg4ff
++
++config TMFF2
++    tristate "New TMFF Driver"
++    help
++        New TMFF driver for Linux. Link:
++        https://github.com/Kimplul/hid-tmff2
++
++config T150
++    tristate "T150 Driver"
++    help
++        T150 driver for Linux. Link:
++        https://github.com/scarburato/t150_driver
 +
 +config GCAOC
 +    tristate "GCAdapter OC Driver"
@@ -51308,10 +51330,10 @@ index 000000000000..9a86a6f61037
 \ No newline at end of file
 diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
 new file mode 100644
-index 000000000000..6bb34e96d0a6
+index 000000000000..ad7a1191bfe2
 --- /dev/null
 +++ b/drivers/custom/Makefile
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,44 @@
 +obj-$(CONFIG_AYN) += ayn_platform/
 +obj-$(CONFIG_AYANEO) += ayaneo_platform/
 +obj-$(CONFIG_BMI260) += bmi260/
@@ -51319,6 +51341,8 @@ index 000000000000..6bb34e96d0a6
 +obj-$(CONFIG_XONEDO) += xonedo/
 +obj-$(CONFIG_FANATEC) += fanatecff/
 +obj-$(CONFIG_LG4FF) += lg4ff/
++obj-$(CONFIG_TMFF2) += hid-tmff2/
++obj-$(CONFIG_T150) += t150/hid-t150/
 +obj-$(CONFIG_GCAOC) += gcadapter_oc/
 +obj-$(CONFIG_RAZER) += razer/driver/
 +
@@ -51352,6 +51376,8 @@ index 000000000000..6bb34e96d0a6
 +
 +	make -C v4l2loopback/utils/
 +	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
++
++	install -D t150/files/etc/udev/rules.d/10-t150.rules $(INSTALL_DIR)/usr/lib/udev/rules.d/10-t150.rules
 \ No newline at end of file
 diff --git a/drivers/custom/ayaneo_platform b/drivers/custom/ayaneo_platform
 new file mode 160000
@@ -51423,6 +51449,13 @@ index 000000000000..0a7d7027d0dc
 +++ b/drivers/custom/gcadapter_oc
 @@ -0,0 +1 @@
 +Subproject commit 0a7d7027d0dc5c0701b5c6f8664dfcb020e4a1cf
+diff --git a/drivers/custom/hid-tmff2 b/drivers/custom/hid-tmff2
+new file mode 160000
+index 000000000000..438a3e140756
+--- /dev/null
++++ b/drivers/custom/hid-tmff2
+@@ -0,0 +1 @@
++Subproject commit 438a3e1407565dbd1d8ceb3981f4830a723a3c3c
 diff --git a/drivers/custom/kvfm b/drivers/custom/kvfm
 new file mode 160000
 index 000000000000..fddcb7f2d43e
@@ -51737,6 +51770,13 @@ index 000000000000..fc71f154ab8d
 +++ b/drivers/custom/system76_io
 @@ -0,0 +1 @@
 +Subproject commit fc71f154ab8d9810f960ba171479c68c44737649
+diff --git a/drivers/custom/t150 b/drivers/custom/t150
+new file mode 160000
+index 000000000000..f7ecb30c65ee
+--- /dev/null
++++ b/drivers/custom/t150
+@@ -0,0 +1 @@
++Subproject commit f7ecb30c65ee5f7870e921bc0a2354df8e1e8100
 diff --git a/drivers/custom/v4l2loopback b/drivers/custom/v4l2loopback
 new file mode 160000
 index 000000000000..c394f8fb2c16
@@ -52153,140 +52193,6 @@ index 7870d1cb570c..1cc063bf6c0b 100644
  	SND_PCI_QUIRK(0x1043, 0x13b0, "ASUS Z550SA", ALC256_FIXUP_ASUS_MIC_NO_PRESENCE),
  	SND_PCI_QUIRK(0x1043, 0x1427, "Asus Zenbook UX31E", ALC269VB_FIXUP_ASUS_ZENBOOK),
  	SND_PCI_QUIRK(0x1043, 0x1433, "ASUS GX650PY/PZ/PV/PU/PYV/PZV/PIV/PVV", ALC285_FIXUP_ASUS_I2C_HEADSET_MIC),
--- 
-2.51.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 28 Oct 2025 17:17:05 +0100
-Subject: add more wheels
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- .gitmodules              | 6 ++++++
- drivers/custom/Makefile  | 2 ++
- drivers/custom/hid-tmff2 | 1 +
- drivers/custom/t150      | 1 +
- 4 files changed, 10 insertions(+)
- create mode 160000 drivers/custom/hid-tmff2
- create mode 160000 drivers/custom/t150
-
-diff --git a/.gitmodules b/.gitmodules
-index 5d95c074d1e0..495d57ed3c0c 100644
---- a/.gitmodules
-+++ b/.gitmodules
-@@ -55,3 +55,9 @@
- [submodule "drivers/custom/fanatecff"]
- 	path = drivers/custom/fanatecff
- 	url = https://github.com/gotzl/hid-fanatecff
-+[submodule "drivers/custom/hid-tmff2"]
-+	path = drivers/custom/hid-tmff2
-+	url = https://github.com/Kimplul/hid-tmff2
-+[submodule "drivers/custom/t150"]
-+	path = drivers/custom/t150
-+	url = https://github.com/scarburato/t150_driver
-diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
-index 6bb34e96d0a6..4936686a9b1e 100644
---- a/drivers/custom/Makefile
-+++ b/drivers/custom/Makefile
-@@ -5,6 +5,8 @@ obj-$(CONFIG_BMI260) += bmi260/
- obj-$(CONFIG_XONEDO) += xonedo/
- obj-$(CONFIG_FANATEC) += fanatecff/
- obj-$(CONFIG_LG4FF) += lg4ff/
-+obj-$(CONFIG_TMFF2) += hid-tmff2/
-+obj-$(CONFIG_T150) += t150/
- obj-$(CONFIG_GCAOC) += gcadapter_oc/
- obj-$(CONFIG_RAZER) += razer/driver/
- 
-diff --git a/drivers/custom/hid-tmff2 b/drivers/custom/hid-tmff2
-new file mode 160000
-index 000000000000..438a3e140756
---- /dev/null
-+++ b/drivers/custom/hid-tmff2
-@@ -0,0 +1 @@
-+Subproject commit 438a3e1407565dbd1d8ceb3981f4830a723a3c3c
-diff --git a/drivers/custom/t150 b/drivers/custom/t150
-new file mode 160000
-index 000000000000..f7ecb30c65ee
---- /dev/null
-+++ b/drivers/custom/t150
-@@ -0,0 +1 @@
-+Subproject commit f7ecb30c65ee5f7870e921bc0a2354df8e1e8100
--- 
-2.51.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 28 Oct 2025 17:30:31 +0100
-Subject: fixwheel
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/custom/Makefile | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
-index 4936686a9b1e..ad7a1191bfe2 100644
---- a/drivers/custom/Makefile
-+++ b/drivers/custom/Makefile
-@@ -6,7 +6,7 @@ obj-$(CONFIG_XONEDO) += xonedo/
- obj-$(CONFIG_FANATEC) += fanatecff/
- obj-$(CONFIG_LG4FF) += lg4ff/
- obj-$(CONFIG_TMFF2) += hid-tmff2/
--obj-$(CONFIG_T150) += t150/
-+obj-$(CONFIG_T150) += t150/hid-t150/
- obj-$(CONFIG_GCAOC) += gcadapter_oc/
- obj-$(CONFIG_RAZER) += razer/driver/
- 
-@@ -39,4 +39,6 @@ install:
- 	install -D xonedo/install/modprobe.conf $(INSTALL_DIR)/usr/lib/modprobe.d/xone.conf
- 
- 	make -C v4l2loopback/utils/
--	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
-\ No newline at end of file
-+	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
-+
-+	install -D t150/files/etc/udev/rules.d/10-t150.rules $(INSTALL_DIR)/usr/lib/udev/rules.d/10-t150.rules
-\ No newline at end of file
--- 
-2.51.1
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 28 Oct 2025 17:34:00 +0100
-Subject: add menus
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- drivers/custom/Kconfig | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
-index 9a86a6f61037..778f6188e9a5 100644
---- a/drivers/custom/Kconfig
-+++ b/drivers/custom/Kconfig
-@@ -34,6 +34,18 @@ config LG4FF
-         New LG4FF driver for Linux. Link:
-         https://github.com/berarma/new-lg4ff
- 
-+config TMFF2
-+    tristate "New TMFF Driver"
-+    help
-+        New TMFF driver for Linux. Link:
-+        https://github.com/Kimplul/hid-tmff2
-+
-+config T150
-+    tristate "T150 Driver"
-+    help
-+        T150 driver for Linux. Link:
-+        https://github.com/scarburato/t150_driver
-+
- config GCAOC
-     tristate "GCAdapter OC Driver"
-     help
 -- 
 2.51.1
 

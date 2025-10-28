@@ -4534,9 +4534,6 @@ fi\
 #
 %changelog
 * Tue Oct 28 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.5-ba07]
-- add menus (Antheas Kapenekakis)
-- fixwheel (Antheas Kapenekakis)
-- add more wheels (Antheas Kapenekakis)
 - ALSA: hda/realtek: Add match for ASUS Xbox Ally projects (Antheas Kapenekakis)
 - ALSA: hda/tas2781: fix speaker id retrieval for multiple probes (Antheas Kapenekakis)
 - drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)
