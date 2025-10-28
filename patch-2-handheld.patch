@@ -51031,7 +51031,7 @@ when that module goes out the wayside.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- .gitmodules                               |  60 ++++++
+ .gitmodules                               |  57 +++++
  drivers/Kconfig                           |   2 +
  drivers/Makefile                          |   2 +
  drivers/custom/.gitignore                 |   3 +
@@ -51058,13 +51058,12 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/custom/system76_io                |   1 +
  drivers/custom/v4l2loopback               |   1 +
  drivers/custom/xonedo                     |   1 +
- drivers/custom/xpadneo                    |   1 +
  drivers/custom/zenergy                    |   1 +
  scripts/mod/modpost.c                     |   4 +-
  tools/objtool/builtin-check.c             |   1 +
  tools/objtool/check.c                     |   3 +
  tools/objtool/include/objtool/builtin.h   |   1 +
- 33 files changed, 503 insertions(+), 2 deletions(-)
+ 32 files changed, 499 insertions(+), 2 deletions(-)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -51090,15 +51089,14 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  create mode 160000 drivers/custom/system76_io
  create mode 160000 drivers/custom/v4l2loopback
  create mode 160000 drivers/custom/xonedo
- create mode 160000 drivers/custom/xpadneo
  create mode 160000 drivers/custom/zenergy
 
 diff --git a/.gitmodules b/.gitmodules
 new file mode 100644
-index 000000000000..f1177abe50bb
+index 000000000000..5d95c074d1e0
 --- /dev/null
 +++ b/.gitmodules
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,57 @@
 +[submodule "drivers/custom/ayn_platform"]
 +	path = drivers/custom/ayn_platform
 +	url = https://github.com/bazzite-org/ayn-platform
@@ -51114,9 +51112,6 @@ index 000000000000..f1177abe50bb
 +[submodule "drivers/custom/xonedo"]
 +	path = drivers/custom/xonedo
 +	url = https://github.com/bazzite-org/xonedo
-+[submodule "drivers/custom/xpadneo"]
-+	path = drivers/custom/xpadneo
-+	url = https://github.com/atar-axis/xpadneo
 +[submodule "drivers/custom/kvfm"]
 +	path = drivers/custom/kvfm
 +	url = https://github.com/gnif/LookingGlass
@@ -51763,13 +51758,6 @@ index 000000000000..b1cd46868954
 +++ b/drivers/custom/xonedo
 @@ -0,0 +1 @@
 +Subproject commit b1cd46868954d2b1331611890322d54e5fcb0c49
-diff --git a/drivers/custom/xpadneo b/drivers/custom/xpadneo
-new file mode 160000
-index 000000000000..a16acb03e7be
---- /dev/null
-+++ b/drivers/custom/xpadneo
-@@ -0,0 +1 @@
-+Subproject commit a16acb03e7be191d47ebfbc8ca1d5223422dac3e
 diff --git a/drivers/custom/zenergy b/drivers/custom/zenergy
 new file mode 160000
 index 000000000000..310ed88b13c6
