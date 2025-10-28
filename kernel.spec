@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.5
 %define specversion 6.17.5
 %define patchversion 6.17
-%define pkgrelease ba04
+%define pkgrelease ba05
 %define kversion 6
 %define tarfile_release 6.17.5
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba04%{?buildid}%{?dist}
+%define specrelease ba05%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.5
 
@@ -2390,20 +2390,20 @@ BuildKernel() {
     ./configure --with-linux="$cdir" --with-linux-obj="$cdir"
     popd
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/zfs/module %{?_smp_mflags} modules || exit 1
+      -C $(pwd)/drivers/custom/zfs/module %{?_smp_mflags} modules CONFIG_DEBUG_INFO_BTF_MODULES= || exit 1
     fi
     %endif # with_zfs
 
     %if %{with_nvidia}
     if [ $DoModules -eq 1 ]; then
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src)
+      -C $(pwd)/drivers/custom/nvidia/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia/kernel modules SYSSRC=$(pwd) SYSOUT=$(src)
+      -C $(pwd)/drivers/custom/nvidia/kernel modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia-lts/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src)
+      -C $(pwd)/drivers/custom/nvidia-lts/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia-lts/kernel modules SYSSRC=$(pwd) SYSOUT=$(src)
+      -C $(pwd)/drivers/custom/nvidia-lts/kernel modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
     fi
     %endif # with_nvidia
 
@@ -2519,20 +2519,20 @@ BuildKernel() {
     %if %{with_zfs}
     if [ $DoModules -eq 1 ]; then    
     %{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} \
-      -C $(pwd)/drivers/custom/zfs/module modules_install mod-fw= INSTALL_MOD_DIR=kernel/drivers/custom/zfs
+      -C $(pwd)/drivers/custom/zfs/module modules_install mod-fw= INSTALL_MOD_DIR=kernel/drivers/custom/zfs CONFIG_DEBUG_INFO_BTF_MODULES=
     fi
     %endif # with_zfs
 
   %if %{with_nvidia}
     if [ $DoModules -eq 1 ]; then   
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel-open \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel-open
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel-open CONFIG_DEBUG_INFO_BTF_MODULES=
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel CONFIG_DEBUG_INFO_BTF_MODULES=
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia-lts/kernel-open \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel-open
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel-open CONFIG_DEBUG_INFO_BTF_MODULES=
 	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia-lts/kernel \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel CONFIG_DEBUG_INFO_BTF_MODULES=
 
     # We have to do a little hack here. modules.dep cannot contain multiple modules
     # with the same name, therefore, we cannot use the filtermods logic. Remove the
@@ -4532,7 +4532,7 @@ fi\
 #
 #
 %changelog
-* Mon Oct 27 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.5-ba04]
+* Tue Oct 28 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.5-ba05]
 - ALSA: hda/realtek: Add match for ASUS Xbox Ally projects (Antheas Kapenekakis)
 - ALSA: hda/tas2781: fix speaker id retrieval for multiple probes (Antheas Kapenekakis)
 - drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)
