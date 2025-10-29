@@ -18712,7 +18712,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 13 insertions(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 2c0822b46400..06dad8ef09f3 100644
+index 2c0822b46400..4c7d6ebb3e37 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1103,6 +1103,7 @@ static int asus_input_mapping(struct hid_device *hdev,
@@ -18733,7 +18733,7 @@ index 2c0822b46400..06dad8ef09f3 100644
 +	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
 +		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ZENBOOK_DUO_KEYBOARD_2),
 +		QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
-+	{ HID_DEVICE(BUS_BLUETOOTH, ID_GROUP_GENERIC,
++	{ HID_DEVICE(BUS_BLUETOOTH, HID_GROUP_GENERIC,
 +		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ZENBOOK_DUO_KEYBOARD_2_BLUETOOTH),
 +		QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
  	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
@@ -18858,7 +18858,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  3 files changed, 40 insertions(+), 139 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 06dad8ef09f3..b05e1692eed7 100644
+index 4c7d6ebb3e37..c79d976129fc 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -675,9 +675,6 @@ static void validate_mcu_fw_version(struct hid_device *hdev, int idProduct)
@@ -19212,7 +19212,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 5 insertions(+), 109 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index b05e1692eed7..b13c76a91c23 100644
+index c79d976129fc..67e8786c6684 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -56,10 +56,6 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
@@ -19390,7 +19390,7 @@ for the platform (should NOOP though).
  1 file changed, 6 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index b13c76a91c23..d3ae7ec138ce 100644
+index 67e8786c6684..d13885700914 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1431,12 +1431,6 @@ static const struct hid_device_id asus_devices[] = {
@@ -21550,7 +21550,7 @@ Acked-by: Jiri Kosina <jkosina@suse.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index d3ae7ec138ce..158cf3721798 100644
+index d13885700914..deb0f2a489da 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1486,4 +1486,5 @@ static struct hid_driver asus_driver = {
