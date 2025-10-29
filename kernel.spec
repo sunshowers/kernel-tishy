@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.5
 %define specversion 6.17.5
 %define patchversion 6.17
-%define pkgrelease ba08
+%define pkgrelease ba09
 %define kversion 6
 %define tarfile_release 6.17.5
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba08%{?buildid}%{?dist}
+%define specrelease ba09%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.5
 
@@ -4534,7 +4534,7 @@ fi\
 #
 #
 %changelog
-* Wed Oct 29 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.5-ba08]
+* Wed Oct 29 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.5-ba09]
 - ALSA: hda/realtek: Add match for ASUS Xbox Ally projects (Antheas Kapenekakis)
 - ALSA: hda/tas2781: fix speaker id retrieval for multiple probes (Antheas Kapenekakis)
 - drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)

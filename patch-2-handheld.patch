@@ -47766,7 +47766,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 8 insertions(+)
 
 diff --git a/drivers/hwmon/gpd-fan.c b/drivers/hwmon/gpd-fan.c
-index 321794807e8d..d8a9e2cb4b61 100644
+index 321794807e8d..8ed31a841281 100644
 --- a/drivers/hwmon/gpd-fan.c
 +++ b/drivers/hwmon/gpd-fan.c
 @@ -146,6 +146,14 @@ static const struct dmi_system_id dmi_table[] = {
@@ -47779,7 +47779,7 @@ index 321794807e8d..d8a9e2cb4b61 100644
 +			DMI_MATCH(DMI_SYS_VENDOR, "GPD"),
 +			DMI_MATCH(DMI_PRODUCT_NAME, "G1618-05"),
 +		},
-+		.driver_data = &gpd_win4_drvdata,
++		.driver_data = &gpd_duo_drvdata,
 +	},
  	{
  		// GPD Win 4 with Ryzen 7840U
