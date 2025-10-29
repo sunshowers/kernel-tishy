@@ -18707,12 +18707,12 @@ both bluetooth and USB.
 
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
- drivers/hid/hid-asus.c | 4 ++++
- drivers/hid/hid-ids.h  | 3 +++
- 2 files changed, 7 insertions(+)
+ drivers/hid/hid-asus.c | 10 ++++++++++
+ drivers/hid/hid-ids.h  |  3 +++
+ 2 files changed, 13 insertions(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 2c0822b46400..b419d3062309 100644
+index 2c0822b46400..06dad8ef09f3 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1103,6 +1103,7 @@ static int asus_input_mapping(struct hid_device *hdev,
@@ -18723,12 +18723,18 @@ index 2c0822b46400..b419d3062309 100644
  		case 0xba: asus_map_key_clear(KEY_PROG2);	break; /* Fn+C ASUS Splendid */
  		case 0x5c: asus_map_key_clear(KEY_PROG3);	break; /* Fn+Space Power4Gear */
  		case 0x99: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol */
-@@ -1566,6 +1567,9 @@ static const struct hid_device_id asus_devices[] = {
+@@ -1566,6 +1567,15 @@ static const struct hid_device_id asus_devices[] = {
  	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
  		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ROG_Z13_FOLIO),
  	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_NKEY_RGB },
 +	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
 +		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ZENBOOK_DUO_KEYBOARD),
++		QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
++	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
++		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ZENBOOK_DUO_KEYBOARD_2),
++		QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
++	{ HID_DEVICE(BUS_BLUETOOTH, ID_GROUP_GENERIC,
++		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ZENBOOK_DUO_KEYBOARD_2_BLUETOOTH),
 +		QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD },
  	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
  		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_T101HA_KEYBOARD) },
@@ -18852,7 +18858,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  3 files changed, 40 insertions(+), 139 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index b419d3062309..1501c0564fa5 100644
+index 06dad8ef09f3..b05e1692eed7 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -675,9 +675,6 @@ static void validate_mcu_fw_version(struct hid_device *hdev, int idProduct)
@@ -18865,7 +18871,7 @@ index b419d3062309..1501c0564fa5 100644
  	}
  }
  
-@@ -1593,5 +1590,4 @@ static struct hid_driver asus_driver = {
+@@ -1599,5 +1596,4 @@ static struct hid_driver asus_driver = {
  };
  module_hid_driver(asus_driver);
  
@@ -19206,7 +19212,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 5 insertions(+), 109 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 1501c0564fa5..14ae1c5006a0 100644
+index b05e1692eed7..b13c76a91c23 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -56,10 +56,6 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
@@ -19384,7 +19390,7 @@ for the platform (should NOOP though).
  1 file changed, 6 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 14ae1c5006a0..8d9c4fbd1a96 100644
+index b13c76a91c23..d3ae7ec138ce 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -1431,12 +1431,6 @@ static const struct hid_device_id asus_devices[] = {
@@ -21544,10 +21550,10 @@ Acked-by: Jiri Kosina <jkosina@suse.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 8d9c4fbd1a96..1daf7e186f27 100644
+index d3ae7ec138ce..158cf3721798 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
-@@ -1480,4 +1480,5 @@ static struct hid_driver asus_driver = {
+@@ -1486,4 +1486,5 @@ static struct hid_driver asus_driver = {
  };
  module_hid_driver(asus_driver);
  
