@@ -39,7 +39,7 @@ jobs:
           echo "ccache_key=ccache-${{ matrix.arch }}-${TARFILE_RELEASE}" >> $GITHUB_OUTPUT
           CCACHE_USE=${{ (startsWith(github.ref, 'refs/heads/bazzite-') || startsWith(github.ref, 'refs/tags/') ) && '1' || '0' }}
           CCACHE_WRITE=${{ startsWith(github.ref, 'refs/heads/bazzite-') && '1' || '0' }}
-          CCACHE_READONLY=${{ startsWith(github.ref, 'refs/heads/bazzite-') && '' || 'true' }}
+          CCACHE_READONLY="${{ !startsWith(github.ref, 'refs/heads/bazzite-') && 'true' }}"
           echo "ccache_use=$CCACHE_USE" >> $GITHUB_OUTPUT
           echo "ccache_write=$CCACHE_WRITE" >> $GITHUB_OUTPUT
           echo "ccache_readonly=$CCACHE_READONLY" >> $GITHUB_OUTPUT
