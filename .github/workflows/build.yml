@@ -122,10 +122,10 @@ jobs:
       #       ccache
       #     key: ${{ steps.ccache.outputs.ccache_key }}
 
-      # - name: Separate debuginfo into different folder
-      #   run: |
-      #     mkdir -p ./build/DRPMS/
-      #     mv ./build/RPMS/${{ matrix.arch }}/kernel-debuginfo-*.rpm ./build/DRPMS/
+      - name: Separate debuginfo into different folder
+        run: |
+          mkdir -p ./build/DRPMS/
+          mv ./build/RPMS/${{ matrix.arch }}/kernel-debuginfo-*.rpm ./build/DRPMS/
 
       - name: Upload Kernel to action
         uses: actions/upload-artifact@v4
@@ -135,13 +135,13 @@ jobs:
             ./build/RPMS/${{ matrix.arch }}/kernel-*.rpm
           compression-level: 7
 
-      # - name: Upload Kernel debuginfo to action
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: kernel-f${{ matrix.fedora_version}}-${{ matrix.arch }}-debuginfo
-      #     path: |
-      #       ./build/DRPMS/*.rpm
-      #     compression-level: 7
+      - name: Upload Kernel debuginfo to action
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-f${{ matrix.fedora_version}}-${{ matrix.arch }}-debuginfo
+          path: |
+            ./build/DRPMS/*.rpm
+          compression-level: 7
 
       - name: Convert to Arch
         if: matrix.arch == 'x86_64' && matrix.fedora_version == 43 #arch_fedora
