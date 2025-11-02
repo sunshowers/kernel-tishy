@@ -51414,11 +51414,11 @@ index 000000000000..2d764db2bd69
 +Subproject commit 2d764db2bd69f2922d7fad6cb162136e32f357a2
 diff --git a/drivers/custom/broadcom-wl b/drivers/custom/broadcom-wl
 new file mode 160000
-index 000000000000..2eb8d6d0bc06
+index 000000000000..4d1584336ba6
 --- /dev/null
 +++ b/drivers/custom/broadcom-wl
 @@ -0,0 +1 @@
-+Subproject commit 2eb8d6d0bc064501177e7528834f80166987b538
++Subproject commit 4d1584336ba62bf63bccb9710d87d8132abf0a85
 diff --git a/drivers/custom/cdemu b/drivers/custom/cdemu
 new file mode 160000
 index 000000000000..d00300615639

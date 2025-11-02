@@ -67019,7 +67019,7 @@ index 000000000000..64b09ece2e5a
 +
 # ----------------------------------------
 # Module: broadcom-wl
-# Version: 2eb8d6d0bc06
+# Version: 4d1584336ba6
 # ----------------------------------------
 diff --git a/drivers/custom/broadcom-wl/Makefile b/drivers/custom/broadcom-wl/Makefile
 new file mode 100644
@@ -84382,7 +84382,7 @@ index 000000000000..1819e5fcfd41
 +#endif 
 diff --git a/drivers/custom/broadcom-wl/src/wl/sys/wl_linux.c b/drivers/custom/broadcom-wl/src/wl/sys/wl_linux.c
 new file mode 100644
-index 000000000000..2fdbaa5aed3b
+index 000000000000..be6b413087c5
 --- /dev/null
 +++ b/drivers/custom/broadcom-wl/src/wl/sys/wl_linux.c
 @@ -0,0 +1,3448 @@
@@ -84562,7 +84562,7 @@ index 000000000000..2fdbaa5aed3b
 +
 +static struct pci_device_id wl_id_table[] =
 +{
-+	{ PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
++	{ PCI_VENDOR_ID_BROADCOM, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
 +	PCI_CLASS_NETWORK_OTHER << 8, 0xffff00, 0 },
 +	{ 0 }
 +};
