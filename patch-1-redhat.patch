@@ -126,7 +126,7 @@ index 97d958c945e4..c7e27e2edfe4 100644
  M:	David E. Box <david.e.box@linux.intel.com>
  S:	Supported
 diff --git a/Makefile b/Makefile
-index 072a3be62551..052cfe6c163e 100644
+index d090c7c253e8..9786a0f63329 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -355,6 +355,17 @@ ifneq ($(filter install,$(MAKECMDGOALS)),)

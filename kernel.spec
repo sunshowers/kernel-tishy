@@ -173,18 +173,18 @@ Summary: The Linux kernel
 #  the --with-release option overrides this setting.)
 %define debugbuildsenabled 1
 # define buildid .local
-%define specrpmversion 6.17.5
-%define specversion 6.17.5
+%define specrpmversion 6.17.6
+%define specversion 6.17.6
 %define patchversion 6.17
-%define pkgrelease ba11
+%define pkgrelease ba01
 %define kversion 6
-%define tarfile_release 6.17.5
+%define tarfile_release 6.17.6
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba11%{?buildid}%{?dist}
+%define specrelease ba01%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.17.5
+%define kabiversion 6.17.6
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -4227,6 +4227,7 @@ fi\
 /usr/lib/modprobe.d/xone.conf
 /usr/bin/v4l2loopback-ctl
 /usr/lib/udev/rules.d/10-t150.rules
+/usr/lib/NetworkManager/conf.d/20-akmods.conf
 
 %if %{with_tools}
 %ifnarch %{cpupowerarchs}
@@ -4535,10 +4536,11 @@ fi\
 #
 #
 %changelog
-* Fri Oct 31 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.5-ba11]
+* Sun Nov 02 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.6-ba01]
 - ALSA: hda/realtek: Add match for ASUS Xbox Ally projects (Antheas Kapenekakis)
 - ALSA: hda/tas2781: fix speaker id retrieval for multiple probes (Antheas Kapenekakis)
-- drm/amdgpu: only send the SMU RLC notification on S3 (Alex Deucher)
+- drm/amdgpu/smu: Handle S0ix for vangogh (Alex Deucher)
+- drm/amdgpu: Drop PMFW RLC notifier from amdgpu_device_suspend() (Alex Deucher)
 - platform/x86/amd/pmc: Add spurious_8042 to Xbox Ally (Antheas Kapenekakis)
 - platform/x86/amd/pmc: Add support for Van Gogh SoC (Antheas Kapenekakis)
 - CI: add universal blue secure boot (Antheas Kapenekakis)
@@ -4765,6 +4767,9 @@ fi\
 - Revert "efi/x86: Set the PE/COFF header's NX compat flag unconditionally" (Maximilian Luz)
 - scsi: sd: remove unused warning inherited from fedora (Antheas Kapenekakis)
 - [NA] add dev tools (Antheas Kapenekakis)
+
+* Wed Oct 29 2025 Augusto Caringi <acaringi@redhat.com> [6.17.6-0]
+- Linux v6.17.6
 
 * Thu Oct 23 2025 Justin M. Forbes <jforbes@fedoraproject.org> [6.17.5-0]
 - Linux v6.17.5
