@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba02
+%define pkgrelease ba03
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba02%{?buildid}%{?dist}
+%define specrelease ba03%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -973,8 +973,8 @@ Source2: %{package_name}.changelog
 Source4: broadcom-wl.blob
 
 %define evdi_version 1.14.11
-%define nvidia_version 580.95.05
-%define nvidia_version_lts 580.95.05
+%define nvidia_version 580.105.08
+%define nvidia_version_lts 580.105.08
 %define nvidia_epoch 3
 %if %{with_nvidia}
 Source5: nvidia-kmod-%{_build_arch}-%{nvidia_version}.tar.xz
@@ -4536,7 +4536,7 @@ fi\
 #
 #
 %changelog
-* Mon Nov 03 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba02]
+* Tue Nov 04 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba03]
 - ALSA: hda/realtek: Add ASUS GA403W quirk (Antheas Kapenekakis)
 - platform/x86: asus-wmi: Don't reset charge threshold on boot (Antheas Kapenekakis)
 - ALSA: hda/realtek: Add match for ASUS Xbox Ally projects (Antheas Kapenekakis)
