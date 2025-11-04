@@ -101,7 +101,7 @@ for nvrelease in "${nvreleases[@]}"; do
     if [ ! -f "$RUN_FN" ]; then
         echo "Downloading $RUN_FN"
         curl -L -o $RUN_FN \
-                    "https://download.nvidia.com/XFree86/Linux-$ARCH/${nvrelease}/NVIDIA-Linux-$ARCH-${NVIDIA_RELEASE}.run"
+                    "https://download.nvidia.com/XFree86/Linux-$ARCH/${nvrelease}/NVIDIA-Linux-$ARCH-${nvrelease}.run"
     fi
 
     rm -rf build/nvidia
