@@ -18340,8 +18340,8 @@ userspace programs.
 Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
 ---
  drivers/hid/Kconfig    |   1 +
- drivers/hid/hid-asus.c | 171 +++++++++++++++++++++++++++++++++++++----
- 2 files changed, 156 insertions(+), 16 deletions(-)
+ drivers/hid/hid-asus.c | 173 +++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 158 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/hid/Kconfig b/drivers/hid/Kconfig
 index 707983ce6854..2526d8e20b4f 100644
@@ -18356,7 +18356,7 @@ index 707983ce6854..2526d8e20b4f 100644
  	depends on ASUS_WMI || ASUS_WMI=n
  	select POWER_SUPPLY
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index de64451e315d..3ceeee88b241 100644
+index de64451e315d..799cf43d2cea 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -23,6 +23,7 @@
@@ -18480,7 +18480,7 @@ index de64451e315d..3ceeee88b241 100644
  	u8 buf[] = { FEATURE_KBD_REPORT_ID, 0xba, 0xc5, 0xc4, 0x00 };
  	int ret;
  	unsigned long flags;
-@@ -627,12 +681,70 @@ static void validate_mcu_fw_version(struct hid_device *hdev, int idProduct)
+@@ -627,12 +681,71 @@ static void validate_mcu_fw_version(struct hid_device *hdev, int idProduct)
  	}
  }
  
@@ -18548,10 +18548,19 @@ index de64451e315d..3ceeee88b241 100644
  	struct usb_device *udev;
  	unsigned char kbd_func;
 +	struct asus_kbd_leds *leds;
++	bool rgb_init = true;
  	int ret;
  
  	ret = asus_kbd_init(hdev, FEATURE_KBD_REPORT_ID);
-@@ -677,20 +789,47 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+@@ -647,6 +760,7 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+ 		ret = asus_kbd_init(hdev, FEATURE_KBD_LED_REPORT_ID1);
+ 		if (ret < 0)
+ 			return ret;
++		rgb_init = false;
+ 	}
+ 
+ 	/* Get keyboard functions */
+@@ -677,20 +791,47 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
  	if (!drvdata->kbd_backlight)
  		return -ENOMEM;
  
@@ -18569,7 +18578,7 @@ index de64451e315d..3ceeee88b241 100644
 +	leds->rgb_colors[0] = 0;
 +	leds->rgb_colors[1] = 0;
 +	leds->rgb_colors[2] = 0;
-+	leds->rgb_init = true;
++	leds->rgb_init = rgb_init;
 +	leds->rgb_set = false;
 +	leds->mc_led.led_cdev.name = devm_kasprintf(&hdev->dev, GFP_KERNEL,
 +					"asus-%s:rgb:peripheral",
@@ -18608,7 +18617,7 @@ index de64451e315d..3ceeee88b241 100644
  }
  
  /*
-@@ -1393,7 +1532,7 @@ static const struct hid_device_id asus_devices[] = {
+@@ -1393,7 +1534,7 @@ static const struct hid_device_id asus_devices[] = {
  	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_NKEY_LEGACY },
  	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
  	    USB_DEVICE_ID_ASUSTEK_ROG_Z13_LIGHTBAR),
@@ -18617,7 +18626,7 @@ index de64451e315d..3ceeee88b241 100644
  	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
  	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY),
  	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_ALLY_XPAD},
-@@ -1422,7 +1561,7 @@ static const struct hid_device_id asus_devices[] = {
+@@ -1422,7 +1563,7 @@ static const struct hid_device_id asus_devices[] = {
  	 */
  	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
  		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ROG_Z13_FOLIO),
@@ -18644,10 +18653,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 3ceeee88b241..f128ceda0362 100644
+index 799cf43d2cea..2864f8238eed 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
-@@ -1535,10 +1535,12 @@ static const struct hid_device_id asus_devices[] = {
+@@ -1537,10 +1537,12 @@ static const struct hid_device_id asus_devices[] = {
  	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_NKEY_RGB },
  	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
  	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY),
@@ -18681,10 +18690,10 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  2 files changed, 13 insertions(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index f128ceda0362..705c8a6ae5e8 100644
+index 2864f8238eed..4f8c44c8a7dd 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
-@@ -1100,6 +1100,7 @@ static int asus_input_mapping(struct hid_device *hdev,
+@@ -1102,6 +1102,7 @@ static int asus_input_mapping(struct hid_device *hdev,
  		case 0x8b: asus_map_key_clear(KEY_PROG1);	break; /* ProArt Creator Hub key */
  		case 0x6b: asus_map_key_clear(KEY_F21);		break; /* ASUS touchpad toggle */
  		case 0x38: asus_map_key_clear(KEY_PROG1);	break; /* ROG key */
@@ -18692,7 +18701,7 @@ index f128ceda0362..705c8a6ae5e8 100644
  		case 0xba: asus_map_key_clear(KEY_PROG2);	break; /* Fn+C ASUS Splendid */
  		case 0x5c: asus_map_key_clear(KEY_PROG3);	break; /* Fn+Space Power4Gear */
  		case 0x99: asus_map_key_clear(KEY_PROG4);	break; /* Fn+F5 "fan" symbol */
-@@ -1564,6 +1565,15 @@ static const struct hid_device_id asus_devices[] = {
+@@ -1566,6 +1567,15 @@ static const struct hid_device_id asus_devices[] = {
  	{ HID_DEVICE(BUS_USB, HID_GROUP_GENERIC,
  		USB_VENDOR_ID_ASUSTEK, USB_DEVICE_ID_ASUSTEK_ROG_Z13_FOLIO),
  	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_NKEY_RGB },
@@ -18827,7 +18836,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  3 files changed, 40 insertions(+), 139 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 705c8a6ae5e8..7eaa0c291d2b 100644
+index 4f8c44c8a7dd..2f0b5e5e686a 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -675,9 +675,6 @@ static void validate_mcu_fw_version(struct hid_device *hdev, int idProduct)
@@ -18840,7 +18849,7 @@ index 705c8a6ae5e8..7eaa0c291d2b 100644
  	}
  }
  
-@@ -1597,5 +1594,4 @@ static struct hid_driver asus_driver = {
+@@ -1599,5 +1596,4 @@ static struct hid_driver asus_driver = {
  };
  module_hid_driver(asus_driver);
  
@@ -19181,7 +19190,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  1 file changed, 5 insertions(+), 109 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 7eaa0c291d2b..c87bfe833155 100644
+index 2f0b5e5e686a..2cfca75d3928 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
 @@ -56,10 +56,6 @@ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
@@ -19312,8 +19321,8 @@ index 7eaa0c291d2b..c87bfe833155 100644
 -	struct usb_device *udev;
  	unsigned char kbd_func;
  	struct asus_kbd_leds *leds;
- 	int ret;
-@@ -769,13 +674,6 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
+ 	bool rgb_init = true;
+@@ -771,13 +676,6 @@ static int asus_kbd_register_leds(struct hid_device *hdev)
  			return ret;
  	}
  
@@ -19327,7 +19336,7 @@ index 7eaa0c291d2b..c87bfe833155 100644
  	/* Check for backlight support */
  	if (!(kbd_func & SUPPORT_KBD_BACKLIGHT))
  		return -ENODEV;
-@@ -1533,12 +1431,10 @@ static const struct hid_device_id asus_devices[] = {
+@@ -1535,12 +1433,10 @@ static const struct hid_device_id asus_devices[] = {
  	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_NKEY_RGB },
  	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
  	    USB_DEVICE_ID_ASUSTEK_ROG_NKEY_ALLY),
@@ -19359,10 +19368,10 @@ for the platform (should NOOP though).
  1 file changed, 6 deletions(-)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index c87bfe833155..463803dd6f71 100644
+index 2cfca75d3928..f04b6703825e 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
-@@ -1429,12 +1429,6 @@ static const struct hid_device_id asus_devices[] = {
+@@ -1431,12 +1431,6 @@ static const struct hid_device_id asus_devices[] = {
  	{ HID_USB_DEVICE(USB_VENDOR_ID_ASUSTEK,
  	    USB_DEVICE_ID_ASUSTEK_ROG_Z13_LIGHTBAR),
  	  QUIRK_USE_KBD_BACKLIGHT | QUIRK_ROG_NKEY_KEYBOARD | QUIRK_ROG_NKEY_RGB },
@@ -21519,10 +21528,10 @@ Acked-by: Jiri Kosina <jkosina@suse.com>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
-index 463803dd6f71..b307a466382d 100644
+index f04b6703825e..45c5ac672d05 100644
 --- a/drivers/hid/hid-asus.c
 +++ b/drivers/hid/hid-asus.c
-@@ -1484,4 +1484,5 @@ static struct hid_driver asus_driver = {
+@@ -1486,4 +1486,5 @@ static struct hid_driver asus_driver = {
  };
  module_hid_driver(asus_driver);
  
