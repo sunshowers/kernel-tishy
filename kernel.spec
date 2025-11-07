@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba04
+%define pkgrelease ba05
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba04%{?buildid}%{?dist}
+%define specrelease ba05%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -4536,7 +4536,7 @@ fi\
 #
 #
 %changelog
-* Tue Nov 04 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba04]
+* Fri Nov 07 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba05]
 - ALSA: hda/realtek: Add ASUS GA403W quirk (Antheas Kapenekakis)
 - platform/x86: asus-wmi: Don't reset charge threshold on boot (Antheas Kapenekakis)
 - ALSA: hda/realtek: Add match for ASUS Xbox Ally projects (Antheas Kapenekakis)
@@ -4658,7 +4658,6 @@ fi\
 - add ROG Ally devices to nct6775 (Antheas Kapenekakis)
 - platform/x86: asus-wmi: add early backlight init quirk (Antheas Kapenekakis)
 - HID: asus: add Zenbook Duo Keyboards (Antheas Kapenekakis)
-- HID: asus: initialize LED endpoint early for old NKEY keyboards (Antheas Kapenekakis)
 - HID: asus: add RGB support to the ROG Ally units (Antheas Kapenekakis)
 - HID: asus: add basic RGB support (Antheas Kapenekakis)
 - HID: asus: add Z13 folio to generic group for multitouch to work (Antheas Kapenekakis)
@@ -4667,6 +4666,7 @@ fi\
 - platform/x86: asus-wmi: remove unused keyboard backlight quirk (Antheas Kapenekakis)
 - HID: asus: listen to the asus-wmi brightness device instead of creating one (Antheas Kapenekakis)
 - platform/x86: asus-wmi: Add support for multiple kbd led handlers (Antheas Kapenekakis)
+- HID: asus: initialize LED endpoint early for old NKEY keyboards (Antheas Kapenekakis)
 - HID: asus: prevent binding to all HID devices on ROG (Antheas Kapenekakis)
 - HID: asus: fortify keyboard handshake (Antheas Kapenekakis)
 - HID: asus: use same report_id in response (Antheas Kapenekakis)
