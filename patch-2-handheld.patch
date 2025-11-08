@@ -52338,3 +52338,55 @@ index 1cc063bf6c0b..a3479f12dfa3 100644
 -- 
 2.51.2
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Sat, 8 Nov 2025 21:14:37 +0100
+Subject: Input: gpio_keys - handle KEY_POWER gracefully during resume
+
+Currently, during resume from suspend, if an ISR runs for a gpio-key
+the ISR will rightfully emit a key press event so that userspace does
+not miss the event (e.g., on an embedded device we might sleep until
+a user presses a button; and when we wake up we need to be able to
+identify the specific button).
+
+This creates an issue when the gpio-key is KEY_POWER. For ISA/ACPI
+power buttons, when the resume is caused by the power button, the power
+button device increases its wake up count but it does not re-emit
+KEY_POWER during resume. Therefore, both the kernel and userspace
+act unexpectedly if the gpio-key driver emits KEY_POWER during resume,
+by e.g., getting stuck in a suspend loop.
+
+This is a problem in newer ASUS devices (ASUS Z13, Xbox Ally, Xbox Ally
+X) as they wire the power button to a gpio pin. Therefore, specifically
+for KEY_POWER gpio-keys, suppress the event during resume to mirror this
+behavior. Do not do it for all keys, as certain embedded devices might
+be relying on this behavior.
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/input/keyboard/gpio_keys.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
+index f9db86da0818..48b927435170 100644
+--- a/drivers/input/keyboard/gpio_keys.c
++++ b/drivers/input/keyboard/gpio_keys.c
+@@ -420,6 +420,14 @@ static irqreturn_t gpio_keys_gpio_isr(int irq, void *dev_id)
+ 		pm_stay_awake(bdata->input->dev.parent);
+ 		if (bdata->suspended  &&
+ 		    (button->type == 0 || button->type == EV_KEY)) {
++			/*
++			 * We woke up due to KEY_POWER. If we reprocess the
++			 * event userspace/PM logic will get confused and
++			 * the device will sleep again. Do not handle
++			 * KEY_POWER during the resume phase.
++			 */
++			if (button->code == KEY_POWER)
++				return IRQ_HANDLED;
+ 			/*
+ 			 * Simulate wakeup key press in case the key has
+ 			 * already released by the time we got interrupt
+-- 
+2.51.2
+
