@@ -52340,53 +52340,140 @@ index 1cc063bf6c0b..a3479f12dfa3 100644
 
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Sat, 8 Nov 2025 21:14:37 +0100
-Subject: Input: gpio_keys - handle KEY_POWER gracefully during resume
+From: Armin Wolf <W_Armin@gmx.de>
+Date: Mon, 10 Nov 2025 12:12:52 +0100
+Subject: platform/x86: msi-wmi-platform: Only load on MSI devices
 
-Currently, during resume from suspend, if an ISR runs for a gpio-key
-the ISR will rightfully emit a key press event so that userspace does
-not miss the event (e.g., on an embedded device we might sleep until
-a user presses a button; and when we wake up we need to be able to
-identify the specific button).
+It turns out that the GUID used by the msi-wmi-platform driver
+(ABBC0F60-8EA1-11D1-00A0-C90629100000) is not unique, but was instead
+copied from the WIndows Driver Samples. This means that this driver
+could load on devices from other manufacturers that also copied this
+GUID, potentially causing hardware errors.
 
-This creates an issue when the gpio-key is KEY_POWER. For ISA/ACPI
-power buttons, when the resume is caused by the power button, the power
-button device increases its wake up count but it does not re-emit
-KEY_POWER during resume. Therefore, both the kernel and userspace
-act unexpectedly if the gpio-key driver emits KEY_POWER during resume,
-by e.g., getting stuck in a suspend loop.
+Prevent this by only loading on devices whitelisted via DMI. The DMI
+matches where taken from the msi-ec driver.
 
-This is a problem in newer ASUS devices (ASUS Z13, Xbox Ally, Xbox Ally
-X) as they wire the power button to a gpio pin. Therefore, specifically
-for KEY_POWER gpio-keys, suppress the event during resume to mirror this
-behavior. Do not do it for all keys, as certain embedded devices might
-be relying on this behavior.
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+Fixes: 9c0beb6b29e7 ("platform/x86: wmi: Add MSI WMI Platform driver")
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
 ---
- drivers/input/keyboard/gpio_keys.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/platform/x86/Kconfig            |  1 +
+ drivers/platform/x86/msi-wmi-platform.c | 40 ++++++++++++++++++++++++-
+ 2 files changed, 40 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index f9db86da0818..48b927435170 100644
---- a/drivers/input/keyboard/gpio_keys.c
-+++ b/drivers/input/keyboard/gpio_keys.c
-@@ -420,6 +420,14 @@ static irqreturn_t gpio_keys_gpio_isr(int irq, void *dev_id)
- 		pm_stay_awake(bdata->input->dev.parent);
- 		if (bdata->suspended  &&
- 		    (button->type == 0 || button->type == EV_KEY)) {
-+			/*
-+			 * We woke up due to KEY_POWER. If we reprocess the
-+			 * event userspace/PM logic will get confused and
-+			 * the device will sleep again. Do not handle
-+			 * KEY_POWER during the resume phase.
-+			 */
-+			if (button->code == KEY_POWER)
-+				return IRQ_HANDLED;
- 			/*
- 			 * Simulate wakeup key press in case the key has
- 			 * already released by the time we got interrupt
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index afd7e68395a2..0b92fa8e3663 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -562,6 +562,7 @@ config MSI_WMI_PLATFORM
+ 	tristate "MSI WMI Platform features"
+ 	depends on ACPI_BATTERY
+ 	depends on ACPI_WMI
++	depends on DMI
+ 	depends on HWMON
+ 	select ACPI_PLATFORM_PROFILE
+ 	select FW_ATTR_CLASS
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index 896fb11af696..59a03b00791a 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -1551,7 +1551,45 @@ static struct wmi_driver msi_wmi_platform_driver = {
+ 	.remove = msi_wmi_platform_remove,
+ 	.no_singleton = true,
+ };
+-module_wmi_driver(msi_wmi_platform_driver);
++
++/*
++ * MSI reused the WMI GUID from the WMI-ACPI sample code provided by Microsoft,
++ * so other manufacturers might use it as well for their WMI-ACPI implementations.
++ */
++static const struct dmi_system_id msi_wmi_platform_whitelist[] __initconst = {
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "MICRO-STAR INT"),
++		},
++	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		},
++	},
++	{ }
++};
++
++static int __init msi_wmi_platform_module_init(void)
++{
++	if (!dmi_check_system(msi_wmi_platform_whitelist)) {
++		if (!force)
++			return -ENODEV;
++
++		pr_warn("Ignoring DMI whitelist\n");
++	}
++
++	return wmi_driver_register(&msi_wmi_platform_driver);
++}
++
++static void __exit msi_wmi_platform_module_exit(void)
++{
++	wmi_driver_unregister(&msi_wmi_platform_driver);
++}
++
++module_init(msi_wmi_platform_module_init);
++module_exit(msi_wmi_platform_module_exit);
++
+ 
+ MODULE_AUTHOR("Armin Wolf <W_Armin@gmx.de>");
+ MODULE_DESCRIPTION("MSI WMI platform features");
+-- 
+2.51.2
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Armin Wolf <W_Armin@gmx.de>
+Date: Mon, 10 Nov 2025 12:12:53 +0100
+Subject: platform/x86: msi-wmi-platform: Fix typo in WMI GUID
+
+The WMI driver core only supports GUID strings containing only
+uppercase characters, however the GUID string used by the
+msi-wmi-platform driver contains a single lowercase character.
+This prevents the WMI driver core from matching said driver to
+its WMI device.
+
+Fix this by turning the lowercase character into a uppercase
+character. Also update the WMI driver development guide to warn
+about this.
+
+Fixes: 9c0beb6b29e7 ("platform/x86: wmi: Add MSI WMI Platform driver")
+Signed-off-by: Armin Wolf <W_Armin@gmx.de>
+---
+ Documentation/wmi/driver-development-guide.rst | 1 +
+ drivers/platform/x86/msi-wmi-platform.c        | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/wmi/driver-development-guide.rst b/Documentation/wmi/driver-development-guide.rst
+index 99ef21fc1c1e..5680303ae314 100644
+--- a/Documentation/wmi/driver-development-guide.rst
++++ b/Documentation/wmi/driver-development-guide.rst
+@@ -54,6 +54,7 @@ to matching WMI devices using a struct wmi_device_id table:
+ ::
+ 
+   static const struct wmi_device_id foo_id_table[] = {
++         /* Only use uppercase letters! */
+          { "936DA01F-9ABD-4D9D-80C7-02AF85C822A8", NULL },
+          { }
+   };
+diff --git a/drivers/platform/x86/msi-wmi-platform.c b/drivers/platform/x86/msi-wmi-platform.c
+index 59a03b00791a..2dbaa3c1f55c 100644
+--- a/drivers/platform/x86/msi-wmi-platform.c
++++ b/drivers/platform/x86/msi-wmi-platform.c
+@@ -40,7 +40,7 @@
+ 
+ #define DRIVER_NAME	"msi-wmi-platform"
+ 
+-#define MSI_PLATFORM_GUID	"ABBC0F6E-8EA1-11d1-00A0-C90629100000"
++#define MSI_PLATFORM_GUID	"ABBC0F6E-8EA1-11D1-00A0-C90629100000"
+ 
+ #define MSI_WMI_PLATFORM_INTERFACE_VERSION	2
+ 
 -- 
 2.51.2
 
