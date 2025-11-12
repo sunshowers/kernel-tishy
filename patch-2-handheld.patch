@@ -51019,7 +51019,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/Kconfig                           |   2 +
  drivers/Makefile                          |   2 +
  drivers/custom/.gitignore                 |   3 +
- drivers/custom/Kconfig                    | 121 +++++++++++
+ drivers/custom/Kconfig                    | 122 +++++++++++
  drivers/custom/Makefile                   |  46 ++++
  drivers/custom/ayaneo_platform            |   1 +
  drivers/custom/ayn_platform               |   1 +
@@ -51050,7 +51050,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  tools/objtool/builtin-check.c             |   1 +
  tools/objtool/check.c                     |   3 +
  tools/objtool/include/objtool/builtin.h   |   1 +
- 35 files changed, 540 insertions(+), 2 deletions(-)
+ 35 files changed, 541 insertions(+), 2 deletions(-)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -51188,10 +51188,10 @@ index 000000000000..b9adbda1674e
 \ No newline at end of file
 diff --git a/drivers/custom/Kconfig b/drivers/custom/Kconfig
 new file mode 100644
-index 000000000000..778f6188e9a5
+index 000000000000..fef5c07dcb64
 --- /dev/null
 +++ b/drivers/custom/Kconfig
-@@ -0,0 +1,121 @@
+@@ -0,0 +1,122 @@
 +config AYN
 +    tristate "AYN Platform Driver"
 +    help
@@ -51260,6 +51260,7 @@ index 000000000000..778f6188e9a5
 +
 +config WL
 +    tristate "Broadcom WL Driver"
++	depends on CFG80211
 +    help
 +        Broadcom WL driver for Linux. Link:
 +        https://github.com/bazzite-org/broadcom-wl
@@ -52473,6 +52474,170 @@ index 59a03b00791a..2dbaa3c1f55c 100644
 +#define MSI_PLATFORM_GUID	"ABBC0F6E-8EA1-11D1-00A0-C90629100000"
  
  #define MSI_WMI_PLATFORM_INTERFACE_VERSION	2
+ 
+-- 
+2.51.2
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 12 Nov 2025 23:20:48 +0100
+Subject: Revert "Input: xpad - change buttons the D-Pad gets mapped as to
+ BTN_DPAD_*"
+
+This reverts commit a43a503df996739ae34f179f6b73b0ae91000c5c.
+---
+ drivers/input/joystick/xpad.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index d2483ce93099..0b918611b2a7 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -444,8 +444,8 @@ static const signed short xpad_btn[] = {
+ 
+ /* used when dpad is mapped to buttons */
+ static const signed short xpad_btn_pad[] = {
+-	BTN_DPAD_LEFT, BTN_DPAD_RIGHT,	/* d-pad left, right */
+-	BTN_DPAD_UP, BTN_DPAD_DOWN,	/* d-pad up, down */
++	BTN_TRIGGER_HAPPY1, BTN_TRIGGER_HAPPY2,		/* d-pad left, right */
++	BTN_TRIGGER_HAPPY3, BTN_TRIGGER_HAPPY4,		/* d-pad up, down */
+ 	-1				/* terminating entry */
+ };
+ 
+@@ -843,10 +843,10 @@ static void xpad_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned char *d
+ 	/* digital pad */
+ 	if (xpad->mapping & MAP_DPAD_TO_BUTTONS) {
+ 		/* dpad as buttons (left, right, up, down) */
+-		input_report_key(dev, BTN_DPAD_LEFT, data[2] & BIT(2));
+-		input_report_key(dev, BTN_DPAD_RIGHT, data[2] & BIT(3));
+-		input_report_key(dev, BTN_DPAD_UP, data[2] & BIT(0));
+-		input_report_key(dev, BTN_DPAD_DOWN, data[2] & BIT(1));
++		input_report_key(dev, BTN_TRIGGER_HAPPY1, data[2] & BIT(2));
++		input_report_key(dev, BTN_TRIGGER_HAPPY2, data[2] & BIT(3));
++		input_report_key(dev, BTN_TRIGGER_HAPPY3, data[2] & BIT(0));
++		input_report_key(dev, BTN_TRIGGER_HAPPY4, data[2] & BIT(1));
+ 	} else {
+ 		input_report_abs(dev, ABS_HAT0X,
+ 				 !!(data[2] & 0x08) - !!(data[2] & 0x04));
+@@ -894,10 +894,10 @@ static void xpad360_process_packet(struct usb_xpad *xpad, struct input_dev *dev,
+ 	/* digital pad */
+ 	if (xpad->mapping & MAP_DPAD_TO_BUTTONS) {
+ 		/* dpad as buttons (left, right, up, down) */
+-		input_report_key(dev, BTN_DPAD_LEFT, data[2] & BIT(2));
+-		input_report_key(dev, BTN_DPAD_RIGHT, data[2] & BIT(3));
+-		input_report_key(dev, BTN_DPAD_UP, data[2] & BIT(0));
+-		input_report_key(dev, BTN_DPAD_DOWN, data[2] & BIT(1));
++		input_report_key(dev, BTN_TRIGGER_HAPPY1, data[2] & BIT(2));
++		input_report_key(dev, BTN_TRIGGER_HAPPY2, data[2] & BIT(3));
++		input_report_key(dev, BTN_TRIGGER_HAPPY3, data[2] & BIT(0));
++		input_report_key(dev, BTN_TRIGGER_HAPPY4, data[2] & BIT(1));
+ 	}
+ 
+ 	/*
+@@ -1116,10 +1116,10 @@ static void xpadone_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned char
+ 		/* digital pad */
+ 		if (xpad->mapping & MAP_DPAD_TO_BUTTONS) {
+ 			/* dpad as buttons (left, right, up, down) */
+-			input_report_key(dev, BTN_DPAD_LEFT, data[5] & BIT(2));
+-			input_report_key(dev, BTN_DPAD_RIGHT, data[5] & BIT(3));
+-			input_report_key(dev, BTN_DPAD_UP, data[5] & BIT(0));
+-			input_report_key(dev, BTN_DPAD_DOWN, data[5] & BIT(1));
++			input_report_key(dev, BTN_TRIGGER_HAPPY1, data[5] & BIT(2));
++			input_report_key(dev, BTN_TRIGGER_HAPPY2, data[5] & BIT(3));
++			input_report_key(dev, BTN_TRIGGER_HAPPY3, data[5] & BIT(0));
++			input_report_key(dev, BTN_TRIGGER_HAPPY4, data[5] & BIT(1));
+ 		} else {
+ 			input_report_abs(dev, ABS_HAT0X,
+ 					!!(data[5] & 0x08) - !!(data[5] & 0x04));
+-- 
+2.51.2
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Wed, 12 Nov 2025 23:20:52 +0100
+Subject: Revert "Input: xpad - use new BTN_GRIP* buttons"
+
+This reverts commit e7412ba919f625438c570d8b4fbf16c5f31b583d.
+---
+ drivers/input/joystick/xpad.c | 36 +++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index 0b918611b2a7..5ec7684f93ed 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -481,8 +481,8 @@ static const signed short xpad_abs_triggers[] = {
+ 
+ /* used when the controller has extra paddle buttons */
+ static const signed short xpad_btn_paddles[] = {
+-	BTN_GRIPR, BTN_GRIPR2, /* paddle upper right, lower right */
+-	BTN_GRIPL, BTN_GRIPL2, /* paddle upper left, lower left */
++	BTN_TRIGGER_HAPPY5, BTN_TRIGGER_HAPPY6, /* paddle upper right, lower right */
++	BTN_TRIGGER_HAPPY7, BTN_TRIGGER_HAPPY8, /* paddle upper left, lower left */
+ 	-1						/* terminating entry */
+ };
+ 
+@@ -1078,10 +1078,10 @@ static void xpadone_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned char
+ 				data[18] = 0;
+ 
+ 			/* Elite Series 2 split packet paddle bits */
+-			input_report_key(dev, BTN_GRIPR, data[18] & BIT(0));
+-			input_report_key(dev, BTN_GRIPR2, data[18] & BIT(1));
+-			input_report_key(dev, BTN_GRIPL, data[18] & BIT(2));
+-			input_report_key(dev, BTN_GRIPL2, data[18] & BIT(3));
++			input_report_key(dev, BTN_TRIGGER_HAPPY5, data[18] & BIT(0));
++			input_report_key(dev, BTN_TRIGGER_HAPPY6, data[18] & BIT(1));
++			input_report_key(dev, BTN_TRIGGER_HAPPY7, data[18] & BIT(2));
++			input_report_key(dev, BTN_TRIGGER_HAPPY8, data[18] & BIT(3));
+ 
+ 			do_sync = true;
+ 		}
+@@ -1178,10 +1178,10 @@ static void xpadone_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned char
+ 					data[32] = 0;
+ 
+ 				/* OG Elite Series Controller paddle bits */
+-				input_report_key(dev, BTN_GRIPR, data[32] & BIT(1));
+-				input_report_key(dev, BTN_GRIPR2, data[32] & BIT(3));
+-				input_report_key(dev, BTN_GRIPL, data[32] & BIT(0));
+-				input_report_key(dev, BTN_GRIPL2, data[32] & BIT(2));
++				input_report_key(dev, BTN_TRIGGER_HAPPY5, data[32] & BIT(1));
++				input_report_key(dev, BTN_TRIGGER_HAPPY6, data[32] & BIT(3));
++				input_report_key(dev, BTN_TRIGGER_HAPPY7, data[32] & BIT(0));
++				input_report_key(dev, BTN_TRIGGER_HAPPY8, data[32] & BIT(2));
+ 			} else if (xpad->packet_type == PKT_XBE2_FW_OLD) {
+ 				/* Mute paddles if controller has a custom mapping applied.
+ 				 * Checked by comparing the current mapping
+@@ -1191,10 +1191,10 @@ static void xpadone_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned char
+ 					data[18] = 0;
+ 
+ 				/* Elite Series 2 4.x firmware paddle bits */
+-				input_report_key(dev, BTN_GRIPR, data[18] & BIT(0));
+-				input_report_key(dev, BTN_GRIPR2, data[18] & BIT(1));
+-				input_report_key(dev, BTN_GRIPL, data[18] & BIT(2));
+-				input_report_key(dev, BTN_GRIPL2, data[18] & BIT(3));
++				input_report_key(dev, BTN_TRIGGER_HAPPY5, data[18] & BIT(0));
++				input_report_key(dev, BTN_TRIGGER_HAPPY6, data[18] & BIT(1));
++				input_report_key(dev, BTN_TRIGGER_HAPPY7, data[18] & BIT(2));
++				input_report_key(dev, BTN_TRIGGER_HAPPY8, data[18] & BIT(3));
+ 			} else if (xpad->packet_type == PKT_XBE2_FW_5_EARLY) {
+ 				/* Mute paddles if controller has a custom mapping applied.
+ 				 * Checked by comparing the current mapping
+@@ -1206,10 +1206,10 @@ static void xpadone_process_packet(struct usb_xpad *xpad, u16 cmd, unsigned char
+ 				/* Elite Series 2 5.x firmware paddle bits
+ 				 * (before the packet was split)
+ 				 */
+-				input_report_key(dev, BTN_GRIPR, data[22] & BIT(0));
+-				input_report_key(dev, BTN_GRIPR2, data[22] & BIT(1));
+-				input_report_key(dev, BTN_GRIPL, data[22] & BIT(2));
+-				input_report_key(dev, BTN_GRIPL2, data[22] & BIT(3));
++				input_report_key(dev, BTN_TRIGGER_HAPPY5, data[22] & BIT(0));
++				input_report_key(dev, BTN_TRIGGER_HAPPY6, data[22] & BIT(1));
++				input_report_key(dev, BTN_TRIGGER_HAPPY7, data[22] & BIT(2));
++				input_report_key(dev, BTN_TRIGGER_HAPPY8, data[22] & BIT(3));
+ 			}
+ 		}
  
 -- 
 2.51.2
