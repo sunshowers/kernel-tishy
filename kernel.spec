@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba08
+%define pkgrelease ba09
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba08%{?buildid}%{?dist}
+%define specrelease ba09%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -4537,7 +4537,7 @@ fi\
 #
 #
 %changelog
-* Wed Nov 12 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba08]
+* Thu Nov 13 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba09]
 - Revert "Input: xpad - use new BTN_GRIP* buttons" (Antheas Kapenekakis)
 - Revert "Input: xpad - change buttons the D-Pad gets mapped as to BTN_DPAD_*" (Antheas Kapenekakis)
 - platform/x86: msi-wmi-platform: Fix typo in WMI GUID (Armin Wolf)

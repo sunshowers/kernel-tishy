@@ -67019,14 +67019,14 @@ index 000000000000..64b09ece2e5a
 +
 # ----------------------------------------
 # Module: broadcom-wl
-# Version: 4d1584336ba6
+# Version: d8f25f3e543e
 # ----------------------------------------
 diff --git a/drivers/custom/broadcom-wl/Makefile b/drivers/custom/broadcom-wl/Makefile
 new file mode 100644
-index 000000000000..355cfb07f450
+index 000000000000..781ec6bad37c
 --- /dev/null
 +++ b/drivers/custom/broadcom-wl/Makefile
-@@ -0,0 +1,89 @@
+@@ -0,0 +1,73 @@
 +#
 +# Makefile fragment for Linux 2.6
 +# Broadcom 802.11abg Networking Device Driver
@@ -67047,23 +67047,7 @@ index 000000000000..355cfb07f450
 +#
 +# $Id: Makefile_kbuild_portsrc 580354 2015-08-18 23:42:37Z $
 +
-+# Its so old we only care about this now
-+LINUXVER_GOODFOR_CFG80211 := "TRUE"
-+LINUXVER_WEXT_ONLY := "FALSE"
-+APICHOICE := "PREFER_CFG80211"
-+APIFINAL := "CFG80211"
-+
-+ccflags-y :=
-+
-+ifeq ($(APIFINAL),CFG80211)
-+  ccflags-y += -DUSE_CFG80211
-+  $(info Using CFG80211 API)
-+endif
-+
-+ifeq ($(APIFINAL),WEXT)
-+  ccflags-y += -DUSE_IW
-+  $(info Using Wireless Extension API)
-+endif
++subdir-ccflags-y += -DUSE_CFG80211
 +
 +obj-m              += wl.o
 +
@@ -67073,9 +67057,9 @@ index 000000000000..355cfb07f450
 +wl-objs            += src/wl/sys/wl_iw.o
 +wl-objs            += src/wl/sys/wl_cfg80211_hybrid.o
 +
-+ccflags-y          += -I$(src)/src/include -I$(src)/src/common/include
-+ccflags-y          += -I$(src)/src/wl/sys -I$(src)/src/wl/phy -I$(src)/src/wl/ppr/include
-+ccflags-y          += -I$(src)/src/shared/bcmwifi/include
++subdir-ccflags-y   += -I$(src)/src/include -I$(src)/src/common/include
++subdir-ccflags-y   += -I$(src)/src/wl/sys -I$(src)/src/wl/phy -I$(src)/src/wl/ppr/include
++subdir-ccflags-y   += -I$(src)/src/shared/bcmwifi/include
 +#ccflags-y          += -DBCMDBG_ASSERT -DBCMDBG_ERR
 +
 +ldflags-y          := $(src)/lib/wlc_hybrid.o_shipped
