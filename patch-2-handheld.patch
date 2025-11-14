@@ -52642,3 +52642,195 @@ index 0b918611b2a7..5ec7684f93ed 100644
 -- 
 2.51.2
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Fri, 14 Nov 2025 14:57:18 +0100
+Subject: Revert "drm/amd/display: Clear DPP 3DLUT Cap"
+
+This reverts commit 39923050615cd04231ea664c4cc5dbc8560b8b42.
+---
+ drivers/gpu/drm/amd/display/dc/dc.h                          | 1 -
+ .../gpu/drm/amd/display/dc/resource/dcn32/dcn32_resource.c   | 3 +--
+ .../gpu/drm/amd/display/dc/resource/dcn321/dcn321_resource.c | 5 ++---
+ .../gpu/drm/amd/display/dc/resource/dcn35/dcn35_resource.c   | 3 +--
+ .../gpu/drm/amd/display/dc/resource/dcn351/dcn351_resource.c | 3 +--
+ .../gpu/drm/amd/display/dc/resource/dcn36/dcn36_resource.c   | 3 +--
+ .../gpu/drm/amd/display/dc/resource/dcn401/dcn401_resource.c | 1 -
+ 7 files changed, 6 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/dc/dc.h b/drivers/gpu/drm/amd/display/dc/dc.h
+index 8ae9d550afdf..f761f31aad51 100644
+--- a/drivers/gpu/drm/amd/display/dc/dc.h
++++ b/drivers/gpu/drm/amd/display/dc/dc.h
+@@ -251,7 +251,6 @@ struct mpc_color_caps {
+ 	struct rom_curve_caps ogam_rom_caps;
+ 	struct lut3d_caps mcm_3d_lut_caps;
+ 	struct lut3d_caps rmcm_3d_lut_caps;
+-	bool preblend;
+ };
+ 
+ /**
+diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn32/dcn32_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn32/dcn32_resource.c
+index 9917b366f00c..ff7c8e29a255 100644
+--- a/drivers/gpu/drm/amd/display/dc/resource/dcn32/dcn32_resource.c
++++ b/drivers/gpu/drm/amd/display/dc/resource/dcn32/dcn32_resource.c
+@@ -2251,7 +2251,7 @@ static bool dcn32_resource_construct(
+ 	dc->caps.color.dpp.gamma_corr = 1;
+ 	dc->caps.color.dpp.dgam_rom_for_yuv = 0;
+ 
+-	dc->caps.color.dpp.hw_3d_lut = 0;
++	dc->caps.color.dpp.hw_3d_lut = 1;
+ 	dc->caps.color.dpp.ogam_ram = 0;  // no OGAM in DPP since DCN1
+ 	// no OGAM ROM on DCN2 and later ASICs
+ 	dc->caps.color.dpp.ogam_rom_caps.srgb = 0;
+@@ -2270,7 +2270,6 @@ static bool dcn32_resource_construct(
+ 	dc->caps.color.mpc.ogam_rom_caps.pq = 0;
+ 	dc->caps.color.mpc.ogam_rom_caps.hlg = 0;
+ 	dc->caps.color.mpc.ocsc = 1;
+-	dc->caps.color.mpc.preblend = true;
+ 
+ 	/* Use pipe context based otg sync logic */
+ 	dc->config.use_pipe_ctx_sync_logic = true;
+diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn321/dcn321_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn321/dcn321_resource.c
+index 061c0907d802..aa3645c11dcb 100644
+--- a/drivers/gpu/drm/amd/display/dc/resource/dcn321/dcn321_resource.c
++++ b/drivers/gpu/drm/amd/display/dc/resource/dcn321/dcn321_resource.c
+@@ -1755,8 +1755,8 @@ static bool dcn321_resource_construct(
+ 	dc->caps.color.dpp.gamma_corr = 1;
+ 	dc->caps.color.dpp.dgam_rom_for_yuv = 0;
+ 
+-	dc->caps.color.dpp.hw_3d_lut = 0;
+-	dc->caps.color.dpp.ogam_ram = 0;
++	dc->caps.color.dpp.hw_3d_lut = 1;
++	dc->caps.color.dpp.ogam_ram = 1;
+ 	// no OGAM ROM on DCN2 and later ASICs
+ 	dc->caps.color.dpp.ogam_rom_caps.srgb = 0;
+ 	dc->caps.color.dpp.ogam_rom_caps.bt2020 = 0;
+@@ -1774,7 +1774,6 @@ static bool dcn321_resource_construct(
+ 	dc->caps.color.mpc.ogam_rom_caps.pq = 0;
+ 	dc->caps.color.mpc.ogam_rom_caps.hlg = 0;
+ 	dc->caps.color.mpc.ocsc = 1;
+-	dc->caps.color.mpc.preblend = true;
+ 
+ 	/* Use pipe context based otg sync logic */
+ 	dc->config.use_pipe_ctx_sync_logic = true;
+diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn35/dcn35_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn35/dcn35_resource.c
+index 32678b66c410..0e77d83cb4cc 100644
+--- a/drivers/gpu/drm/amd/display/dc/resource/dcn35/dcn35_resource.c
++++ b/drivers/gpu/drm/amd/display/dc/resource/dcn35/dcn35_resource.c
+@@ -1890,7 +1890,7 @@ static bool dcn35_resource_construct(
+ 	dc->caps.color.dpp.gamma_corr = 1;
+ 	dc->caps.color.dpp.dgam_rom_for_yuv = 0;
+ 
+-	dc->caps.color.dpp.hw_3d_lut = 0;
++	dc->caps.color.dpp.hw_3d_lut = 1;
+ 	dc->caps.color.dpp.ogam_ram = 0;  // no OGAM in DPP since DCN1
+ 	// no OGAM ROM on DCN301
+ 	dc->caps.color.dpp.ogam_rom_caps.srgb = 0;
+@@ -1909,7 +1909,6 @@ static bool dcn35_resource_construct(
+ 	dc->caps.color.mpc.ogam_rom_caps.pq = 0;
+ 	dc->caps.color.mpc.ogam_rom_caps.hlg = 0;
+ 	dc->caps.color.mpc.ocsc = 1;
+-	dc->caps.color.mpc.preblend = true;
+ 
+ 	dc->caps.num_of_host_routers = 2;
+ 	dc->caps.num_of_dpias_per_host_router = 2;
+diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn351/dcn351_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn351/dcn351_resource.c
+index 677cee27589c..cfde0d2daf47 100644
+--- a/drivers/gpu/drm/amd/display/dc/resource/dcn351/dcn351_resource.c
++++ b/drivers/gpu/drm/amd/display/dc/resource/dcn351/dcn351_resource.c
+@@ -1863,7 +1863,7 @@ static bool dcn351_resource_construct(
+ 	dc->caps.color.dpp.gamma_corr = 1;
+ 	dc->caps.color.dpp.dgam_rom_for_yuv = 0;
+ 
+-	dc->caps.color.dpp.hw_3d_lut = 0;
++	dc->caps.color.dpp.hw_3d_lut = 1;
+ 	dc->caps.color.dpp.ogam_ram = 0;  // no OGAM in DPP since DCN1
+ 	// no OGAM ROM on DCN301
+ 	dc->caps.color.dpp.ogam_rom_caps.srgb = 0;
+@@ -1882,7 +1882,6 @@ static bool dcn351_resource_construct(
+ 	dc->caps.color.mpc.ogam_rom_caps.pq = 0;
+ 	dc->caps.color.mpc.ogam_rom_caps.hlg = 0;
+ 	dc->caps.color.mpc.ocsc = 1;
+-	dc->caps.color.mpc.preblend = true;
+ 
+ 	dc->caps.num_of_host_routers = 2;
+ 	dc->caps.num_of_dpias_per_host_router = 2;
+diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn36/dcn36_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn36/dcn36_resource.c
+index d81540515e5c..270282b7ba63 100644
+--- a/drivers/gpu/drm/amd/display/dc/resource/dcn36/dcn36_resource.c
++++ b/drivers/gpu/drm/amd/display/dc/resource/dcn36/dcn36_resource.c
+@@ -1863,7 +1863,7 @@ static bool dcn36_resource_construct(
+ 	dc->caps.color.dpp.gamma_corr = 1;
+ 	dc->caps.color.dpp.dgam_rom_for_yuv = 0;
+ 
+-	dc->caps.color.dpp.hw_3d_lut = 0;
++	dc->caps.color.dpp.hw_3d_lut = 1;
+ 	dc->caps.color.dpp.ogam_ram = 0;  // no OGAM in DPP since DCN1
+ 	// no OGAM ROM on DCN301
+ 	dc->caps.color.dpp.ogam_rom_caps.srgb = 0;
+@@ -1882,7 +1882,6 @@ static bool dcn36_resource_construct(
+ 	dc->caps.color.mpc.ogam_rom_caps.pq = 0;
+ 	dc->caps.color.mpc.ogam_rom_caps.hlg = 0;
+ 	dc->caps.color.mpc.ocsc = 1;
+-	dc->caps.color.mpc.preblend = true;
+ 
+ 	dc->caps.num_of_host_routers = 2;
+ 	dc->caps.num_of_dpias_per_host_router = 2;
+diff --git a/drivers/gpu/drm/amd/display/dc/resource/dcn401/dcn401_resource.c b/drivers/gpu/drm/amd/display/dc/resource/dcn401/dcn401_resource.c
+index b3988e38d0a6..21533bfc2672 100644
+--- a/drivers/gpu/drm/amd/display/dc/resource/dcn401/dcn401_resource.c
++++ b/drivers/gpu/drm/amd/display/dc/resource/dcn401/dcn401_resource.c
+@@ -1948,7 +1948,6 @@ static bool dcn401_resource_construct(
+ 	dc->caps.color.mpc.ogam_rom_caps.pq = 0;
+ 	dc->caps.color.mpc.ogam_rom_caps.hlg = 0;
+ 	dc->caps.color.mpc.ocsc = 1;
+-	dc->caps.color.mpc.preblend = true;
+ 	dc->config.use_spl = true;
+ 	dc->config.prefer_easf = true;
+ 
+-- 
+2.51.2
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Fri, 14 Nov 2025 14:59:04 +0100
+Subject: Revert "drm/amd/display: Use mpc.preblend flag to indicate preblend"
+
+This reverts commit 1c3217dd557d4f04eb4c2afcd7c76de6b4d66ccb.
+---
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c | 2 +-
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c
+index 5b338ebb7672..1234c774f4f3 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_color.c
+@@ -821,7 +821,7 @@ int amdgpu_dm_verify_lut3d_size(struct amdgpu_device *adev,
+ 	struct dm_plane_state *dm_plane_state = to_dm_plane_state(plane_state);
+ 	const struct drm_color_lut *shaper = NULL, *lut3d = NULL;
+ 	uint32_t exp_size, size, dim_size = MAX_COLOR_3DLUT_SIZE;
+-	bool has_3dlut = adev->dm.dc->caps.color.dpp.hw_3d_lut || adev->dm.dc->caps.color.mpc.preblend;
++	bool has_3dlut = adev->dm.dc->caps.color.dpp.hw_3d_lut;
+ 
+ 	/* shaper LUT is only available if 3D LUT color caps */
+ 	exp_size = has_3dlut ? MAX_COLOR_LUT_ENTRIES : 0;
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
+index 1cda0153cd52..82241b31f7f3 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_plane.c
+@@ -1633,7 +1633,7 @@ dm_atomic_plane_attach_color_mgmt_properties(struct amdgpu_display_manager *dm,
+ 		drm_object_attach_property(&plane->base,
+ 					   dm->adev->mode_info.plane_ctm_property, 0);
+ 
+-	if (dpp_color_caps.hw_3d_lut || dm->dc->caps.color.mpc.preblend) {
++	if (dpp_color_caps.hw_3d_lut) {
+ 		drm_object_attach_property(&plane->base,
+ 					   mode_info.plane_shaper_lut_property, 0);
+ 		drm_object_attach_property(&plane->base,
+-- 
+2.51.2
+

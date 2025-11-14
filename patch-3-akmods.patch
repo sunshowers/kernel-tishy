@@ -67019,7 +67019,7 @@ index 000000000000..64b09ece2e5a
 +
 # ----------------------------------------
 # Module: broadcom-wl
-# Version: d8f25f3e543e
+# Version: 758358cffe5a
 # ----------------------------------------
 diff --git a/drivers/custom/broadcom-wl/Makefile b/drivers/custom/broadcom-wl/Makefile
 new file mode 100644
@@ -84366,7 +84366,7 @@ index 000000000000..1819e5fcfd41
 +#endif 
 diff --git a/drivers/custom/broadcom-wl/src/wl/sys/wl_linux.c b/drivers/custom/broadcom-wl/src/wl/sys/wl_linux.c
 new file mode 100644
-index 000000000000..be6b413087c5
+index 000000000000..94d270512433
 --- /dev/null
 +++ b/drivers/custom/broadcom-wl/src/wl/sys/wl_linux.c
 @@ -0,0 +1,3448 @@
@@ -84541,7 +84541,7 @@ index 000000000000..be6b413087c5
 +#endif
 +
 +// Rel. commit "modpost: require a MODULE_DESCRIPTION()" (Jeff Johnson, 11 Mar 2025)
-+MODULE_DESCRIPTION("Broadcom-wl wireless driver [unmaintained, out-of-tree]");
++MODULE_DESCRIPTION("Broadcom-wl wireless driver");
 +MODULE_LICENSE("MIXED/Proprietary");
 +
 +static struct pci_device_id wl_id_table[] =
