@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba12
+%define pkgrelease ba13
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba12%{?buildid}%{?dist}
+%define specrelease ba13%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -4538,7 +4538,7 @@ fi\
 #
 #
 %changelog
-* Fri Nov 14 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba12]
+* Fri Nov 14 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba13]
 - Revert "drm/amd/display: Use mpc.preblend flag to indicate preblend" (Antheas Kapenekakis)
 - Revert "drm/amd/display: Clear DPP 3DLUT Cap" (Antheas Kapenekakis)
 - Revert "Input: xpad - use new BTN_GRIP* buttons" (Antheas Kapenekakis)

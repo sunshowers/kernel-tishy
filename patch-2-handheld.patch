@@ -51034,7 +51034,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/custom/hid-tmff2                  |   1 +
  drivers/custom/kvfm                       |   1 +
  drivers/custom/lg4ff                      |   1 +
- drivers/custom/modprobe.conf              |   1 +
+ drivers/custom/modprobe.conf              |   8 +
  drivers/custom/modules-load.conf          |   4 +
  drivers/custom/nct6687d                   |   1 +
  drivers/custom/netmanager.conf            |  15 ++
@@ -51050,7 +51050,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  tools/objtool/builtin-check.c             |   1 +
  tools/objtool/check.c                     |   3 +
  tools/objtool/include/objtool/builtin.h   |   1 +
- 35 files changed, 534 insertions(+), 2 deletions(-)
+ 35 files changed, 541 insertions(+), 2 deletions(-)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -51461,11 +51461,18 @@ index 000000000000..2092db19f7b4
 +Subproject commit 2092db19f7b40854e0427a1b2e39eda9f8d0c3cd
 diff --git a/drivers/custom/modprobe.conf b/drivers/custom/modprobe.conf
 new file mode 100644
-index 000000000000..6eccdca1d8a5
+index 000000000000..dec71c4e4c15
 --- /dev/null
 +++ b/drivers/custom/modprobe.conf
-@@ -0,0 +1 @@
+@@ -0,0 +1,8 @@
 +options v4l2loopback exclusive_caps=1 card_label="OBS Virtual Camera"
++
++### These modules must be blacklisted for use with broadcom-wl
++blacklist ssb
++blacklist bcma
++blacklist b43
++blacklist brcmsmac
++blacklist brcmfmac
 \ No newline at end of file
 diff --git a/drivers/custom/modules-load.conf b/drivers/custom/modules-load.conf
 new file mode 100644
