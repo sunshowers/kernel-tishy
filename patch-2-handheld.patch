@@ -51034,7 +51034,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/custom/hid-tmff2                  |   1 +
  drivers/custom/kvfm                       |   1 +
  drivers/custom/lg4ff                      |   1 +
- drivers/custom/modprobe.conf              |   8 +
+ drivers/custom/modprobe.conf              |   1 +
  drivers/custom/modules-load.conf          |   4 +
  drivers/custom/nct6687d                   |   1 +
  drivers/custom/netmanager.conf            |  15 ++
@@ -51050,7 +51050,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  tools/objtool/builtin-check.c             |   1 +
  tools/objtool/check.c                     |   3 +
  tools/objtool/include/objtool/builtin.h   |   1 +
- 35 files changed, 541 insertions(+), 2 deletions(-)
+ 35 files changed, 534 insertions(+), 2 deletions(-)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -51391,11 +51391,11 @@ index 000000000000..2d764db2bd69
 +Subproject commit 2d764db2bd69f2922d7fad6cb162136e32f357a2
 diff --git a/drivers/custom/broadcom-wl b/drivers/custom/broadcom-wl
 new file mode 160000
-index 000000000000..d8f25f3e543e
+index 000000000000..758358cffe5a
 --- /dev/null
 +++ b/drivers/custom/broadcom-wl
 @@ -0,0 +1 @@
-+Subproject commit d8f25f3e543e88322387322aa752898fc5682aa5
++Subproject commit 758358cffe5ae3f9b7f25428de05feee238afdde
 diff --git a/drivers/custom/cdemu b/drivers/custom/cdemu
 new file mode 160000
 index 000000000000..d00300615639
@@ -51461,18 +51461,11 @@ index 000000000000..2092db19f7b4
 +Subproject commit 2092db19f7b40854e0427a1b2e39eda9f8d0c3cd
 diff --git a/drivers/custom/modprobe.conf b/drivers/custom/modprobe.conf
 new file mode 100644
-index 000000000000..dec71c4e4c15
+index 000000000000..6eccdca1d8a5
 --- /dev/null
 +++ b/drivers/custom/modprobe.conf
-@@ -0,0 +1,8 @@
+@@ -0,0 +1 @@
 +options v4l2loopback exclusive_caps=1 card_label="OBS Virtual Camera"
-+
-+### These modules must be blacklisted for use with broadcom-wl
-+blacklist ssb
-+blacklist bcma
-+blacklist b43
-+blacklist brcmsmac
-+blacklist brcmfmac
 \ No newline at end of file
 diff --git a/drivers/custom/modules-load.conf b/drivers/custom/modules-load.conf
 new file mode 100644
