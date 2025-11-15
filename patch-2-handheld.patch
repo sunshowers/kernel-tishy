@@ -51020,7 +51020,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/Makefile                          |   2 +
  drivers/custom/.gitignore                 |   3 +
  drivers/custom/Kconfig                    | 122 +++++++++++
- drivers/custom/Makefile                   |  46 ++++
+ drivers/custom/Makefile                   |  44 ++++
  drivers/custom/ayaneo_platform            |   1 +
  drivers/custom/ayn_platform               |   1 +
  drivers/custom/bmi260                     |   1 +
@@ -51037,7 +51037,6 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  drivers/custom/modprobe.conf              |   8 +
  drivers/custom/modules-load.conf          |   4 +
  drivers/custom/nct6687d                   |   1 +
- drivers/custom/netmanager.conf            |  15 ++
  drivers/custom/nvidia-separate-drivers.py | 248 ++++++++++++++++++++++
  drivers/custom/razer                      |   1 +
  drivers/custom/system76                   |   1 +
@@ -51050,7 +51049,7 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  tools/objtool/builtin-check.c             |   1 +
  tools/objtool/check.c                     |   3 +
  tools/objtool/include/objtool/builtin.h   |   1 +
- 35 files changed, 541 insertions(+), 2 deletions(-)
+ 34 files changed, 524 insertions(+), 2 deletions(-)
  create mode 100644 .gitmodules
  create mode 100644 drivers/custom/.gitignore
  create mode 100644 drivers/custom/Kconfig
@@ -51071,7 +51070,6 @@ Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
  create mode 100644 drivers/custom/modprobe.conf
  create mode 100644 drivers/custom/modules-load.conf
  create mode 160000 drivers/custom/nct6687d
- create mode 100644 drivers/custom/netmanager.conf
  create mode 100644 drivers/custom/nvidia-separate-drivers.py
  create mode 160000 drivers/custom/razer
  create mode 160000 drivers/custom/system76
@@ -51317,10 +51315,10 @@ index 000000000000..fef5c07dcb64
 \ No newline at end of file
 diff --git a/drivers/custom/Makefile b/drivers/custom/Makefile
 new file mode 100644
-index 000000000000..5040b7881cb9
+index 000000000000..ad7a1191bfe2
 --- /dev/null
 +++ b/drivers/custom/Makefile
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,44 @@
 +obj-$(CONFIG_AYN) += ayn_platform/
 +obj-$(CONFIG_AYANEO) += ayaneo_platform/
 +obj-$(CONFIG_BMI260) += bmi260/
@@ -51365,8 +51363,6 @@ index 000000000000..5040b7881cb9
 +	install -D -m 0755 v4l2loopback/utils/v4l2loopback-ctl $(INSTALL_DIR)/usr/bin/v4l2loopback-ctl
 +
 +	install -D t150/files/etc/udev/rules.d/10-t150.rules $(INSTALL_DIR)/usr/lib/udev/rules.d/10-t150.rules
-+
-+	install -D netmanager.conf $(INSTALL_DIR)/usr/lib/NetworkManager/conf.d/20-akmods.conf
 \ No newline at end of file
 diff --git a/drivers/custom/ayaneo_platform b/drivers/custom/ayaneo_platform
 new file mode 160000
@@ -51492,27 +51488,6 @@ index 000000000000..80dc037bb5e1
 +++ b/drivers/custom/nct6687d
 @@ -0,0 +1 @@
 +Subproject commit 80dc037bb5e1c354ec05040f69d6144f79725ef4
-diff --git a/drivers/custom/netmanager.conf b/drivers/custom/netmanager.conf
-new file mode 100644
-index 000000000000..f0e97492f9ba
---- /dev/null
-+++ b/drivers/custom/netmanager.conf
-@@ -0,0 +1,15 @@
-+### This file disables MAC address randomization while scanning wireless access point as a workaround for RHBZ#1703745 and RFBZ#5245.
-+### See:
-+### - https://bugzilla.gnome.org/show_bug.cgi?id=777523
-+### - RHBZ#1695696
-+#
-+### WARNING: Anonymity is potentially disabled while scanning for a wireless access point.
-+
-+[device-disable-wifi-scan-rand-mac-address]
-+match-device=driver:wl
-+wifi.scan-rand-mac-address=no
-+
-+[connection-disable-wifi-scan-rand-mac-address]
-+match-device=driver:wl
-+wifi.cloned-mac-address=preserve
-+ethernet.cloned-mac-address=preserve
 diff --git a/drivers/custom/nvidia-separate-drivers.py b/drivers/custom/nvidia-separate-drivers.py
 new file mode 100644
 index 000000000000..a3c0253d2408
