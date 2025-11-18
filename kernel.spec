@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba14
+%define pkgrelease ba15
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba14%{?buildid}%{?dist}
+%define specrelease ba15%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -973,8 +973,8 @@ Source2: %{package_name}.changelog
 Source4: broadcom-wl.blob
 
 %define evdi_version 1.14.11
-%define nvidia_version 580.105.08
-%define nvidia_version_lts 580.105.08
+%define nvidia_version 580.95.05
+%define nvidia_version_lts 580.95.05
 %define nvidia_epoch 3
 %if %{with_nvidia}
 Source5: nvidia-kmod-%{_build_arch}-%{nvidia_version}.tar.xz
@@ -4537,7 +4537,9 @@ fi\
 #
 #
 %changelog
-* Sun Nov 16 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba14]
+* Tue Nov 18 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba15]
+- use upstream xonedo (Antheas Kapenekakis)
+- fix: revert nvidia driver for now (Antheas Kapenekakis)
 - Revert "drm/amd/display: Use mpc.preblend flag to indicate preblend" (Antheas Kapenekakis)
 - Revert "drm/amd/display: Clear DPP 3DLUT Cap" (Antheas Kapenekakis)
 - Revert "Input: xpad - use new BTN_GRIP* buttons" (Antheas Kapenekakis)
