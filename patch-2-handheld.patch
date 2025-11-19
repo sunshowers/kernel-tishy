@@ -52835,12 +52835,12 @@ index 495d57ed3c0c..9473dd0a8ce7 100644
  	path = drivers/custom/kvfm
  	url = https://github.com/gnif/LookingGlass
 diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
-index 2c06de29e95b..90d965254e53 160000
+index 2c06de29e95b..6d5a78a88e86 160000
 --- a/drivers/custom/xonedo
 +++ b/drivers/custom/xonedo
 @@ -1 +1 @@
 -Subproject commit 2c06de29e95bbe9beebb81924f4b7324f0eb6591
-+Subproject commit 90d965254e534151202e79f768bf7a68ea9f9d4f
++Subproject commit 6d5a78a88e8678e0a088d87ef59c7bebf9bc0ef5
 -- 
 2.52.0
 

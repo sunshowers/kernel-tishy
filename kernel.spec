@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba16
+%define pkgrelease ba18
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba16%{?buildid}%{?dist}
+%define specrelease ba18%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -4537,7 +4537,7 @@ fi\
 #
 #
 %changelog
-* Wed Nov 19 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba16]
+* Wed Nov 19 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba18]
 - disable split lock detection by default (Antheas Kapenekakis)
 - use upstream xonedo (Antheas Kapenekakis)
 - fix: revert nvidia driver for now (Antheas Kapenekakis)
