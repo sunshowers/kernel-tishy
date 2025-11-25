@@ -51387,11 +51387,11 @@ index 000000000000..2d764db2bd69
 +Subproject commit 2d764db2bd69f2922d7fad6cb162136e32f357a2
 diff --git a/drivers/custom/broadcom-wl b/drivers/custom/broadcom-wl
 new file mode 160000
-index 000000000000..758358cffe5a
+index 000000000000..c747d6c228f5
 --- /dev/null
 +++ b/drivers/custom/broadcom-wl
 @@ -0,0 +1 @@
-+Subproject commit 758358cffe5ae3f9b7f25428de05feee238afdde
++Subproject commit c747d6c228f52d6ff6f424a4482db2e4686090ad
 diff --git a/drivers/custom/cdemu b/drivers/custom/cdemu
 new file mode 160000
 index 000000000000..d00300615639
@@ -51779,11 +51779,11 @@ index 000000000000..c394f8fb2c16
 +Subproject commit c394f8fb2c168932055c2577247c42390198d7c9
 diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
 new file mode 160000
-index 000000000000..2c06de29e95b
+index 000000000000..6d5a78a88e86
 --- /dev/null
 +++ b/drivers/custom/xonedo
 @@ -0,0 +1 @@
-+Subproject commit 2c06de29e95bbe9beebb81924f4b7324f0eb6591
++Subproject commit 6d5a78a88e8678e0a088d87ef59c7bebf9bc0ef5
 diff --git a/drivers/custom/zenergy b/drivers/custom/zenergy
 new file mode 160000
 index 000000000000..310ed88b13c6
@@ -52812,41 +52812,6 @@ index 1cda0153cd52..82241b31f7f3 100644
 
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Antheas Kapenekakis <lkml@antheas.dev>
-Date: Tue, 18 Nov 2025 19:39:30 +0100
-Subject: use upstream xonedo
-
-Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
----
- .gitmodules           | 2 +-
- drivers/custom/xonedo | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/.gitmodules b/.gitmodules
-index 495d57ed3c0c..9473dd0a8ce7 100644
---- a/.gitmodules
-+++ b/.gitmodules
-@@ -12,7 +12,7 @@
- 	url = https://github.com/hhd-dev/bmi260
- [submodule "drivers/custom/xonedo"]
- 	path = drivers/custom/xonedo
--	url = https://github.com/bazzite-org/xonedo
-+	url = https://github.com/dlundqvist/xone
- [submodule "drivers/custom/kvfm"]
- 	path = drivers/custom/kvfm
- 	url = https://github.com/gnif/LookingGlass
-diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
-index 2c06de29e95b..6d5a78a88e86 160000
---- a/drivers/custom/xonedo
-+++ b/drivers/custom/xonedo
-@@ -1 +1 @@
--Subproject commit 2c06de29e95bbe9beebb81924f4b7324f0eb6591
-+Subproject commit 6d5a78a88e8678e0a088d87ef59c7bebf9bc0ef5
--- 
-2.52.0
-
-
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Antheas Kapenekakis <lkml@antheas.dev>
 Date: Wed, 19 Nov 2025 00:38:05 +0100
 Subject: disable split lock detection by default
 
@@ -52868,6 +52833,61 @@ index 981f8b1f0792..75d42f6d650d 100644
  	char arg[20];
  	int i, ret;
  
+-- 
+2.52.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <git@antheas.dev>
+Date: Tue, 25 Nov 2025 22:50:14 +0100
+Subject: ALSA: hda/realtek: Fix Xbox Ally quirks
+
+By default, these devices use the quirk ALC294_FIXUP_ASUS_SPK. Not
+using it causes the headphone jack to stop working. Therefore,
+introduce a new quirk ALC287_FIXUP_TXNW2781_I2C_ASUS that binds
+to the TAS amplifier while using that quirk.
+
+Signed-off-by: Antheas Kapenekakis <git@antheas.dev>
+---
+ sound/hda/codecs/realtek/alc269.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/sound/hda/codecs/realtek/alc269.c b/sound/hda/codecs/realtek/alc269.c
+index a3479f12dfa3..bc07d0cffb40 100644
+--- a/sound/hda/codecs/realtek/alc269.c
++++ b/sound/hda/codecs/realtek/alc269.c
+@@ -3722,6 +3722,7 @@ enum {
+ 	ALC295_FIXUP_DELL_TAS2781_I2C,
+ 	ALC245_FIXUP_TAS2781_SPI_2,
+ 	ALC287_FIXUP_TXNW2781_I2C,
++	ALC287_FIXUP_TXNW2781_I2C_ASUS,
+ 	ALC287_FIXUP_YOGA7_14ARB7_I2C,
+ 	ALC245_FIXUP_HP_MUTE_LED_COEFBIT,
+ 	ALC245_FIXUP_HP_MUTE_LED_V1_COEFBIT,
+@@ -6049,6 +6050,12 @@ static const struct hda_fixup alc269_fixups[] = {
+ 		.chained = true,
+ 		.chain_id = ALC285_FIXUP_THINKPAD_HEADSET_JACK,
+ 	},
++	[ALC287_FIXUP_TXNW2781_I2C_ASUS] = {
++		.type = HDA_FIXUP_FUNC,
++		.v.func = tas2781_fixup_txnw_i2c,
++		.chained = true,
++		.chain_id = ALC294_FIXUP_ASUS_SPK,
++	},
+ 	[ALC287_FIXUP_YOGA7_14ARB7_I2C] = {
+ 		.type = HDA_FIXUP_FUNC,
+ 		.v.func = yoga7_14arb7_fixup_i2c,
+@@ -6762,8 +6769,8 @@ static const struct hda_quirk alc269_fixup_tbl[] = {
+ 	SND_PCI_QUIRK(0x1043, 0x12f0, "ASUS X541UV", ALC256_FIXUP_ASUS_MIC_NO_PRESENCE),
+ 	SND_PCI_QUIRK(0x1043, 0x1313, "Asus K42JZ", ALC269VB_FIXUP_ASUS_MIC_NO_PRESENCE),
+ 	SND_PCI_QUIRK(0x1043, 0x1314, "ASUS GA605K", ALC285_FIXUP_ASUS_GA605K_HEADSET_MIC),
+-	SND_PCI_QUIRK(0x1043, 0x1384, "ASUS RC73XA", ALC287_FIXUP_TXNW2781_I2C),
+-	SND_PCI_QUIRK(0x1043, 0x1394, "ASUS RC73YA", ALC287_FIXUP_TXNW2781_I2C),
++	SND_PCI_QUIRK(0x1043, 0x1384, "ASUS RC73XA", ALC287_FIXUP_TXNW2781_I2C_ASUS),
++	SND_PCI_QUIRK(0x1043, 0x1394, "ASUS RC73YA", ALC287_FIXUP_TXNW2781_I2C_ASUS),
+ 	SND_PCI_QUIRK(0x1043, 0x13b0, "ASUS Z550SA", ALC256_FIXUP_ASUS_MIC_NO_PRESENCE),
+ 	SND_PCI_QUIRK(0x1043, 0x1427, "Asus Zenbook UX31E", ALC269VB_FIXUP_ASUS_ZENBOOK),
+ 	SND_PCI_QUIRK(0x1043, 0x1433, "ASUS GX650PY/PZ/PV/PU/PYV/PZV/PIV/PVV", ALC285_FIXUP_ASUS_I2C_HEADSET_MIC),
 -- 
 2.52.0
 
