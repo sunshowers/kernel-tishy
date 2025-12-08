@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba19
+%define pkgrelease ba20
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba19%{?buildid}%{?dist}
+%define specrelease ba20%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -4537,7 +4537,8 @@ fi\
 #
 #
 %changelog
-* Tue Nov 25 2025 Antheas Kapenekakis <git@antheas.dev> [6.17.7-ba19]
+* Tue Dec 09 2025 Antheas Kapenekakis <git@antheas.dev> [6.17.7-ba20]
+- msi-wmi-platform: fix quirk end missing (Antheas Kapenekakis)
 - sort modules (Antheas Kapenekakis)
 - ALSA: hda/realtek: Fix Xbox Ally quirks (Antheas Kapenekakis)
 - disable split lock detection by default (Antheas Kapenekakis)
