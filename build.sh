@@ -54,6 +54,7 @@ certutil -L -d sql:./certs/pki/ubluesign
 ARCH=${ARCH:-x86_64}
 TARFILE_RELEASE=$(sed -n 's/^%define[[:space:]]\+tarfile_release[[:space:]]\+//p' kernel.spec)
 NVIDIA_RELEASE=$(sed -n 's/^%define[[:space:]]\+nvidia_version[[:space:]]\+//p' kernel.spec)
+NVIDIA_RELEASE_REL=$(sed -n 's/^%define[[:space:]]\+nvidia_version_rel[[:space:]]\+//p' kernel.spec)
 NVIDIA_RELEASE_LTS=$(sed -n 's/^%define[[:space:]]\+nvidia_version_lts[[:space:]]\+//p' kernel.spec)
 ZFS_RELEASE=$(sed -n 's/^%define[[:space:]]\+zfs_version[[:space:]]\+//p' kernel.spec)
 
@@ -90,32 +91,46 @@ if [ "$NVIDIA_RELEASE" != "$NVIDIA_RELEASE_LTS" ]; then
     nvreleases+=($NVIDIA_RELEASE_LTS)
 fi
 
-for nvrelease in "${nvreleases[@]}"; do
-    # We need to do this to strip the driver from the srpm. Keeping two of
-    # Them would be a nice 800MB, here we drop to 160MB. We could halve
-    # that if we only keep the closed for LTS.
-    echo "Processing NVIDIA release $nvrelease for arch $ARCH"
-    RUN_FN="NVIDIA-Linux-$ARCH-${nvrelease}.run"
-    tarfn="nvidia-kmod-${ARCH}-${nvrelease}.tar.xz"
+#
+# Open source driver
+#
 
-    if [ ! -f "$RUN_FN" ]; then
-        echo "Downloading $RUN_FN"
-        curl -L -o $RUN_FN \
-                    "https://download.nvidia.com/XFree86/Linux-$ARCH/${nvrelease}/NVIDIA-Linux-$ARCH-${nvrelease}.run"
-    fi
+ofn="nvidia-kmod-${ARCH}-${NVIDIA_RELEASE}-${NVIDIA_RELEASE_REL}.tar.gz"
+if [ ! -f "$ofn" ]; then
+    echo "Downloading open source NVIDIA driver for release $NVIDIA_RELEASE"
+    curl -L -o nvidia-kmod-${ARCH}-${NVIDIA_RELEASE}-${NVIDIA_RELEASE_REL}.tar.gz\
+        https://github.com/bazzite-org/open-gpu-kernel-modules/archive/refs/tags/${NVIDIA_RELEASE}-${NVIDIA_RELEASE_REL}.tar.gz 
+fi
 
-    rm -rf build/nvidia
-    mkdir -p build/nvidia/kmod
+#
+# Closed legacy driver
+#
 
-    chmod +x $RUN_FN
-    ./$RUN_FN --extract-only --target build/nvidia/extract
+nvrelease=$NVIDIA_RELEASE_LTS
+# We need to do this to strip the driver from the srpm. Keeping two of
+# Them would be a nice 800MB, here we drop to 160MB. We could halve
+# that if we only keep the closed for LTS.
+echo "Processing NVIDIA release $nvrelease for arch $ARCH"
+RUN_FN="NVIDIA-Linux-$ARCH-${nvrelease}.run"
+tarfn="nvidia-kmod-${ARCH}-${nvrelease}.tar.xz"
 
-    mv build/nvidia/extract/kernel build/nvidia/extract/kernel-open build/nvidia/kmod
+if [ ! -f "$RUN_FN" ]; then
+    echo "Downloading $RUN_FN"
+    curl -L -o $RUN_FN \
+                "https://download.nvidia.com/XFree86/Linux-$ARCH/${nvrelease}/NVIDIA-Linux-$ARCH-${nvrelease}.run"
+fi
 
-    XZ_OPT='-T0' tar --remove-files -cJf $tarfn -C build/nvidia/kmod .
-    echo "Created $tarfn"
-    rm -rf build/nvidia
-done
+rm -rf build/nvidia
+mkdir -p build/nvidia/kmod
+
+chmod +x $RUN_FN
+./$RUN_FN --extract-only --target build/nvidia/extract
+
+mv build/nvidia/extract/kernel/* build/nvidia/kmod
+
+XZ_OPT='-T0' tar --remove-files -cJf $tarfn -C build/nvidia/kmod .
+echo "Created $tarfn"
+rm -rf build/nvidia
 
 #
 # Build

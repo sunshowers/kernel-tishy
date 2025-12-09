@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba20
+%define pkgrelease ba21
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba20%{?buildid}%{?dist}
+%define specrelease ba21%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -973,11 +973,12 @@ Source2: %{package_name}.changelog
 Source4: broadcom-wl.blob
 
 %define evdi_version 1.14.11
-%define nvidia_version 580.95.05
+%define nvidia_version 590.44.01
+%define nvidia_version_rel 1
 %define nvidia_version_lts 580.95.05
 %define nvidia_epoch 3
 %if %{with_nvidia}
-Source5: nvidia-kmod-%{_build_arch}-%{nvidia_version}.tar.xz
+Source5: nvidia-kmod-%{_build_arch}-%{nvidia_version}-%{nvidia_version_rel}.tar.gz
 Source6: nvidia-kmod-%{_build_arch}-%{nvidia_version_lts}.tar.xz
 %endif
 
@@ -1734,8 +1735,6 @@ Requires: %{name}-%{?1:%{1}-}-modules-core-uname-r = %{KVERREL}%{uname_variant %
 %{expand:%%kernel_modules_akmods_package %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %if %{with_nvidia}\
 %{expand:%%kernel_nvidia_package nvidia %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
-%{expand:%%kernel_nvidia_package nvidia-closed %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
-%{expand:%%kernel_nvidia_package nvidia-lts %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %{expand:%%kernel_nvidia_package nvidia-closed-lts %{?1:%{1}} %{!?{-n}:%{1}}%{?{-n}:%{-n*}} %{-m:%{-m}}}\
 %endif\
 %if %{-m:0}%{!-m:1}\
@@ -2086,9 +2085,10 @@ mkdir -p drivers/custom/broadcom-wl/lib
 cp -a %{SOURCE4} drivers/custom/broadcom-wl/lib/wlc_hybrid.o_shipped
 
 %if %{with_nvidia}
-mkdir -p drivers/custom/nvidia
+tar -xzf %{SOURCE5}
+mv open-gpu-kernel-modules-%{nvidia_version}-%{nvidia_version_rel} \
+  drivers/custom/nvidia
 mkdir -p drivers/custom/nvidia-lts
-tar -xJf %{SOURCE5} -C drivers/custom/nvidia
 tar -xJf %{SOURCE6} -C drivers/custom/nvidia-lts
 %endif # with_nvidia
 
@@ -2400,13 +2400,9 @@ BuildKernel() {
     %if %{with_nvidia}
     if [ $DoModules -eq 1 ]; then
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
+      -C $(pwd)/drivers/custom/nvidia modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES= LDFLAGS=
     %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia/kernel modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
-    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia-lts/kernel-open modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
-    %{make} ARCH=$Arch KCFLAGS="$KCFLAGS" WITH_GCOV="%{?with_gcov}" %{?_smp_mflags}\
-      -C $(pwd)/drivers/custom/nvidia-lts/kernel modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
+      -C $(pwd)/drivers/custom/nvidia-lts modules SYSSRC=$(pwd) SYSOUT=$(src) CONFIG_DEBUG_INFO_BTF_MODULES=
     fi
     %endif # with_nvidia
 
@@ -2528,14 +2524,10 @@ BuildKernel() {
 
   %if %{with_nvidia}
     if [ $DoModules -eq 1 ]; then   
-	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel-open \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel-open CONFIG_DEBUG_INFO_BTF_MODULES=
-	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia/kernel \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia/kernel CONFIG_DEBUG_INFO_BTF_MODULES=
-	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia-lts/kernel-open \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel-open CONFIG_DEBUG_INFO_BTF_MODULES=
-	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia-lts/kernel \
-    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts/kernel CONFIG_DEBUG_INFO_BTF_MODULES=
+	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia \
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia CONFIG_DEBUG_INFO_BTF_MODULES=
+	%{make} %{?_smp_mflags} ARCH=$Arch INSTALL_MOD_PATH=$RPM_BUILD_ROOT %{?_smp_mflags} -C $(pwd)/drivers/custom/nvidia-lts \
+    modules_install mod-fw= SYSSRC=$(pwd) SYSOUT=$(src) INSTALL_MOD_DIR=kernel/drivers/custom/nvidia-lts CONFIG_DEBUG_INFO_BTF_MODULES=
 
     # We have to do a little hack here. modules.dep cannot contain multiple modules
     # with the same name, therefore, we cannot use the filtermods logic. Remove the
@@ -3985,8 +3977,6 @@ fi\
 %{expand:%%kernel_modules_akmods_post %{?-v*}}\
 %if %{with_nvidia}\
 %{expand:%%kernel_nvidia_post nvidia %{?-v*}}\
-%{expand:%%kernel_nvidia_post nvidia-closed %{?-v*}}\
-%{expand:%%kernel_nvidia_post nvidia-lts %{?-v*}}\
 %{expand:%%kernel_nvidia_post nvidia-closed-lts %{?-v*}}\
 %endif\
 %{expand:%%kernel_modules_internal_post %{?-v*}}\
@@ -4472,26 +4462,12 @@ fi\
 /lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-uvm.ko*
 /lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia.ko*
 
-%files nvidia-closed
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-drm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-modeset.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-peermem.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia-uvm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel/nvidia.ko*
-
-%files nvidia-lts
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-drm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-modeset.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-peermem.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia-uvm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel-open/nvidia.ko*
-
 %files nvidia-closed-lts
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-drm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-modeset.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-peermem.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia-uvm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/kernel/nvidia.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/nvidia-drm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/nvidia-modeset.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/nvidia-peermem.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/nvidia-uvm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/nvidia.ko*
 
 %endif # with_nvidia
 
@@ -4537,12 +4513,11 @@ fi\
 #
 #
 %changelog
-* Tue Dec 09 2025 Antheas Kapenekakis <git@antheas.dev> [6.17.7-ba20]
+* Wed Dec 10 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba21]
 - msi-wmi-platform: fix quirk end missing (Antheas Kapenekakis)
 - sort modules (Antheas Kapenekakis)
 - ALSA: hda/realtek: Fix Xbox Ally quirks (Antheas Kapenekakis)
 - disable split lock detection by default (Antheas Kapenekakis)
-- fix: revert nvidia driver for now (Antheas Kapenekakis)
 - Revert "drm/amd/display: Use mpc.preblend flag to indicate preblend" (Antheas Kapenekakis)
 - Revert "drm/amd/display: Clear DPP 3DLUT Cap" (Antheas Kapenekakis)
 - Revert "Input: xpad - use new BTN_GRIP* buttons" (Antheas Kapenekakis)

@@ -1,6 +1,6 @@
 # ----------------------------------------
 # Module: ayaneo_platform
-# Version: bccb4ad32269
+# Version: c824eae52426
 # ----------------------------------------
 diff --git a/drivers/custom/ayaneo_platform/Kconfig b/drivers/custom/ayaneo_platform/Kconfig
 new file mode 100644
@@ -132,10 +132,10 @@ index 000000000000..2e9842d766c5
 +	@rm -rf $(DKMS_ROOT_PATH)
 diff --git a/drivers/custom/ayaneo_platform/ayaneo-platform.c b/drivers/custom/ayaneo_platform/ayaneo-platform.c
 new file mode 100644
-index 000000000000..8bb04e97e347
+index 000000000000..17eb0c0a8fba
 --- /dev/null
 +++ b/drivers/custom/ayaneo_platform/ayaneo-platform.c
-@@ -0,0 +1,1418 @@
+@@ -0,0 +1,1425 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * Platform driver for AYANEO x86 Handhelds that exposes RGB LED
@@ -377,6 +377,13 @@ index 000000000000..8bb04e97e347
 +                .matches = {
 +                        DMI_EXACT_MATCH(DMI_BOARD_VENDOR, "AYANEO"),
 +                        DMI_EXACT_MATCH(DMI_BOARD_NAME, "AYANEO 2S"),
++                },
++                .driver_data = (void *)ayaneo_2s,
++        },
++        {
++                .matches = {
++                        DMI_EXACT_MATCH(DMI_BOARD_VENDOR, "Mysten Labs, Inc."),
++                        DMI_EXACT_MATCH(DMI_BOARD_NAME, "SuiPlay0X1"),
 +                },
 +                .driver_data = (void *)ayaneo_2s,
 +        },
