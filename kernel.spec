@@ -4456,11 +4456,11 @@ fi\
 
 %if %{with_nvidia}
 %files nvidia
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-drm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-modeset.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-peermem.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia-uvm.ko*
-/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/kernel-open/nvidia.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/nvidia-drm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/nvidia-modeset.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/nvidia-peermem.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/nvidia-uvm.ko*
+/lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia/nvidia.ko*
 
 %files nvidia-closed-lts
 /lib/modules/%{KVERREL}%{?3:+%{3}}/kernel/drivers/custom/nvidia-lts/nvidia-drm.ko*
