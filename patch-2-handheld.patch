@@ -53051,12 +53051,12 @@ index c394f8fb2c16..a7e4a4dea361 160000
 -Subproject commit c394f8fb2c168932055c2577247c42390198d7c9
 +Subproject commit a7e4a4dea36187ad3550c797d647bcc50faced42
 diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
-index 6d5a78a88e86..e927febbedbf 160000
+index 6d5a78a88e86..6e9491b5296c 160000
 --- a/drivers/custom/xonedo
 +++ b/drivers/custom/xonedo
 @@ -1 +1 @@
 -Subproject commit 6d5a78a88e8678e0a088d87ef59c7bebf9bc0ef5
-+Subproject commit e927febbedbf8d6f040ff081b0c6703738e7e8d2
++Subproject commit 6e9491b5296c3e4d2d4a011605ee9ea7e50ad15d
 -- 
 2.52.0
 
