@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba21
+%define pkgrelease ba22
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba21%{?buildid}%{?dist}
+%define specrelease ba22%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -4513,7 +4513,9 @@ fi\
 #
 #
 %changelog
-* Wed Dec 10 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba21]
+* Thu Dec 11 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba22]
+- bump all modules (Antheas Kapenekakis)
+- drm/amd/display: Prevent Gating DTBCLK before It Is Properly Latched (Fangzhi Zuo)
 - msi-wmi-platform: fix quirk end missing (Antheas Kapenekakis)
 - sort modules (Antheas Kapenekakis)
 - ALSA: hda/realtek: Fix Xbox Ally quirks (Antheas Kapenekakis)

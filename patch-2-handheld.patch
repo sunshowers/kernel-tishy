@@ -52917,3 +52917,146 @@ index 2dbaa3c1f55c..fc6569791ef9 100644
 -- 
 2.52.0
 
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Fangzhi Zuo <Jerry.Zuo@amd.com>
+Date: Thu, 18 Sep 2025 16:25:45 -0400
+Subject: drm/amd/display: Prevent Gating DTBCLK before It Is Properly Latched
+
+[why]
+1. With allow_0_dtb_clk enabled, the time required to latch DTBCLK to 600 MHz
+depends on the SMU. If DTBCLK is not latched to 600 MHz before set_mode completes,
+gating DTBCLK causes the DP2 sink to lose its clock source.
+
+2. The existing DTBCLK gating sequence ungates DTBCLK based on both pix_clk and ref_dtbclk,
+but gates DTBCLK when either pix_clk or ref_dtbclk is zero.
+pix_clk can be zero outside the set_mode sequence before DTBCLK is properly latched,
+which can lead to DTBCLK being gated by mistake.
+
+[how]
+Consider both pixel_clk and ref_dtbclk when determining when it is safe to gate DTBCLK;
+this is more accurate.
+
+Closes: https://gitlab.freedesktop.org/drm/amd/-/issues/4701
+Fixes: 5949e7c4890c ("drm/amd/display: Enable Dynamic DTBCLK Switch")
+Reviewed-by: Charlene Liu <charlene.liu@amd.com>
+Reviewed-by: Aurabindo Pillai <aurabindo.pillai@amd.com>
+Signed-off-by: Fangzhi Zuo <Jerry.Zuo@amd.com>
+Signed-off-by: Roman Li <roman.li@amd.com>
+Tested-by: Dan Wheeler <daniel.wheeler@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+(cherry picked from commit d04eb0c402780ca037b62a6aecf23b863545ebca)
+Cc: stable@vger.kernel.org
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/gpu/drm/amd/display/dc/clk_mgr/dcn35/dcn35_clk_mgr.c | 4 +++-
+ drivers/gpu/drm/amd/display/dc/dccg/dcn35/dcn35_dccg.c       | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/display/dc/clk_mgr/dcn35/dcn35_clk_mgr.c b/drivers/gpu/drm/amd/display/dc/clk_mgr/dcn35/dcn35_clk_mgr.c
+index 0e638bc6bf77..4e4390d56547 100644
+--- a/drivers/gpu/drm/amd/display/dc/clk_mgr/dcn35/dcn35_clk_mgr.c
++++ b/drivers/gpu/drm/amd/display/dc/clk_mgr/dcn35/dcn35_clk_mgr.c
+@@ -394,6 +394,8 @@ void dcn35_update_clocks(struct clk_mgr *clk_mgr_base,
+ 	display_count = dcn35_get_active_display_cnt_wa(dc, context, &all_active_disps);
+ 	if (new_clocks->dtbclk_en && !new_clocks->ref_dtbclk_khz)
+ 		new_clocks->ref_dtbclk_khz = 600000;
++	else if (!new_clocks->dtbclk_en && new_clocks->ref_dtbclk_khz > 590000)
++		new_clocks->ref_dtbclk_khz = 0;
+ 
+ 	/*
+ 	 * if it is safe to lower, but we are already in the lower state, we don't have to do anything
+@@ -435,7 +437,7 @@ void dcn35_update_clocks(struct clk_mgr *clk_mgr_base,
+ 
+ 			actual_dtbclk = REG_READ(CLK1_CLK4_CURRENT_CNT);
+ 
+-			if (actual_dtbclk) {
++			if (actual_dtbclk > 590000) {
+ 				clk_mgr_base->clks.ref_dtbclk_khz = new_clocks->ref_dtbclk_khz;
+ 				clk_mgr_base->clks.dtbclk_en = new_clocks->dtbclk_en;
+ 			}
+diff --git a/drivers/gpu/drm/amd/display/dc/dccg/dcn35/dcn35_dccg.c b/drivers/gpu/drm/amd/display/dc/dccg/dcn35/dcn35_dccg.c
+index 0ce9489ac6b7..5b729ec6af95 100644
+--- a/drivers/gpu/drm/amd/display/dc/dccg/dcn35/dcn35_dccg.c
++++ b/drivers/gpu/drm/amd/display/dc/dccg/dcn35/dcn35_dccg.c
+@@ -1406,7 +1406,7 @@ static void dccg35_set_dtbclk_dto(
+ 		 * PIPEx_DTO_SRC_SEL should not be programmed during DTBCLK update since OTG may still be on, and the
+ 		 * programming is handled in program_pix_clk() regardless, so it can be removed from here.
+ 		 */
+-	} else {
++	} else if (!params->ref_dtbclk_khz && !req_dtbclk_khz) {
+ 		switch (params->otg_inst) {
+ 		case 0:
+ 			REG_UPDATE(DCCG_GATE_DISABLE_CNTL5, DTBCLK_P0_GATE_DISABLE, 0);
+-- 
+2.52.0
+
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Antheas Kapenekakis <lkml@antheas.dev>
+Date: Thu, 11 Dec 2025 23:16:51 +0100
+Subject: bump all modules
+
+Signed-off-by: Antheas Kapenekakis <lkml@antheas.dev>
+---
+ drivers/custom/cdemu        | 2 +-
+ drivers/custom/evdi         | 2 +-
+ drivers/custom/fanatecff    | 2 +-
+ drivers/custom/hid-tmff2    | 2 +-
+ drivers/custom/kvfm         | 2 +-
+ drivers/custom/v4l2loopback | 2 +-
+ drivers/custom/xonedo       | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/custom/cdemu b/drivers/custom/cdemu
+index d00300615639..1c92067aaad2 160000
+--- a/drivers/custom/cdemu
++++ b/drivers/custom/cdemu
+@@ -1 +1 @@
+-Subproject commit d00300615639d7e973ae51a6c922b89e527d5735
++Subproject commit 1c92067aaad2d7c7a7e7a52bbe7e301964f234dc
+diff --git a/drivers/custom/evdi b/drivers/custom/evdi
+index 34da6e302a44..5d708d117baa 160000
+--- a/drivers/custom/evdi
++++ b/drivers/custom/evdi
+@@ -1 +1 @@
+-Subproject commit 34da6e302a44e569e3fb7692fa1fb796b7146606
++Subproject commit 5d708d117baab842d6960f0ec61808a1541bda57
+diff --git a/drivers/custom/fanatecff b/drivers/custom/fanatecff
+index 0f1922f9cd3c..33ee9ab707e7 160000
+--- a/drivers/custom/fanatecff
++++ b/drivers/custom/fanatecff
+@@ -1 +1 @@
+-Subproject commit 0f1922f9cd3c56205b00855d386edd3bee87c904
++Subproject commit 33ee9ab707e7c5b35319e33025169221a4e33062
+diff --git a/drivers/custom/hid-tmff2 b/drivers/custom/hid-tmff2
+index 438a3e140756..26995429a3b9 160000
+--- a/drivers/custom/hid-tmff2
++++ b/drivers/custom/hid-tmff2
+@@ -1 +1 @@
+-Subproject commit 438a3e1407565dbd1d8ceb3981f4830a723a3c3c
++Subproject commit 26995429a3b92047f0c2f9ab90fe4202c86fd72b
+diff --git a/drivers/custom/kvfm b/drivers/custom/kvfm
+index fddcb7f2d43e..53bfb6547f2b 160000
+--- a/drivers/custom/kvfm
++++ b/drivers/custom/kvfm
+@@ -1 +1 @@
+-Subproject commit fddcb7f2d43ef752804af759f2c2194da8c8e9c5
++Subproject commit 53bfb6547f2b7abd6c183192e13a57068c1677ea
+diff --git a/drivers/custom/v4l2loopback b/drivers/custom/v4l2loopback
+index c394f8fb2c16..a7e4a4dea361 160000
+--- a/drivers/custom/v4l2loopback
++++ b/drivers/custom/v4l2loopback
+@@ -1 +1 @@
+-Subproject commit c394f8fb2c168932055c2577247c42390198d7c9
++Subproject commit a7e4a4dea36187ad3550c797d647bcc50faced42
+diff --git a/drivers/custom/xonedo b/drivers/custom/xonedo
+index 6d5a78a88e86..e927febbedbf 160000
+--- a/drivers/custom/xonedo
++++ b/drivers/custom/xonedo
+@@ -1 +1 @@
+-Subproject commit 6d5a78a88e8678e0a088d87ef59c7bebf9bc0ef5
++Subproject commit e927febbedbf8d6f040ff081b0c6703738e7e8d2
+-- 
+2.52.0
+

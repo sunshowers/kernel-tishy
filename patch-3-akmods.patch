@@ -26843,7 +26843,7 @@ index 000000000000..d21eb58382e8
 +#endif 
 # ----------------------------------------
 # Module: cdemu
-# Version: d00300615639
+# Version: 1c92067aaad2
 # ----------------------------------------
 diff --git a/drivers/custom/cdemu/vhba-module/Makefile b/drivers/custom/cdemu/vhba-module/Makefile
 new file mode 100644
@@ -28012,7 +28012,7 @@ index 000000000000..64b09ece2e5a
 +
 # ----------------------------------------
 # Module: evdi
-# Version: v1.14.11
+# Version: 5d708d117baa
 # ----------------------------------------
 diff --git a/drivers/custom/evdi/module/Kconfig b/drivers/custom/evdi/module/Kconfig
 new file mode 100644
@@ -28055,7 +28055,7 @@ index 000000000000..80d876599640
 +
 diff --git a/drivers/custom/evdi/module/Makefile b/drivers/custom/evdi/module/Makefile
 new file mode 100644
-index 000000000000..5bb0134b67a5
+index 000000000000..a6bdf8eb6b74
 --- /dev/null
 +++ b/drivers/custom/evdi/module/Makefile
 @@ -0,0 +1,105 @@
@@ -28070,7 +28070,7 @@ index 000000000000..5bb0134b67a5
 +include /etc/os-release
 +
 +ifneq (,$(findstring rhel,$(ID_LIKE)))
-+ELFLAG := -DEL$(VERSION_ID)
++ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
 +endif
 +
 +Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
@@ -28166,7 +28166,7 @@ index 000000000000..5bb0134b67a5
 +endif # ifneq ($(DKMS_BUILD),)
 diff --git a/drivers/custom/evdi/module/evdi_connector.c b/drivers/custom/evdi/module/evdi_connector.c
 new file mode 100644
-index 000000000000..21555074cc0e
+index 000000000000..77e524bc7cb8
 --- /dev/null
 +++ b/drivers/custom/evdi/module/evdi_connector.c
 @@ -0,0 +1,207 @@
@@ -28250,7 +28250,7 @@ index 000000000000..21555074cc0e
 +}
 +
 +static enum drm_mode_status evdi_mode_valid(struct drm_connector *connector,
-+#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
 +					    const struct drm_display_mode *mode)
 +#else
 +					    struct drm_display_mode *mode)
@@ -28993,7 +28993,7 @@ index 000000000000..501269379627
 +#endif /* __EVDI_UAPI_DRM_H__ */
 diff --git a/drivers/custom/evdi/module/evdi_drm_drv.c b/drivers/custom/evdi/module/evdi_drm_drv.c
 new file mode 100644
-index 000000000000..dba8b4be2535
+index 000000000000..1a424967f46a
 --- /dev/null
 +++ b/drivers/custom/evdi/module/evdi_drm_drv.c
 @@ -0,0 +1,311 @@
@@ -29152,7 +29152,7 @@ index 000000000000..dba8b4be2535
 +
 +	.name = DRIVER_NAME,
 +	.desc = DRIVER_DESC,
-+#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
 +#else
 +	.date = DRIVER_DATE,
 +#endif
@@ -29591,7 +29591,7 @@ index 000000000000..47fd19f29025
 +}
 diff --git a/drivers/custom/evdi/module/evdi_fb.c b/drivers/custom/evdi/module/evdi_fb.c
 new file mode 100644
-index 000000000000..e96ec9864d87
+index 000000000000..13c70fb6fe56
 --- /dev/null
 +++ b/drivers/custom/evdi/module/evdi_fb.c
 @@ -0,0 +1,663 @@
@@ -30068,7 +30068,7 @@ index 000000000000..e96ec9864d87
 +	return ret;
 +}
 +
-+#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
 +#else
 +static struct drm_fb_helper_funcs evdi_fb_helper_funcs = {
 +	.fb_probe = evdifb_create,
@@ -30117,7 +30117,7 @@ index 000000000000..e96ec9864d87
 +		return -ENOMEM;
 +
 +	evdi->fbdev = efbdev;
-+#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
 +	drm_fb_helper_prepare(dev, &efbdev->helper, 32, NULL);
 +#elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
 +	drm_fb_helper_prepare(dev, &efbdev->helper, 32, &evdi_fb_helper_funcs);
@@ -30260,10 +30260,10 @@ index 000000000000..e96ec9864d87
 +}
 diff --git a/drivers/custom/evdi/module/evdi_gem.c b/drivers/custom/evdi/module/evdi_gem.c
 new file mode 100644
-index 000000000000..f594d1b368bb
+index 000000000000..ee1dbcff6229
 --- /dev/null
 +++ b/drivers/custom/evdi/module/evdi_gem.c
-@@ -0,0 +1,496 @@
+@@ -0,0 +1,492 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2012 Red Hat
@@ -30668,11 +30668,9 @@ index 000000000000..f594d1b368bb
 +	struct drm_gem_object *obj;
 +	int ret = 0;
 +
-+	mutex_lock(&dev->struct_mutex);
 +	obj = drm_gem_object_lookup(file, handle);
 +	if (obj == NULL) {
-+		ret = -ENOENT;
-+		goto unlock;
++		return -ENOENT;
 +	}
 +	gobj = to_evdi_bo(obj);
 +
@@ -30695,8 +30693,6 @@ index 000000000000..f594d1b368bb
 +
 + out:
 +	drm_gem_object_put(&gobj->base);
-+ unlock:
-+	mutex_unlock(&dev->struct_mutex);
 +	return ret;
 +}
 +
@@ -30994,10 +30990,10 @@ index 000000000000..896b9d40c46e
 +}
 diff --git a/drivers/custom/evdi/module/evdi_modeset.c b/drivers/custom/evdi/module/evdi_modeset.c
 new file mode 100644
-index 000000000000..cadd79104170
+index 000000000000..6674e4b30aa3
 --- /dev/null
 +++ b/drivers/custom/evdi/module/evdi_modeset.c
-@@ -0,0 +1,549 @@
+@@ -0,0 +1,544 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2012 Red Hat
@@ -31134,13 +31130,11 @@ index 000000000000..cadd79104170
 +
 +	EVDI_CHECKPT();
 +	if (handle) {
-+		mutex_lock(&dev->struct_mutex);
 +		obj = drm_gem_object_lookup(file, handle);
 +		if (obj)
 +			eobj = to_evdi_bo(obj);
 +		else
 +			EVDI_ERROR("Failed to lookup gem object.\n");
-+		mutex_unlock(&dev->struct_mutex);
 +	}
 +
 +	evdi_cursor_set(evdi->cursor,
@@ -31343,8 +31337,6 @@ index 000000000000..cadd79104170
 +		int32_t cursor_position_x = 0;
 +		int32_t cursor_position_y = 0;
 +
-+		mutex_lock(&plane->dev->struct_mutex);
-+
 +		evdi_cursor_position(evdi->cursor, &cursor_position_x,
 +		&cursor_position_y);
 +		evdi_cursor_move(evdi->cursor, state->crtc_x, state->crtc_y);
@@ -31369,7 +31361,6 @@ index 000000000000..cadd79104170
 +			cursor_changed = true;
 +		}
 +
-+		mutex_unlock(&plane->dev->struct_mutex);
 +		if (!evdi->cursor_events_enabled) {
 +			if (fb != NULL) {
 +				if (efb->obj->allow_sw_cursor_rect_updates) {
@@ -31549,10 +31540,10 @@ index 000000000000..cadd79104170
 +}
 diff --git a/drivers/custom/evdi/module/evdi_painter.c b/drivers/custom/evdi/module/evdi_painter.c
 new file mode 100644
-index 000000000000..47e0acd43cc4
+index 000000000000..c5d12512901a
 --- /dev/null
 +++ b/drivers/custom/evdi/module/evdi_painter.c
-@@ -0,0 +1,1429 @@
+@@ -0,0 +1,1419 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (c) 2013 - 2020 DisplayLink (UK) Ltd.
@@ -32417,7 +32408,6 @@ index 000000000000..47e0acd43cc4
 +{
 +	struct evdi_painter *painter = evdi->painter;
 +	struct edid *new_edid = NULL;
-+	unsigned int expected_edid_size = 0;
 +	char buf[100];
 +
 +	evdi_log_process(buf, sizeof(buf));
@@ -32440,15 +32430,6 @@ index 000000000000..47e0acd43cc4
 +		EVDI_ERROR("(card%d) Failed to read edid\n", evdi->dev_index);
 +		kfree(new_edid);
 +		return -EFAULT;
-+	}
-+
-+	expected_edid_size = sizeof(struct edid) +
-+			     new_edid->extensions * EDID_EXT_BLOCK_SIZE;
-+	if (expected_edid_size != edid_length) {
-+		EVDI_ERROR("Wrong edid size. Expected %d but is %d\n",
-+			   expected_edid_size, edid_length);
-+		kfree(new_edid);
-+		return -EINVAL;
 +	}
 +
 +	if (painter->drm_filp)
@@ -40637,7 +40618,7 @@ index 000000000000..8e4f9d574904
 +#endif
 # ----------------------------------------
 # Module: fanatecff
-# Version: 0f1922f9cd3c
+# Version: 33ee9ab707e7
 # ----------------------------------------
 diff --git a/drivers/custom/fanatecff/Kbuild b/drivers/custom/fanatecff/Kbuild
 new file mode 100644
@@ -41115,18 +41096,22 @@ index 000000000000..f6f0e3055f91
 +0xC0,                           /*      End Collection,                     */
 diff --git a/drivers/custom/fanatecff/hid-ftec.c b/drivers/custom/fanatecff/hid-ftec.c
 new file mode 100644
-index 000000000000..47ac5737e5df
+index 000000000000..328873a61165
 --- /dev/null
 +++ b/drivers/custom/fanatecff/hid-ftec.c
-@@ -0,0 +1,890 @@
+@@ -0,0 +1,928 @@
 +#include <linux/device.h>
 +#include <linux/usb.h>
 +#include <linux/hid.h>
 +#include <linux/hidraw.h>
 +#include <linux/module.h>
 +#include <linux/input.h>
++#include <linux/input-event-codes.h>
 +
 +#include "hid-ftec.h"
++
++#define BTN_RANGE (BTN_9 - BTN_0 + 1)
++#define JOY_RANGE (BTN_DEAD - BTN_JOYSTICK + 1)
 +
 +// adjustabel initial value for break load cell
 +int init_load = 4;
@@ -41138,9 +41123,9 @@ index 000000000000..47ac5737e5df
 +
 +static u8 ftec_get_load(struct hid_device *hid)
 +{
-+    struct list_head *report_list = &hid->report_enum[HID_INPUT_REPORT].report_list;
-+    struct hid_report *report = list_entry(report_list->next, struct hid_report, list);	
-+    struct ftec_drv_data *drv_data;
++	struct list_head *report_list = &hid->report_enum[HID_INPUT_REPORT].report_list;
++	struct hid_report *report = list_entry(report_list->next, struct hid_report, list);	
++	struct ftec_drv_data *drv_data;
 +	unsigned long flags;
 +	s32 *value;
 +
@@ -41162,14 +41147,14 @@ index 000000000000..47ac5737e5df
 +	value[4] = 0x00;
 +	value[5] = 0x00;
 +	value[6] = 0x00;
-+	
++
 +	hid_hw_request(hid, drv_data->report, HID_REQ_SET_REPORT);
 +	spin_unlock_irqrestore(&drv_data->report_lock, flags);
 +
-+    hid_hw_request(hid, report, HID_REQ_GET_REPORT);
-+    hid_hw_wait(hid);
++	hid_hw_request(hid, report, HID_REQ_GET_REPORT);
++	hid_hw_wait(hid);
 +
-+    return report->field[0]->value[10];
++	return report->field[report->maxfield-1]->value[4];
 +}
 +
 +static void ftec_set_load(struct hid_device *hid, u8 val)
@@ -41252,7 +41237,7 @@ index 000000000000..47ac5737e5df
 +		return 0;
 +	}
 +
-+	count = scnprintf(buf, PAGE_SIZE, "%u\n", ftec_get_load(hid));
++	count = scnprintf(buf, PAGE_SIZE, "%u\n", ftec_get_load(hid) - 1);
 +	return count;
 +}
 +
@@ -41979,6 +41964,39 @@ index 000000000000..47ac5737e5df
 +	return 0;
 +}
 +
++/*
++ * Map buttons manually to extend the default joystick buttn limit
++ */
++static int ftec_input_mapping(struct hid_device *hdev, struct hid_input *hi,
++		struct hid_field *field, struct hid_usage *usage,
++		unsigned long **bit, int *max)
++{
++	// Let the default behavior handle mapping if usage is not a button
++	if ((usage->hid & HID_USAGE_PAGE) != HID_UP_BUTTON)
++		return 0;
++
++	int button = ((usage->hid - 1) & HID_USAGE);
++	int code = button + BTN_0;
++
++	// Detect the end of BTN_* range
++	if (code > BTN_9)
++		code = button + BTN_JOYSTICK - BTN_RANGE;
++
++	// Detect the end of JOYSTICK buttons range
++	if (code > BTN_DEAD)
++		code = button + KEY_MACRO1 - BTN_RANGE - JOY_RANGE;
++
++	// Map overflowing buttons to KEY_RESERVED for the upcoming new input event
++	// It will handle button presses differently and won't depend on defined
++	// ranges. KEY_RESERVED usage is needed for the button to not be ignored.
++	if (code > KEY_MAX)
++		code = KEY_RESERVED;
++
++	hid_map_usage(hi, usage, bit, max, EV_KEY, code);
++	hid_dbg(hdev, "Button %d: usage %d", button, code);
++	return 1;
++}
++
 +static const struct hid_device_id devices[] = {
 +	{ HID_USB_DEVICE(FANATEC_VENDOR_ID, CLUBSPORT_V2_WHEELBASE_DEVICE_ID), .driver_data = FTEC_FF },
 +	{ HID_USB_DEVICE(FANATEC_VENDOR_ID, CLUBSPORT_V25_WHEELBASE_DEVICE_ID), .driver_data = FTEC_FF },
@@ -42000,6 +42018,7 @@ index 000000000000..47ac5737e5df
 +static struct hid_driver fanatec_driver = {
 +	.name = "fanatec",
 +	.id_table = devices,
++	.input_mapping = ftec_input_mapping,
 +        .probe = ftec_probe,
 +        .remove = ftec_remove,
 +	.raw_event = ftec_raw_event,
@@ -42011,10 +42030,10 @@ index 000000000000..47ac5737e5df
 +MODULE_DESCRIPTION("A driver for the Fanatec CSL Elite");
 diff --git a/drivers/custom/fanatecff/hid-ftec.h b/drivers/custom/fanatecff/hid-ftec.h
 new file mode 100644
-index 000000000000..37c25e20d575
+index 000000000000..9e131bc4338b
 --- /dev/null
 +++ b/drivers/custom/fanatecff/hid-ftec.h
-@@ -0,0 +1,160 @@
+@@ -0,0 +1,161 @@
 +#ifndef __HID_FTEC_H
 +#define __HID_FTEC_H
 +
@@ -42151,6 +42170,7 @@ index 000000000000..37c25e20d575
 +	FTEC_TUNING_ATTR(NDP, 0x0d, "Natural Damber", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 +	FTEC_TUNING_ATTR(NFR, 0x0e, "Natural Friction", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 +	FTEC_TUNING_ATTR(FEI, 0x11, "Force Effect Intensity", ftec_conv_noop_to, ftec_conv_steps_ten, 0, 100) \
++	FTEC_TUNING_ATTR(ACP, 0x13, "Analogue Paddles", ftec_conv_noop_to, ftec_conv_noop_from, 1, 4) \
 +	FTEC_TUNING_ATTR(INT, 0x14, "FFB Interpolation Filter", ftec_conv_noop_to, ftec_conv_noop_from, 0, 20) \
 +	FTEC_TUNING_ATTR(NIN, 0x15, "Natural Inertia", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
 +	FTEC_TUNING_ATTR(FUL, 0x16, "FullForce", ftec_conv_noop_to, ftec_conv_noop_from, 0, 100) \
@@ -42177,10 +42197,10 @@ index 000000000000..37c25e20d575
 +#endif
 diff --git a/drivers/custom/fanatecff/hid-ftecff-tuning.c b/drivers/custom/fanatecff/hid-ftecff-tuning.c
 new file mode 100644
-index 000000000000..97ed710a6f0d
+index 000000000000..0784db5101d2
 --- /dev/null
 +++ b/drivers/custom/fanatecff/hid-ftecff-tuning.c
-@@ -0,0 +1,352 @@
+@@ -0,0 +1,354 @@
 +#include <linux/module.h>
 +#include <linux/hid.h>
 +
@@ -42454,6 +42474,7 @@ index 000000000000..97ed710a6f0d
 +	CREATE_SYSFS_FILE(FOR)
 +	CREATE_SYSFS_FILE(SPR)
 +	CREATE_SYSFS_FILE(DPR)
++	CREATE_SYSFS_FILE(ACP)
 +
 +	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || 
 +	    hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID) {
@@ -42504,6 +42525,7 @@ index 000000000000..97ed710a6f0d
 +	REMOVE_SYSFS_FILE(FOR)
 +	REMOVE_SYSFS_FILE(SPR)
 +	REMOVE_SYSFS_FILE(DPR)
++    REMOVE_SYSFS_FILE(ACP)
 +
 +	if (hdev->product == CSL_ELITE_WHEELBASE_DEVICE_ID || 
 +	    hdev->product == CSL_ELITE_PS4_WHEELBASE_DEVICE_ID) {
@@ -44803,21 +44825,22 @@ index 000000000000..dd4d98e34c84
 +MODULE_PARM_DESC(rate, "Polling rate (default: 1)");
 # ----------------------------------------
 # Module: hid-tmff2
-# Version: 438a3e140756
+# Version: 26995429a3b9
 # ----------------------------------------
 diff --git a/drivers/custom/hid-tmff2/Kbuild b/drivers/custom/hid-tmff2/Kbuild
 new file mode 100644
-index 000000000000..3f4d74085bea
+index 000000000000..8cabb2b4c189
 --- /dev/null
 +++ b/drivers/custom/hid-tmff2/Kbuild
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,8 @@
 +obj-m := hid-tmff-new.o
 +hid-tmff-new-y := \
 +		src/hid-tmff2.o \
 +		src/tmt300rs/hid-tmt300rs.o \
 +		src/tmt248/hid-tmt248.o \
 +		src/tmtx/hid-tmtx.o \
-+		src/tmtsxw/hid-tmtsxw.o
++		src/tmtsxw/hid-tmtsxw.o \
++		src/tmtspc/hid-tmtspc.o
 diff --git a/drivers/custom/hid-tmff2/Makefile b/drivers/custom/hid-tmff2/Makefile
 new file mode 100644
 index 000000000000..ad52621189ae
@@ -44850,10 +44873,10 @@ index 000000000000..ad52621189ae
 +	$(MAKE) -C deps/hid-tminit KDIR="$(KDIR)" $(MAKECMDGOALS)
 diff --git a/drivers/custom/hid-tmff2/src/hid-tmff2.c b/drivers/custom/hid-tmff2/src/hid-tmff2.c
 new file mode 100644
-index 000000000000..b6bb834f22cb
+index 000000000000..162a30afdc28
 --- /dev/null
 +++ b/drivers/custom/hid-tmff2/src/hid-tmff2.c
-@@ -0,0 +1,801 @@
+@@ -0,0 +1,831 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +#include <linux/workqueue.h>
 +#include <linux/module.h>
@@ -45158,15 +45181,22 @@ index 000000000000..b6bb834f22cb
 +		return;
 +
 +	for (effect_id = 0; effect_id < tmff2->max_effects; ++effect_id) {
-+		spin_lock_irqsave(&tmff2->lock, lock_flags);
++		unsigned long actions = 0;
++		struct tmff2_effect_state effect;
 +
 +		time_now = JIFFIES2MS(jiffies);
++
 +		state = &tmff2->states[effect_id];
++
++		/* critical section for updating state flags, keep log of what
++		 * actions to take after the critical section with actions */
++		spin_lock_irqsave(&tmff2->lock, lock_flags);
 +
 +		effect_delay = state->effect.replay.delay;
 +		effect_length = state->effect.replay.length;
 +		if (test_bit(FF_EFFECT_PLAYING, &state->flags) && effect_length) {
-+			if ((time_now - state->start_time) >= (effect_delay + effect_length) * state->count) {
++			if ((time_now - state->start_time) >=
++					(effect_delay + effect_length) * state->count) {
 +				__clear_bit(FF_EFFECT_PLAYING, &state->flags);
 +				__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
 +
@@ -45175,46 +45205,63 @@ index 000000000000..b6bb834f22cb
 +		}
 +
 +		if (test_bit(FF_EFFECT_QUEUE_UPLOAD, &state->flags)) {
-+			if (tmff2->upload_effect(tmff2->data, state)) {
-+				hid_warn(tmff2->hdev, "failed uploading effect\n");
-+			} else {
-+				__clear_bit(FF_EFFECT_QUEUE_UPLOAD, &state->flags);
-+				/* if we're uploading an effect, it's bound to be the up
-+				 * to date */
-+				__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
-+			}
++			__set_bit(FF_EFFECT_QUEUE_UPLOAD, &actions);
++			__clear_bit(FF_EFFECT_QUEUE_UPLOAD, &state->flags);
++			/* if we're uploading an effect, it's bound to be up
++			 * to date */
++			__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
 +		}
 +
 +		if (test_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags)) {
-+			if (tmff2->update_effect(tmff2->data, state))
-+				hid_warn(tmff2->hdev, "failed updating effect\n");
-+			else
-+				__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
++			__set_bit(FF_EFFECT_QUEUE_UPDATE, &actions);
++			__clear_bit(FF_EFFECT_QUEUE_UPDATE, &state->flags);
 +		}
 +
 +		if (test_bit(FF_EFFECT_QUEUE_START, &state->flags)) {
-+			if (tmff2->play_effect(tmff2->data, state)) {
-+				hid_warn(tmff2->hdev, "failed starting effect\n");
-+			} else {
-+				__clear_bit(FF_EFFECT_QUEUE_START, &state->flags);
-+				__set_bit(FF_EFFECT_PLAYING, &state->flags);
-+			}
-+
++			__set_bit(FF_EFFECT_QUEUE_START, &actions);
++			__clear_bit(FF_EFFECT_QUEUE_START, &state->flags);
++			/* effect is playing since we're started it right now */
++			__set_bit(FF_EFFECT_PLAYING, &state->flags);
 +		}
 +
 +		if (test_bit(FF_EFFECT_QUEUE_STOP, &state->flags)) {
-+			if (tmff2->stop_effect(tmff2->data, state)) {
-+				hid_warn(tmff2->hdev, "failed stopping effect\n");
-+			} else {
-+				__clear_bit(FF_EFFECT_PLAYING, &state->flags);
-+				__clear_bit(FF_EFFECT_QUEUE_STOP, &state->flags);
-+			}
++			__set_bit(FF_EFFECT_QUEUE_STOP, &actions);
++			__clear_bit(FF_EFFECT_QUEUE_STOP, &state->flags);
++
++			/* the effect can't be playing if we're stopped, aye? */
++			__clear_bit(FF_EFFECT_PLAYING, &state->flags);
 +		}
 +
 +		if (state->count > max_count)
 +			max_count = state->count;
 +
++		/* copy effect state to local variable so we can pass it around
++		 * after the atomic section */
++		effect = *state;
++
 +		spin_unlock_irqrestore(&tmff2->lock, lock_flags);
++
++		/* perform the identified actions */
++		if (test_bit(FF_EFFECT_QUEUE_UPLOAD, &actions)
++				&& tmff2->upload_effect(tmff2->data, &effect)) {
++			hid_warn(tmff2->hdev, "failed uploading effect\n");
++		}
++
++		if (test_bit(FF_EFFECT_QUEUE_UPDATE, &actions)
++				&& tmff2->update_effect(tmff2->data, &effect)) {
++			hid_warn(tmff2->hdev, "failed updating effect\n");
++		}
++
++		if (test_bit(FF_EFFECT_QUEUE_START, &actions)
++				&& tmff2->play_effect(tmff2->data, &effect)) {
++			hid_warn(tmff2->hdev, "failed starting effect\n");
++		}
++
++		if (test_bit(FF_EFFECT_QUEUE_STOP, &actions)
++				&& tmff2->stop_effect(tmff2->data, &effect)) {
++			hid_warn(tmff2->hdev, "failed stopping effect\n");
++		}
++
 +
 +		/* wait for each effect update to actually be sent out to avoid
 +		 * filling up usb output queue */
@@ -45539,6 +45586,10 @@ index 000000000000..b6bb834f22cb
 +			if ((ret = tsxw_populate_api(tmff2)))
 +				goto wheel_err;
 +			break;
++			case TMTS_PC_RACER_ID:
++			if ((ret = tspc_populate_api(tmff2)))
++				goto wheel_err;
++			break;
 +		default:
 +			ret = -ENODEV;
 +			goto wheel_err;
@@ -45638,6 +45689,8 @@ index 000000000000..b6bb834f22cb
 +	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TMT248_PC_ID)},
 +	/* tx */
 +	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TX_ACTIVE)},
++	/* TS-PC RACER */
++	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TMTS_PC_RACER_ID)},
 +	/* tsxw */
 +	{HID_USB_DEVICE(USB_VENDOR_ID_THRUSTMASTER, TSXW_ACTIVE)},
 +
@@ -45657,10 +45710,10 @@ index 000000000000..b6bb834f22cb
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/custom/hid-tmff2/src/hid-tmff2.h b/drivers/custom/hid-tmff2/src/hid-tmff2.h
 new file mode 100644
-index 000000000000..666d249b7ca7
+index 000000000000..6ad1d823aad8
 --- /dev/null
 +++ b/drivers/custom/hid-tmff2/src/hid-tmff2.h
-@@ -0,0 +1,151 @@
+@@ -0,0 +1,154 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +#ifndef __HID_TMFF2_H
 +#define __HID_TMFF2_H
@@ -45736,10 +45789,10 @@ index 000000000000..666d249b7ca7
 +	signed short supported_effects[FF_CNT];
 +
 +	/* obligatory callbacks */
-+	int (*play_effect)(void *data, struct tmff2_effect_state *state);
-+	int (*upload_effect)(void *data, struct tmff2_effect_state *state);
-+	int (*update_effect)(void *data, struct tmff2_effect_state *state);
-+	int (*stop_effect)(void *data, struct tmff2_effect_state *state);
++	int (*play_effect)(void *data, const struct tmff2_effect_state *state);
++	int (*upload_effect)(void *data, const struct tmff2_effect_state *state);
++	int (*update_effect)(void *data, const struct tmff2_effect_state *state);
++	int (*stop_effect)(void *data, const struct tmff2_effect_state *state);
 +
 +	int (*wheel_init)(struct tmff2_device_entry *tmff2, int open_mode);
 +	int (*wheel_destroy)(void *data);
@@ -45766,6 +45819,7 @@ index 000000000000..666d249b7ca7
 +int t248_populate_api(struct tmff2_device_entry *tmff2);
 +int tx_populate_api(struct tmff2_device_entry *tmff2);
 +int tsxw_populate_api(struct tmff2_device_entry *tmff2);
++int tspc_populate_api(struct tmff2_device_entry *tmff2);
 +
 +#define TMT300RS_PS3_NORM_ID	0xb66e
 +#define TMT300RS_PS3_ADV_ID	0xb66f
@@ -45776,6 +45830,8 @@ index 000000000000..666d249b7ca7
 +#define TX_ACTIVE               0xb669
 +
 +#define TSXW_ACTIVE		0xb692
++
++#define TMTS_PC_RACER_ID	0xb689
 +
 +/* APIs to different wheel families */
 +/* T248 and TX at least uses the T300RS api, not sure if there are other wheels
@@ -45797,10 +45853,10 @@ index 000000000000..666d249b7ca7
 +	u8 *send_buffer;
 +};
 +
-+int t300rs_play_effect(void *, struct tmff2_effect_state *);
-+int t300rs_upload_effect(void *, struct tmff2_effect_state *);
-+int t300rs_update_effect(void *, struct tmff2_effect_state *);
-+int t300rs_stop_effect(void *, struct tmff2_effect_state *);
++int t300rs_play_effect(void *, const struct tmff2_effect_state *);
++int t300rs_upload_effect(void *, const struct tmff2_effect_state *);
++int t300rs_update_effect(void *, const struct tmff2_effect_state *);
++int t300rs_stop_effect(void *, const struct tmff2_effect_state *);
 +
 +int t300rs_open(void *, int);
 +int t300rs_close(void *, int);
@@ -46156,7 +46212,7 @@ index 000000000000..9ac43d9d5b93
 +}
 diff --git a/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.c b/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.c
 new file mode 100644
-index 000000000000..39665303953c
+index 000000000000..00eecee5a7a9
 --- /dev/null
 +++ b/drivers/custom/hid-tmff2/src/tmt300rs/hid-tmt300rs.c
 @@ -0,0 +1,1560 @@
@@ -46650,7 +46706,7 @@ index 000000000000..39665303953c
 +	packet_header->code = code;
 +}
 +
-+int t300rs_play_effect(void *data, struct tmff2_effect_state *state)
++int t300rs_play_effect(void *data, const struct tmff2_effect_state *state)
 +{
 +	struct t300rs_device_entry *t300rs = data;
 +	struct __packed t300rs_packet_play {
@@ -46677,7 +46733,7 @@ index 000000000000..39665303953c
 +	return ret;
 +}
 +
-+int t300rs_stop_effect(void *data, struct tmff2_effect_state *state)
++int t300rs_stop_effect(void *data, const struct tmff2_effect_state *state)
 +{
 +	struct t300rs_device_entry *t300rs = data;
 +	struct __packed t300rs_packet_stop {
@@ -46728,7 +46784,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_update_constant(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	struct ff_effect old = state->old;
@@ -46778,7 +46834,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_update_ramp(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	struct ff_effect old = state->old;
@@ -46838,7 +46894,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_update_condition(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	struct ff_effect old = state->old;
@@ -46916,7 +46972,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_update_periodic(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	struct ff_effect old = state->old;
@@ -46978,7 +47034,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_upload_constant(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	struct ff_constant_effect constant = state->effect.u.constant;
@@ -47015,7 +47071,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_upload_ramp(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	struct ff_ramp_effect ramp = state->effect.u.ramp;
@@ -47062,7 +47118,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_upload_condition(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	/* we only care about the first axis */
@@ -47127,7 +47183,7 @@ index 000000000000..39665303953c
 +}
 +
 +static int t300rs_upload_periodic(struct t300rs_device_entry *t300rs,
-+		struct tmff2_effect_state *state)
++		const struct tmff2_effect_state *state)
 +{
 +	struct ff_effect effect = state->effect;
 +	struct __packed t300rs_packet_periodic {
@@ -47178,7 +47234,7 @@ index 000000000000..39665303953c
 +	return ret;
 +}
 +
-+int t300rs_update_effect(void *data, struct tmff2_effect_state *state)
++int t300rs_update_effect(void *data, const struct tmff2_effect_state *state)
 +{
 +	struct t300rs_device_entry *t300rs = data;
 +	switch (state->effect.type) {
@@ -47200,7 +47256,7 @@ index 000000000000..39665303953c
 +	}
 +}
 +
-+int t300rs_upload_effect(void *data, struct tmff2_effect_state *state)
++int t300rs_upload_effect(void *data, const struct tmff2_effect_state *state)
 +{
 +	struct t300rs_device_entry *t300rs = data;
 +	switch (state->effect.type) {
@@ -47464,7 +47520,7 @@ index 000000000000..39665303953c
 +int t300rs_close(void *data, int open_mode)
 +{
 +	struct t300rs_device_entry *t300rs = data;
-+	int ret;
++	int ret = 0;
 +
 +	if (!t300rs)
 +		return -ENODEV;
@@ -47735,6 +47791,355 @@ index 000000000000..2305f4b4c88e
 +int t300rs_populate_api(struct tmff2_device_entry *tmff2);
 +
 +#endif
+diff --git a/drivers/custom/hid-tmff2/src/tmtspc/hid-tmtspc.c b/drivers/custom/hid-tmff2/src/tmtspc/hid-tmtspc.c
+new file mode 100644
+index 000000000000..a51ec0199040
+--- /dev/null
++++ b/drivers/custom/hid-tmff2/src/tmtspc/hid-tmtspc.c
+@@ -0,0 +1,343 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include <linux/usb.h>
++#include <linux/hid.h>
++#include "../hid-tmff2.h"
++
++#define TMTSPC_MAX_EFFECTS 16
++#define TMTSPC_BUFFER_LENGTH 63
++
++static const u8 setup_0[64] = { 0x42, 0x01 };
++static const u8 setup_1[64] = { 0x0a, 0x04, 0x90, 0x03 };
++static const u8 setup_2[64] = { 0x0a, 0x04, 0x00, 0x0c };
++static const u8 setup_3[64] = { 0x0a, 0x04, 0x12, 0x10 };
++static const u8 setup_4[64] = { 0x0a, 0x04, 0x00, 0x06 };
++static const u8 setup_5[64] = { 0x0a, 0x04, 0x00, 0x0e };
++static const u8 setup_6[64] = { 0x0a, 0x04, 0x00, 0x0e, 0x01 };
++static const u8 *const setup_arr[] = { setup_0, setup_1, setup_2, setup_3, setup_4, setup_5, setup_6 };
++static const unsigned int setup_arr_sizes[] = {
++	ARRAY_SIZE(setup_0),
++	ARRAY_SIZE(setup_1),
++	ARRAY_SIZE(setup_2),
++	ARRAY_SIZE(setup_3),
++	ARRAY_SIZE(setup_4),
++	ARRAY_SIZE(setup_5),
++	ARRAY_SIZE(setup_6)
++};
++
++static const unsigned long tspc_params =
++	PARAM_SPRING_LEVEL
++	| PARAM_DAMPER_LEVEL
++	| PARAM_FRICTION_LEVEL
++	| PARAM_ALT_MODE
++	| PARAM_RANGE
++	| PARAM_GAIN
++	;
++
++static const signed short tspc_effects[] = {
++	FF_CONSTANT,
++	FF_RAMP,
++	FF_SPRING,
++	FF_DAMPER,
++	FF_FRICTION,
++	FF_INERTIA,
++	FF_PERIODIC,
++	FF_SINE,
++	FF_TRIANGLE,
++	FF_SQUARE,
++	FF_SAW_UP,
++	FF_SAW_DOWN,
++	FF_AUTOCENTER,
++	FF_GAIN,
++	-1
++};
++
++/* TODO: sort through this stuff */
++static u8 tspc_pc_rdesc_fixed[] = {
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x04, /* Usage (Joystick) */
++	0xa1, 0x01, /* Collection (Application) */
++	0x09, 0x01, /* Usage (Pointer) */
++	0xa1, 0x00, /* Collection (Physical) */
++	0x85, 0x07, /* Report ID (7) */
++	0x09, 0x30, /* Usage (X) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x27, 0xff, 0xff, 0x00, 0x00, /* Logical maximum (65535) */
++	0x35, 0x00, /* Physical minimum (0) */
++	0x47, 0xff, 0xff, 0x00, 0x00, /* Physical maximum (65535) */
++	0x75, 0x10, /* Report size (16) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x35, /* Usage (Rz) (Brake) */
++	0x26, 0xff, 0x03, /* Logical maximum (1023) */
++	0x46, 0xff, 0x03, /* Physical maximum (1023) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x32, /* Usage (Z) (Gas) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x31, /* Usage (Y) (Clutch) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x05, 0x09, /* Usage page (Button) */
++	0x19, 0x01, /* Usage minimum (1) */
++	0x29, 0x0d, /* Usage maximum (13) */
++	0x25, 0x01, /* Logical maximum (1) */
++	0x45, 0x01, /* Physical maximum (1) */
++	0x75, 0x01, /* Report size (1) */
++	0x95, 0x0d, /* Report count (13) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x75, 0x0b, /* Report size (13) */
++	0x95, 0x01, /* Report count (1) */
++	0x81, 0x03, /* Usage (Variable, Absolute, Constant) */
++	0x05, 0x01, /* Usage page (Generic Desktop) */
++	0x09, 0x39, /* Usage (Hat Switch) */
++	0x25, 0x07, /* Logical maximum (7) */
++	0x46, 0x3b, 0x01, /* Physical maximum (315) */
++	0x55, 0x00, /* Unit exponent (0) */
++	0x65, 0x14, /* Unit (Eng Rot, Angular Pos) */
++	0x75, 0x04, /* Report size (4) */
++	0x81, 0x42, /* Input (Variable, Absolute, NullState) */
++	0x65, 0x00, /* Unit (None) */
++	0x81, 0x03, /* Input (Variable, Absolute, Constant) */
++	0x85, 0x60, /* Report ID (96), prev 10 */
++	0x06, 0x00, 0xff, /* Usage page (Vendor 1) */
++	0x09, 0x60, /* Usage (96), prev 10 */
++	0x75, 0x08, /* Report size (8) */
++	0x95, 0x3f, /* Report count (63) */
++	0x26, 0xff, 0x7f, /* Logical maximum (32767) */
++	0x15, 0x00, /* Logical minimum (0) */
++	0x46, 0xff, 0x7f, /* Physical maximum (32767) */
++	0x36, 0x00, 0x80, /* Physical minimum (-32768) */
++	0x91, 0x02, /* Output (Variable, Absolute) */
++	0x85, 0x02, /* Report ID (2) */
++	0x09, 0x02, /* Usage (2) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0x09, 0x14, /* Usage (20) */
++	0x85, 0x14, /* Report ID (20) */
++	0x81, 0x02, /* Input (Variable, Absolute) */
++	0xc0, /* End collection */
++	0xc0, /* End collection */
++};
++
++static int tspc_interrupts(struct t300rs_device_entry *tspc)
++{
++	u8 *send_buf = kmalloc(256, GFP_KERNEL);
++	struct usb_interface *usbif = to_usb_interface(tspc->hdev->dev.parent);
++	struct usb_host_endpoint *ep;
++	int ret, trans, b_ep, i;
++
++	if (!send_buf) {
++		hid_err(tspc->hdev, "failed allocating send buffer\n");
++		return -ENOMEM;
++	}
++
++	ep = &usbif->cur_altsetting->endpoint[1];
++	b_ep = ep->desc.bEndpointAddress;
++
++	for (i = 0; i < ARRAY_SIZE(setup_arr); ++i) {
++		memcpy(send_buf, setup_arr[i], setup_arr_sizes[i]);
++
++		ret = usb_interrupt_msg(tspc->usbdev,
++				usb_sndintpipe(tspc->usbdev, b_ep),
++				send_buf, setup_arr_sizes[i],
++				&trans,
++				USB_CTRL_SET_TIMEOUT);
++
++		if (ret) {
++			hid_err(tspc->hdev, "setup data couldn't be sent\n");
++			goto err;
++		}
++	}
++
++err:
++	kfree(send_buf);
++	return ret;
++}
++
++static int tspc_wheel_destroy(void *data)
++{
++	struct t300rs_device_entry *t300rs = data;
++
++	if (!t300rs)
++		return -ENODEV;
++
++	kfree(t300rs->send_buffer);
++	kfree(t300rs);
++	return 0;
++}
++
++static int tspc_set_range(void *data, uint16_t value)
++{
++	struct t300rs_device_entry *tspc = data;
++
++	if (value < 140) {
++		hid_info(tspc->hdev, "value %i too small, clamping to 140\n", value);
++		value = 140;
++	}
++
++	if (value > 1080) {
++		hid_info(tspc->hdev, "value %i too large, clamping to 1080\n", value);
++		value = 1080;
++	}
++
++	return t300rs_set_range(data, value);
++}
++
++static int tspc_send_open(struct t300rs_device_entry *tspc)
++{
++	int r1, r2;
++	tspc->send_buffer[0] = 0x01;
++	tspc->send_buffer[1] = 0x04;
++	if ((r1 = t300rs_send_int(tspc)))
++		return r1;
++
++	tspc->send_buffer[0] = 0x01;
++	tspc->send_buffer[1] = 0x05;
++	if ((r2 = t300rs_send_int(tspc)))
++		return r2;
++
++	return 0;
++}
++
++static int tspc_open(void *data, int open_mode)
++{
++	struct t300rs_device_entry *tspc = data;
++
++	if (!tspc)
++		return -ENODEV;
++
++	if (open_mode)
++		tspc_send_open(tspc);
++
++	return tspc->open(tspc->input_dev);
++}
++
++static int tspc_send_close(struct t300rs_device_entry *tspc)
++{
++	int r1, r2;
++	tspc->send_buffer[0] = 0x01;
++	tspc->send_buffer[1] = 0x05;
++	if ((r1 = t300rs_send_int(tspc)))
++		return r1;
++
++	tspc->send_buffer[0] = 0x01;
++	tspc->send_buffer[1] = 0x00;
++	if ((r2 = t300rs_send_int(tspc)))
++		return r2;
++
++	return 0;
++}
++
++static int tspc_close(void *data, int open_mode)
++{
++	struct t300rs_device_entry *tspc = data;
++
++	if (!tspc)
++		return -ENODEV;
++
++	if (open_mode)
++		tspc_send_close(tspc);
++
++	tspc->close(tspc->input_dev);
++	return 0;
++}
++
++static int tspc_wheel_init(struct tmff2_device_entry *tmff2, int open_mode)
++{
++	struct t300rs_device_entry *tspc = kzalloc(sizeof(struct t300rs_device_entry),
++						   GFP_KERNEL);
++	struct list_head *report_list;
++	int ret;
++
++
++	if (!tspc) {
++		ret = -ENOMEM;
++		goto tspc_err;
++	}
++
++	tspc->hdev = tmff2->hdev;
++	tspc->input_dev = tmff2->input_dev;
++	tspc->usbdev = to_usb_device(tmff2->hdev->dev.parent->parent);
++	tspc->buffer_length = TMTSPC_BUFFER_LENGTH;
++
++	tspc->send_buffer = kzalloc(tspc->buffer_length, GFP_KERNEL);
++	if (!tspc->send_buffer) {
++		ret = -ENOMEM;
++		goto send_err;
++	}
++
++	report_list = &tspc->hdev->report_enum[HID_OUTPUT_REPORT].report_list;
++	tspc->report = list_entry(report_list->next, struct hid_report, list);
++	tspc->ff_field = tspc->report->field[0];
++
++	tspc->open = tspc->input_dev->open;
++	tspc->close = tspc->input_dev->close;
++
++	if ((ret = tspc_interrupts(tspc)))
++		goto interrupt_err;
++
++	/* everything went OK */
++	tmff2->data = tspc;
++	tmff2->params = tspc_params;
++	tmff2->max_effects = TMTSPC_MAX_EFFECTS;
++	memcpy(tmff2->supported_effects, tspc_effects, sizeof(tspc_effects));
++
++	if (!open_mode)
++		tspc_send_open(tspc);
++
++	hid_info(tspc->hdev, "force feedback for TS-PC\n");
++	return 0;
++
++interrupt_err:
++send_err:
++	kfree(tspc);
++tspc_err:
++	hid_err(tmff2->hdev, "failed initializing TS-PC\n");
++	return ret;
++}
++
++static __u8 *tspc_wheel_fixup(struct hid_device *hdev, __u8 *rdesc,
++		unsigned int *rsize)
++{
++	rdesc = tspc_pc_rdesc_fixed;
++	*rsize = sizeof(tspc_pc_rdesc_fixed);
++	return rdesc;
++}
++
++static ssize_t tspc_alt_mode_store(void *data, const char *buf, size_t count)
++{
++	struct t300rs_device_entry *tspc = data;
++	if (!tspc)
++		return -ENODEV;
++
++	/* blindly trusting that this works for now */
++	usb_control_msg(tspc->usbdev,
++			usb_sndctrlpipe(tspc->usbdev, 0),
++			83, 0x41, 0xb, 0, 0, 0,
++			USB_CTRL_SET_TIMEOUT
++		       );
++
++	return count;
++}
++
++int tspc_populate_api(struct tmff2_device_entry *tmff2)
++{
++	tmff2->play_effect = t300rs_play_effect;
++	tmff2->upload_effect = t300rs_upload_effect;
++	tmff2->update_effect = t300rs_update_effect;
++	tmff2->stop_effect = t300rs_stop_effect;
++
++	tmff2->set_gain = t300rs_set_gain;
++	tmff2->set_autocenter = t300rs_set_autocenter;
++	/* TS-PC has 1080 degree range, like T300RS 1080 */
++	tmff2->set_range = tspc_set_range;
++	tmff2->wheel_fixup = tspc_wheel_fixup;
++
++	tmff2->open = tspc_open;
++	tmff2->close = tspc_close;
++
++	tmff2->alt_mode_store = tspc_alt_mode_store;
++
++	tmff2->wheel_init = tspc_wheel_init;
++	tmff2->wheel_destroy = tspc_wheel_destroy;
++
++	return 0;
++}
 diff --git a/drivers/custom/hid-tmff2/src/tmtsxw/hid-tmtsxw.c b/drivers/custom/hid-tmff2/src/tmtsxw/hid-tmtsxw.c
 new file mode 100644
 index 000000000000..b8ee1fdea466
@@ -48397,7 +48802,7 @@ index 000000000000..857886c62152
 +}
 # ----------------------------------------
 # Module: kvfm
-# Version: fddcb7f2d43e
+# Version: 53bfb6547f2b
 # ----------------------------------------
 diff --git a/drivers/custom/kvfm/module/Makefile b/drivers/custom/kvfm/module/Makefile
 new file mode 100644
@@ -79478,7 +79883,7 @@ index 000000000000..c85654a7346e
 +static int t150_setup_task(struct t150 *t150);
 # ----------------------------------------
 # Module: v4l2loopback
-# Version: v0.15.2
+# Version: v0.15.3
 # ----------------------------------------
 diff --git a/drivers/custom/v4l2loopback/Kbuild b/drivers/custom/v4l2loopback/Kbuild
 new file mode 100644
@@ -83861,10 +84266,10 @@ index 000000000000..ba996021baab
 +}
 diff --git a/drivers/custom/v4l2loopback/v4l2loopback.c b/drivers/custom/v4l2loopback/v4l2loopback.c
 new file mode 100644
-index 000000000000..483b5ad10b33
+index 000000000000..22e270717191
 --- /dev/null
 +++ b/drivers/custom/v4l2loopback/v4l2loopback.c
-@@ -0,0 +1,3322 @@
+@@ -0,0 +1,3331 @@
 +/* -*- c-file-style: "linux" -*- */
 +/*
 + * v4l2loopback.c  --  video4linux2 loopback driver
@@ -83925,9 +84330,16 @@ index 000000000000..483b5ad10b33
 +#define timer_delete_sync del_timer_sync
 +#endif
 +
++#define fh_to_opener(ptr) container_of((ptr), struct v4l2_loopback_opener, fh)
++#define file_to_opener(ptr) \
++	container_of(file_to_v4l2_fh(ptr), struct v4l2_loopback_opener, fh)
++
 +#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
++#define v4l2l_f_to_opener(_file, _fh) fh_to_opener(_fh)
 +#define v4l2_fh_add(fh, filp) v4l2_fh_add(fh)
 +#define v4l2_fh_del(fh, filp) v4l2_fh_del(fh)
++#else
++#define v4l2l_f_to_opener(_file, _fh) file_to_opener(_file)
 +#endif
 +
 +#define V4L2LOOPBACK_VERSION_CODE                                              \
@@ -84279,8 +84691,6 @@ index 000000000000..483b5ad10b33
 +
 +	struct v4l2_fh fh;
 +};
-+
-+#define fh_to_opener(ptr) container_of((ptr), struct v4l2_loopback_opener, fh)
 +
 +/* this is heavily inspired by the bttv driver found in the linux kernel */
 +struct v4l2l_format {
@@ -84761,7 +85171,7 @@ index 000000000000..483b5ad10b33
 +			   struct v4l2_capability *cap)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	int device_nr = v4l2loopback_get_vdev_nr(dev->vdev);
 +	__u32 capabilities = V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
 +
@@ -84796,7 +85206,7 @@ index 000000000000..483b5ad10b33
 +				  struct v4l2_frmsizeenum *argp)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +
 +	/* there can be only one... */
 +	if (argp->index)
@@ -84878,7 +85288,7 @@ index 000000000000..483b5ad10b33
 +				      struct v4l2_frmivalenum *argp)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +
 +	/* there can be only one... */
 +	if (argp->index)
@@ -84921,7 +85331,7 @@ index 000000000000..483b5ad10b33
 +			       struct v4l2_fmtdesc *f)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	int fixed = dev->keep_format || has_other_owners(opener, dev);
 +	const struct v4l2l_format *fmt;
 +
@@ -84955,7 +85365,7 @@ index 000000000000..483b5ad10b33
 +			      struct v4l2_format *f)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +
 +	if (check_buffer_capability(dev, opener, f->type) < 0)
 +		return -EINVAL;
@@ -84979,7 +85389,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_s_fmt_vid(struct file *file, void *fh, struct v4l2_format *f)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	u32 token = opener->io_method == V4L2L_IO_TIMEOUT ?
 +			    V4L2L_TOKEN_TIMEOUT :
 +			    token_from_type(f->type);
@@ -85050,7 +85460,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_g_fmt_cap(struct file *file, void *fh, struct v4l2_format *f)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	if (check_buffer_capability(dev, opener, f->type) < 0)
 +		return -EINVAL;
 +	f->fmt.pix = dev->pix_format;
@@ -85081,7 +85491,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_g_fmt_out(struct file *file, void *fh, struct v4l2_format *f)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	if (check_buffer_capability(dev, opener, f->type) < 0)
 +		return -EINVAL;
 +	/*
@@ -85140,7 +85550,7 @@ index 000000000000..483b5ad10b33
 +	/* do not care about type of opener, hope these enums would always be
 +	 * compatible */
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	if (check_buffer_capability(dev, opener, parm->type) < 0)
 +		return -EINVAL;
 +	parm->parm.capture = dev->capture_param;
@@ -85155,7 +85565,7 @@ index 000000000000..483b5ad10b33
 +			 struct v4l2_streamparm *parm)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +
 +	dprintk("S_PARM(frame-time=%u/%u)\n",
 +		parm->parm.capture.timeperframe.numerator,
@@ -85296,7 +85706,7 @@ index 000000000000..483b5ad10b33
 +{
 +	__u32 index = outp->index;
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +
 +	if (check_buffer_capability(dev, opener, V4L2_BUF_TYPE_VIDEO_OUTPUT))
 +		return -ENOTTY;
@@ -85327,7 +85737,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_g_output(struct file *file, void *fh, unsigned int *index)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	if (check_buffer_capability(dev, opener, V4L2_BUF_TYPE_VIDEO_OUTPUT))
 +		return -ENOTTY;
 +	if (index)
@@ -85341,7 +85751,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_s_output(struct file *file, void *fh, unsigned int index)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	if (check_buffer_capability(dev, opener, V4L2_BUF_TYPE_VIDEO_OUTPUT))
 +		return -ENOTTY;
 +	return index == 0 ? index : -EINVAL;
@@ -85355,7 +85765,7 @@ index 000000000000..483b5ad10b33
 +			     struct v4l2_input *inp)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	__u32 index = inp->index;
 +
 +	if (check_buffer_capability(dev, opener, V4L2_BUF_TYPE_VIDEO_CAPTURE))
@@ -85393,7 +85803,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_g_input(struct file *file, void *fh, unsigned int *index)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	if (check_buffer_capability(dev, opener, V4L2_BUF_TYPE_VIDEO_CAPTURE))
 +		return -ENOTTY; /* NOTE: -EAGAIN might be more informative */
 +	if (index)
@@ -85407,7 +85817,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_s_input(struct file *file, void *fh, unsigned int index)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	if (index != 0)
 +		return -EINVAL;
 +	if (check_buffer_capability(dev, opener, V4L2_BUF_TYPE_VIDEO_CAPTURE))
@@ -85501,7 +85911,7 @@ index 000000000000..483b5ad10b33
 +			  struct v4l2_requestbuffers *reqbuf)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	u32 token = opener->io_method == V4L2L_IO_TIMEOUT ?
 +			    V4L2L_TOKEN_TIMEOUT :
 +			    token_from_type(reqbuf->type);
@@ -85630,7 +86040,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	u32 type = buf->type;
 +	u32 index = buf->index;
 +
@@ -85693,7 +86103,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	struct v4l2l_buffer *bufd;
 +	u32 index = buf->index;
 +	u32 type = buf->type;
@@ -85784,7 +86194,8 @@ index 000000000000..483b5ad10b33
 +static int get_capture_buffer(struct file *file)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(file->private_data);
++	struct v4l2_loopback_opener *opener =
++		v4l2l_f_to_opener(file, file->private_data);
 +	int pos, timeout_happened;
 +	u32 index;
 +
@@ -85839,7 +86250,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	u32 type = buf->type;
 +	int index;
 +	struct v4l2l_buffer *bufd;
@@ -85897,7 +86308,7 @@ index 000000000000..483b5ad10b33
 +static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	u32 token = token_from_type(type);
 +
 +	/* short-circuit when using timeout buffer set */
@@ -85932,7 +86343,7 @@ index 000000000000..483b5ad10b33
 +			    enum v4l2_buf_type type)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	u32 token = token_from_type(type);
 +
 +	/* short-circuit when using timeout buffer set */
@@ -86071,7 +86482,8 @@ index 000000000000..483b5ad10b33
 +	u8 *addr;
 +	unsigned long start, size, offset;
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(file->private_data);
++	struct v4l2_loopback_opener *opener =
++		v4l2l_f_to_opener(file, file->private_data);
 +	struct v4l2l_buffer *buffer = NULL;
 +	int result = 0;
 +	MARK();
@@ -86145,7 +86557,8 @@ index 000000000000..483b5ad10b33
 +				       struct poll_table_struct *pts)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(file->private_data);
++	struct v4l2_loopback_opener *opener =
++		v4l2l_f_to_opener(file, file->private_data);
 +	__poll_t req_events = poll_requested_events(pts);
 +	int ret_mask = 0;
 +
@@ -86216,7 +86629,8 @@ index 000000000000..483b5ad10b33
 +static int v4l2_loopback_close(struct file *file)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(file->private_data);
++	struct v4l2_loopback_opener *opener =
++		v4l2l_f_to_opener(file, file->private_data);
 +	int result = 0;
 +	dprintk("close() -> dev@%p with image@%p\n", dev,
 +		dev ? dev->image : NULL);
@@ -86266,7 +86680,7 @@ index 000000000000..483b5ad10b33
 +static int start_fileio(struct file *file, void *fh, enum v4l2_buf_type type)
 +{
 +	struct v4l2_loopback_device *dev = v4l2loopback_getdevice(file);
-+	struct v4l2_loopback_opener *opener = fh_to_opener(fh);
++	struct v4l2_loopback_opener *opener = v4l2l_f_to_opener(file, fh);
 +	struct v4l2_requestbuffers reqbuf = { .count = dev->buffer_count,
 +					      .memory = V4L2_MEMORY_MMAP,
 +					      .type = type };
@@ -87189,7 +87603,7 @@ index 000000000000..483b5ad10b33
 +module_exit(v4l2loopback_cleanup_module);
 diff --git a/drivers/custom/v4l2loopback/v4l2loopback.h b/drivers/custom/v4l2loopback/v4l2loopback.h
 new file mode 100644
-index 000000000000..189a776867fa
+index 000000000000..8961a98eff58
 --- /dev/null
 +++ b/drivers/custom/v4l2loopback/v4l2loopback.h
 @@ -0,0 +1,108 @@
@@ -87207,7 +87621,7 @@ index 000000000000..189a776867fa
 +
 +#define V4L2LOOPBACK_VERSION_MAJOR 0
 +#define V4L2LOOPBACK_VERSION_MINOR 15
-+#define V4L2LOOPBACK_VERSION_BUGFIX 2
++#define V4L2LOOPBACK_VERSION_BUGFIX 3
 +
 +/* /dev/v4l2loopback interface */
 +
@@ -87762,15 +88176,16 @@ index 000000000000..ac2f1cbc062c
 +};
 # ----------------------------------------
 # Module: xonedo
-# Version: 6d5a78a88e86
+# Version: v0.5.0
 # ----------------------------------------
 diff --git a/drivers/custom/xonedo/Kbuild b/drivers/custom/xonedo/Kbuild
 new file mode 100644
-index 000000000000..9a45c80af092
+index 000000000000..38020126a725
 --- /dev/null
 +++ b/drivers/custom/xonedo/Kbuild
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,19 @@
 +xone_gip-y := bus/bus.o bus/protocol.o auth/auth.o auth/crypto.o driver/common.o
++xone_wired-y := transport/wired.o
 +xone_dongle-y := transport/dongle.o transport/mt76.o
 +xone_gip_gamepad-y := driver/gamepad.o
 +xone_gip_headset-y := driver/headset.o
@@ -87780,6 +88195,7 @@ index 000000000000..9a45c80af092
 +xone_gip_pdp_jaguar-y := driver/pdp_jaguar.o
 +
 +obj-m := xone_gip.o \
++	xone_wired.o \
 +	xone_dongle.o \
 +	xone_gip_gamepad.o \
 +	xone_gip_headset.o \
@@ -88556,10 +88972,10 @@ index 000000000000..85d2c8165fb0
 +int gip_auth_start_handshake(struct gip_auth *auth, struct gip_client *client);
 diff --git a/drivers/custom/xonedo/auth/crypto.c b/drivers/custom/xonedo/auth/crypto.c
 new file mode 100644
-index 000000000000..19fc6531b844
+index 000000000000..64dd7388a4aa
 --- /dev/null
 +++ b/drivers/custom/xonedo/auth/crypto.c
-@@ -0,0 +1,287 @@
+@@ -0,0 +1,244 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (C) 2023 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
@@ -88600,7 +89016,6 @@ index 000000000000..19fc6531b844
 +
 +int gip_auth_get_transcript(struct shash_desc *desc, void *transcript)
 +{
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0)
 +	void *state = kzalloc(crypto_shash_descsize(desc->tfm), GFP_KERNEL);
 +	int err;
 +
@@ -88617,20 +89032,6 @@ index 000000000000..19fc6531b844
 +get_transcript_error:
 +	kfree(state);
 +	return err;
-+#else
-+	struct sha256_state state;
-+	int err;
-+
-+	err = crypto_shash_export(desc, &state);
-+	if (err)
-+		return err;
-+
-+	err = crypto_shash_final(desc, transcript);
-+	if (err)
-+		return err;
-+
-+	return crypto_shash_import(desc, &state);
-+#endif
 +}
 +
 +int gip_auth_compute_prf(struct shash_desc *desc, const char *label,
@@ -88672,48 +89073,20 @@ index 000000000000..19fc6531b844
 +			 u8 *out, int out_len)
 +{
 +	struct crypto_akcipher *tfm;
-+	struct akcipher_request *req;
-+	struct scatterlist src, dest;
-+	DECLARE_CRYPTO_WAIT(wait);
-+	u8 *buf;
 +	int err;
 +
-+	buf = kzalloc(out_len, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
 +	tfm = crypto_alloc_akcipher("pkcs1pad(rsa)", 0, 0);
-+	if (IS_ERR(tfm)) {
-+		err = PTR_ERR(tfm);
-+		goto err_free_buf;
-+	}
++	if (IS_ERR(tfm))
++		return PTR_ERR(tfm);
 +
 +	err = crypto_akcipher_set_pub_key(tfm, key, key_len);
 +	if (err)
 +		goto err_free_tfm;
 +
-+	req = akcipher_request_alloc(tfm, GFP_KERNEL);
-+	if (!req) {
-+		err = -ENOMEM;
-+		goto err_free_tfm;
-+	}
-+
-+	sg_init_one(&src, in, in_len);
-+	sg_init_one(&dest, buf, out_len);
-+
-+	akcipher_request_set_crypt(req, &src, &dest, in_len, out_len);
-+	akcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
-+				      crypto_req_done, &wait);
-+	err = crypto_wait_req(crypto_akcipher_encrypt(req), &wait);
-+	if (!err)
-+		memcpy(out, buf, out_len);
-+
-+	akcipher_request_free(req);
++	err = crypto_akcipher_sync_encrypt(tfm, in, in_len, out, out_len);
 +
 +err_free_tfm:
 +	crypto_free_akcipher(tfm);
-+err_free_buf:
-+	kfree(buf);
 +
 +	return err;
 +}
@@ -88876,10 +89249,10 @@ index 000000000000..a34972e35b28
 +			  int pubkey_len, u8 *secret_hash);
 diff --git a/drivers/custom/xonedo/bus/bus.c b/drivers/custom/xonedo/bus/bus.c
 new file mode 100644
-index 000000000000..e70f284f2033
+index 000000000000..8baa71ea97ef
 --- /dev/null
 +++ b/drivers/custom/xonedo/bus/bus.c
-@@ -0,0 +1,383 @@
+@@ -0,0 +1,353 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (C) 2021 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
@@ -88908,12 +89281,8 @@ index 000000000000..e70f284f2033
 +	.release = gip_adapter_release,
 +};
 +
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)
-+static int gip_client_uevent(struct device *dev, struct kobj_uevent_env *env)
-+#else
 +static int gip_client_uevent(const struct device *dev,
 +			     struct kobj_uevent_env *env)
-+#endif
 +{
 +	struct gip_client *client = to_gip_client(dev);
 +	struct gip_classes *classes = client->classes;
@@ -88999,24 +89368,11 @@ index 000000000000..e70f284f2033
 +	up(&client->drv_lock);
 +}
 +
-+#if LINUX_VERSION_CODE <= KERNEL_VERSION(5, 13, 0)
-+static int gip_bus_remove_compat(struct device *dev)
-+{
-+	gip_bus_remove(dev);
-+
-+	return 0;
-+}
-+#endif
-+
 +static struct bus_type gip_bus_type = {
 +	.name = "xone-gip",
 +	.match = gip_bus_match,
 +	.probe = gip_bus_probe,
-+#if LINUX_VERSION_CODE <= KERNEL_VERSION(5, 13, 0)
-+	.remove = gip_bus_remove_compat,
-+#else
 +	.remove = gip_bus_remove,
-+#endif
 +};
 +
 +struct gip_adapter *gip_create_adapter(struct device *parent,
@@ -89030,12 +89386,7 @@ index 000000000000..e70f284f2033
 +	if (!adap)
 +		return ERR_PTR(-ENOMEM);
 +
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
 +	adap->id = ida_alloc(&gip_adapter_ida, GFP_KERNEL);
-+#else
-+	adap->id = ida_simple_get(&gip_adapter_ida, 0, 0, GFP_KERNEL);
-+#endif
-+
 +	if (adap->id < 0) {
 +		err = adap->id;
 +		goto err_put_device;
@@ -89067,11 +89418,7 @@ index 000000000000..e70f284f2033
 +	destroy_workqueue(adap->clients_wq);
 +
 +err_remove_ida:
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
 +	ida_free(&gip_adapter_ida, adap->id);
-+#else
-+	ida_simple_remove(&gip_adapter_ida, adap->id);
-+#endif
 +
 +err_put_device:
 +	put_device(&adap->dev);
@@ -89108,11 +89455,7 @@ index 000000000000..e70f284f2033
 +		device_unregister(&client->dev);
 +	}
 +
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
 +	ida_free(&gip_adapter_ida, adap->id);
-+#else
-+	ida_simple_remove(&gip_adapter_ida, adap->id);
-+#endif
 +	destroy_workqueue(adap->clients_wq);
 +
 +	dev_dbg(&adap->dev, "%s: unregistered\n", __func__);
@@ -89136,7 +89479,7 @@ index 000000000000..e70f284f2033
 +	 * The unfortunate workaround, that at least works reliably is to add a
 +	 * delay here. Since this is for human input device, one second is fine.
 +	 */
-+	msleep(1000);
++	msleep(700);
 +
 +	client->dev.parent = &client->adapter->dev;
 +	client->dev.type = &gip_client_type;
@@ -89402,10 +89745,10 @@ index 000000000000..95c483fb131c
 +void gip_unregister_driver(struct gip_driver *drv);
 diff --git a/drivers/custom/xonedo/bus/protocol.c b/drivers/custom/xonedo/bus/protocol.c
 new file mode 100644
-index 000000000000..d16aec212151
+index 000000000000..9152be5cae56
 --- /dev/null
 +++ b/drivers/custom/xonedo/bus/protocol.c
-@@ -0,0 +1,1696 @@
+@@ -0,0 +1,1714 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (C) 2021 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
@@ -89476,6 +89819,26 @@ index 000000000000..d16aec212151
 +enum gip_audio_volume_mute {
 +	GIP_AUD_VOLUME_UNMUTED = 0x04,
 +	GIP_AUD_VOLUME_MIC_MUTED = 0x05,
++};
++
++static uint gip_audio_sample_rate[] = {
++	0,
++	8000,
++	8000,
++	12000,
++	12000,
++	16000,
++	16000,
++	20000,
++	20000,
++	24000,
++	24000,
++	32000,
++	32000,
++	40000,
++	40000,
++	48000,
++	48000,
 +};
 +
 +enum gip_extended_command {
@@ -89590,7 +89953,7 @@ index 000000000000..d16aec212151
 +} __packed;
 +
 +struct gip_pkt_audio_samples {
-+	__le16 length_out;
++	__le16 flow_rate;
 +	u8 samples[];
 +} __packed;
 +
@@ -89890,7 +90253,7 @@ index 000000000000..d16aec212151
 +}
 +
 +static int gip_set_audio_format_chat(struct gip_client *client,
-+				     enum gip_audio_format_chat in_out)
++				     enum gip_audio_format in_out)
 +{
 +	struct gip_header hdr = {};
 +	struct gip_pkt_audio_format_chat pkt = {};
@@ -89933,7 +90296,7 @@ index 000000000000..d16aec212151
 +	/* special handling for the chat headset */
 +	if (chat)
 +		err = gip_set_audio_format_chat(client,
-+						GIP_AUD_FORMAT_CHAT_24KHZ);
++						GIP_AUD_FORMAT_12KHZ_STEREO);
 +	else
 +		err = gip_set_audio_format(client, in, out);
 +
@@ -90032,10 +90395,10 @@ index 000000000000..d16aec212151
 +		dest = buf + i * cfg->packet_size;
 +
 +		/* sequence number is always greater than zero */
-+		do {
-+			hdr.sequence = client->adapter->audio_sequence++;
-+		} while (!hdr.sequence);
++		if (!++client->adapter->audio_sequence)
++			++client->adapter->audio_sequence;
 +
++		hdr.sequence = client->adapter->audio_sequence;
 +		gip_encode_header(&hdr, dest);
 +		memcpy(dest + hdr_len, src, cfg->fragment_size);
 +	}
@@ -90193,24 +90556,15 @@ index 000000000000..d16aec212151
 +{
 +	struct gip_header hdr = {};
 +
-+	switch (cfg->format) {
-+	case GIP_AUD_FORMAT_16KHZ_MONO:
-+		cfg->channels = 1;
-+		cfg->sample_rate = 16000;
-+		break;
-+	case GIP_AUD_FORMAT_24KHZ_MONO:
-+		cfg->channels = 1;
-+		cfg->sample_rate = 24000;
-+		break;
-+	case GIP_AUD_FORMAT_48KHZ_STEREO:
-+		cfg->channels = 2;
-+		cfg->sample_rate = 48000;
-+		break;
-+	default:
-+		gip_err(client, "%s: unknown format: 0x%02x\n",
-+			__func__, cfg->format);
++	if (cfg->format <= 0 || cfg->format > GIP_AUD_FORMAT_48KHZ_STEREO) {
++		gip_err(client, "%s: unknown format: 0x%02x\n", __func__,
++			cfg->format);
 +		return -ENOTSUPP;
 +	}
++
++	/* even-indexed formats are stereo, uneven are mono */
++	cfg->channels = 2 - (cfg->format & 1);
++	cfg->sample_rate = gip_audio_sample_rate[cfg->format];
 +
 +	cfg->buffer_size = cfg->sample_rate * cfg->channels *
 +			   sizeof(s16) * GIP_AUDIO_INTERVAL / MSEC_PER_SEC;
@@ -90220,6 +90574,9 @@ index 000000000000..d16aec212151
 +	/* pseudo header for length calculation */
 +	hdr.packet_length = cfg->fragment_size;
 +	cfg->packet_size = gip_get_header_length(&hdr) + cfg->fragment_size;
++
++	/* set initial flow rate value */
++	cfg->flow_rate = cfg->buffer_size;
 +
 +	gip_dbg(client, "%s: rate=%d/%d, buffer=%d\n", __func__,
 +		cfg->sample_rate, cfg->channels, cfg->buffer_size);
@@ -90250,7 +90607,7 @@ index 000000000000..d16aec212151
 +	if (len < off + total)
 +		return ERR_PTR(-EINVAL);
 +
-+	elem = kzalloc(sizeof(*elem) + total, GFP_ATOMIC);
++	elem = kzalloc(struct_size(elem, data, total), GFP_ATOMIC);
 +	if (!elem)
 +		return ERR_PTR(-ENOMEM);
 +
@@ -90391,8 +90748,7 @@ index 000000000000..d16aec212151
 +	if (!count)
 +		return -EINVAL;
 +
-+	classes = kzalloc(sizeof(*classes) + sizeof(char *) * count,
-+			  GFP_ATOMIC);
++	classes = kzalloc(struct_size(classes, strings, count), GFP_ATOMIC);
 +	if (!classes)
 +		return -ENOMEM;
 +
@@ -90750,7 +91106,7 @@ index 000000000000..d16aec212151
 +		return -EINVAL;
 +
 +	/* chat headsets apparently default to 24 kHz */
-+	if (pkt->in_out != GIP_AUD_FORMAT_CHAT_24KHZ ||
++	if (pkt->in_out != GIP_AUD_FORMAT_12KHZ_STEREO ||
 +	    in->buffer_size || out->buffer_size)
 +		return -EPROTO;
 +
@@ -90916,6 +91272,7 @@ index 000000000000..d16aec212151
 +					void *data, u32 len)
 +{
 +	struct gip_pkt_audio_samples *pkt = data;
++	struct gip_audio_config *out = &client->audio_config_out;
 +	int err = 0;
 +
 +	if (len < sizeof(*pkt))
@@ -90923,6 +91280,10 @@ index 000000000000..d16aec212151
 +
 +	if (down_trylock(&client->drv_lock))
 +		return -EBUSY;
++
++	out->flow_rate = le16_to_cpu(pkt->flow_rate);
++	if (out->flow_rate != out->buffer_size)
++		gip_dbg(client, "%s: Unusual flow rate control -> %u", __func__, out->flow_rate);
 +
 +	if (client->drv && client->drv->ops.audio_samples)
 +		err = client->drv->ops.audio_samples(client, pkt->samples,
@@ -91104,10 +91465,10 @@ index 000000000000..d16aec212151
 +EXPORT_SYMBOL_GPL(gip_process_buffer);
 diff --git a/drivers/custom/xonedo/bus/protocol.h b/drivers/custom/xonedo/bus/protocol.h
 new file mode 100644
-index 000000000000..5a13bbe208e1
+index 000000000000..805a7e47a034
 --- /dev/null
 +++ b/drivers/custom/xonedo/bus/protocol.h
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,143 @@
 +/* SPDX-License-Identifier: GPL-2.0-or-later */
 +/*
 + * Copyright (C) 2021 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
@@ -91147,14 +91508,23 @@ index 000000000000..5a13bbe208e1
 +};
 +
 +enum gip_audio_format {
-+	GIP_AUD_FORMAT_16KHZ_MONO = 0x05,
-+	GIP_AUD_FORMAT_24KHZ_MONO = 0x09,
-+	GIP_AUD_FORMAT_48KHZ_STEREO = 0x10,
-+};
-+
-+enum gip_audio_format_chat {
-+	GIP_AUD_FORMAT_CHAT_24KHZ = 0x04,
-+	GIP_AUD_FORMAT_CHAT_16KHZ = 0x05,
++	GIP_AUD_FORMAT_NONE,
++	GIP_AUD_FORMAT_8KHZ_MONO,
++	GIP_AUD_FORMAT_8KHZ_STEREO,
++	GIP_AUD_FORMAT_12KHZ_MONO,
++	GIP_AUD_FORMAT_12KHZ_STEREO,
++	GIP_AUD_FORMAT_16KHZ_MONO,
++	GIP_AUD_FORMAT_16KHZ_STEREO,
++	GIP_AUD_FORMAT_20KHZ_MONO,
++	GIP_AUD_FORMAT_20KHZ_STEREO,
++	GIP_AUD_FORMAT_24KHZ_MONO,
++	GIP_AUD_FORMAT_24KHZ_STEREO,
++	GIP_AUD_FORMAT_32KHZ_MONO,
++	GIP_AUD_FORMAT_32KHZ_STEREO,
++	GIP_AUD_FORMAT_40KHZ_MONO,
++	GIP_AUD_FORMAT_40KHZ_STEREO,
++	GIP_AUD_FORMAT_48KHZ_MONO,
++	GIP_AUD_FORMAT_48KHZ_STEREO,
 +};
 +
 +enum gip_led_mode {
@@ -91206,6 +91576,9 @@ index 000000000000..5a13bbe208e1
 +	int buffer_size;
 +	int fragment_size;
 +	int packet_size;
++
++	/* only used for rendered audio (out) */
++	u16 flow_rate;
 +};
 +
 +struct gip_classes {
@@ -91451,7 +91824,7 @@ index 000000000000..9a7e72f4148b
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/custom/xonedo/driver/common.c b/drivers/custom/xonedo/driver/common.c
 new file mode 100644
-index 000000000000..36512f3120b3
+index 000000000000..ab3e6c01c361
 --- /dev/null
 +++ b/drivers/custom/xonedo/driver/common.c
 @@ -0,0 +1,222 @@
@@ -91579,7 +91952,7 @@ index 000000000000..36512f3120b3
 +	struct led_classdev *cdev = dev_get_drvdata(dev);
 +	struct gip_led *led = container_of(cdev, typeof(*led), dev);
 +
-+	return sprintf(buf, "%u\n", led->mode);
++	return sysfs_emit(buf, "%u\n", led->mode);
 +}
 +
 +static ssize_t gip_led_mode_store(struct device *dev,
@@ -91733,10 +92106,10 @@ index 000000000000..b97b4571a58c
 +		   const char *name);
 diff --git a/drivers/custom/xonedo/driver/gamepad.c b/drivers/custom/xonedo/driver/gamepad.c
 new file mode 100644
-index 000000000000..ccd3bc9d56be
+index 000000000000..dec6856f654d
 --- /dev/null
 +++ b/drivers/custom/xonedo/driver/gamepad.c
-@@ -0,0 +1,559 @@
+@@ -0,0 +1,563 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (C) 2021 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
@@ -91863,6 +92236,16 @@ index 000000000000..ccd3bc9d56be
 +	PADDLE_ELITE2_511, // Different packet entirely.
 +} PaddleCapability;
 +
++struct gip_gamepad_rumble {
++	/* serializes access to rumble packet */
++	spinlock_t lock;
++	unsigned long last;
++	struct timer_list timer;
++	struct gip_gamepad_pkt_rumble pkt;
++
++	struct gip_gamepad *parent;
++};
++
 +struct gip_gamepad {
 +	struct gip_client *client;
 +	struct gip_battery battery;
@@ -91874,27 +92257,20 @@ index 000000000000..ccd3bc9d56be
 +	bool supports_dli;
 +	PaddleCapability paddle_support;
 +
-+	struct gip_gamepad_rumble {
-+		/* serializes access to rumble packet */
-+		spinlock_t lock;
-+		unsigned long last;
-+		struct timer_list timer;
-+		struct gip_gamepad_pkt_rumble pkt;
-+	} rumble;
++	struct gip_gamepad_rumble rumble;
 +};
 +
 +static void gip_gamepad_send_rumble(struct timer_list *timer)
 +{
 +	// from_timer() has been renamed to timer_container_of() in linux 6.16
 +	struct gip_gamepad_rumble *rumble =
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,16,0)
-+		timer_container_of(rumble, timer, timer);
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6,16,0)
 +		from_timer(rumble, timer, timer);
++#else
++		timer_container_of(rumble, timer, timer);
 +#endif
 +
-+	struct gip_gamepad *gamepad = container_of(rumble, typeof(*gamepad),
-+						   rumble);
++	struct gip_gamepad *gamepad = rumble->parent;
 +	unsigned long flags;
 +
 +	spin_lock_irqsave(&rumble->lock, flags);
@@ -91943,6 +92319,7 @@ index 000000000000..ccd3bc9d56be
 +			     GIP_GP_MOTOR_RT | GIP_GP_MOTOR_LT;
 +	rumble->pkt.duration = 0xff;
 +	rumble->pkt.repeat = 0xeb;
++	rumble->parent = gamepad;
 +	gip_gamepad_send_rumble(&rumble->timer);
 +
 +	input_set_capability(dev, EV_FF, FF_RUMBLE);
@@ -92048,10 +92425,10 @@ index 000000000000..ccd3bc9d56be
 +	return 0;
 +
 +err_delete_timer:
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,15,0)
-+	timer_delete_sync(&gamepad->rumble.timer);
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6,15,0)
 +	del_timer_sync(&gamepad->rumble.timer);
++#else
++	timer_delete_sync(&gamepad->rumble.timer);
 +#endif
 +	return err;
 +}
@@ -92268,10 +92645,10 @@ index 000000000000..ccd3bc9d56be
 +{
 +	struct gip_gamepad *gamepad = dev_get_drvdata(&client->dev);
 +
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,15,0)
-+	timer_delete_sync(&gamepad->rumble.timer);
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6,15,0)
 +	del_timer_sync(&gamepad->rumble.timer);
++#else
++	timer_delete_sync(&gamepad->rumble.timer);
 +#endif
 +}
 +
@@ -92298,10 +92675,10 @@ index 000000000000..ccd3bc9d56be
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/custom/xonedo/driver/headset.c b/drivers/custom/xonedo/driver/headset.c
 new file mode 100644
-index 000000000000..bfc17171de38
+index 000000000000..44e7572553e9
 --- /dev/null
 +++ b/drivers/custom/xonedo/driver/headset.c
-@@ -0,0 +1,644 @@
+@@ -0,0 +1,602 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (C) 2021 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
@@ -92309,7 +92686,6 @@ index 000000000000..bfc17171de38
 +
 +#include <linux/module.h>
 +#include <linux/hrtimer.h>
-+#include <linux/vmalloc.h>
 +#include <linux/version.h>
 +#include <sound/core.h>
 +#include <sound/initval.h>
@@ -92372,8 +92748,6 @@ index 000000000000..bfc17171de38
 +		snd_pcm_uframes_t pointer;
 +		snd_pcm_uframes_t period;
 +	} playback, capture;
-+
-+	struct snd_card *card;
 +};
 +
 +static int gip_headset_pcm_open(struct snd_pcm_substream *sub)
@@ -92393,7 +92767,9 @@ index 000000000000..bfc17171de38
 +	hw.channels_max = cfg->channels;
 +	hw.buffer_bytes_max = cfg->buffer_size * GIP_HS_NUM_BUFFERS;
 +	hw.period_bytes_min = cfg->buffer_size;
-+	hw.period_bytes_max = cfg->buffer_size;
++	hw.period_bytes_max = cfg->buffer_size * 2;
++	hw.periods_min = 1;
++	hw.periods_max = 8;
 +
 +	sub->runtime->hw = hw;
 +
@@ -92403,39 +92779,6 @@ index 000000000000..bfc17171de38
 +static int gip_headset_pcm_close(struct snd_pcm_substream *sub)
 +{
 +	return 0;
-+}
-+
-+static int gip_headset_pcm_hw_params(struct snd_pcm_substream *sub,
-+				     struct snd_pcm_hw_params *params)
-+{
-+	struct snd_pcm_runtime *runtime = sub->runtime;
-+	size_t size = params_buffer_bytes(params);
-+
-+	if (runtime->dma_area) {
-+		if (runtime->dma_bytes >= size)
-+			return 0; /* Already large enough */
-+		vfree(runtime->dma_area);
-+	}
-+	runtime->dma_area = vzalloc(size);
-+	if (!runtime->dma_area)
-+		return -ENOMEM;
-+	runtime->dma_bytes = size;
-+	return 1;
-+}
-+
-+static int gip_headset_pcm_hw_free(struct snd_pcm_substream *sub)
-+{
-+	struct snd_pcm_runtime *runtime = sub->runtime;
-+
-+	vfree(runtime->dma_area);
-+	runtime->dma_area = NULL;
-+	return 0;
-+}
-+
-+static struct page *gip_headset_pcm_get_page(struct snd_pcm_substream *sub,
-+					     unsigned long offset)
-+{
-+	return vmalloc_to_page(sub->runtime->dma_area + offset);
 +}
 +
 +static int gip_headset_pcm_prepare(struct snd_pcm_substream *sub)
@@ -92490,13 +92833,9 @@ index 000000000000..bfc17171de38
 +static const struct snd_pcm_ops gip_headset_pcm_ops = {
 +	.open = gip_headset_pcm_open,
 +	.close = gip_headset_pcm_close,
-+	.ioctl = snd_pcm_lib_ioctl,
-+	.hw_params = gip_headset_pcm_hw_params,
-+	.hw_free = gip_headset_pcm_hw_free,
 +	.prepare = gip_headset_pcm_prepare,
 +	.trigger = gip_headset_pcm_trigger,
 +	.pointer = gip_headset_pcm_pointer,
-+	.page = gip_headset_pcm_get_page,
 +};
 +
 +static bool gip_headset_advance_pointer(struct gip_headset_stream *stream,
@@ -92638,8 +92977,8 @@ index 000000000000..bfc17171de38
 +	struct snd_pcm *pcm;
 +	int err;
 +
-+	err = snd_card_new(&headset->client->dev, SNDRV_DEFAULT_IDX1,
-+			   SNDRV_DEFAULT_STR1, THIS_MODULE, 0, &card);
++	err = snd_devm_card_new(&headset->client->dev, SNDRV_DEFAULT_IDX1,
++				SNDRV_DEFAULT_STR1, THIS_MODULE, 0, &card);
 +	if (err)
 +		return err;
 +
@@ -92647,8 +92986,6 @@ index 000000000000..bfc17171de38
 +	strscpy(card->shortname, GIP_HS_NAME, sizeof(card->shortname));
 +	snprintf(card->longname, sizeof(card->longname), "%s at %s",
 +		 GIP_HS_NAME, dev_name(&headset->client->dev));
-+
-+	headset->card = card;
 +
 +	err = snd_pcm_new(card, GIP_HS_NAME, 0, 1, 1, &pcm);
 +	if (err)
@@ -92659,6 +92996,7 @@ index 000000000000..bfc17171de38
 +
 +	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &gip_headset_pcm_ops);
 +	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &gip_headset_pcm_ops);
++	snd_pcm_set_managed_buffer_all(pcm, SNDRV_DMA_TYPE_VMALLOC, NULL, 0, 0);
 +
 +	return snd_card_register(card);
 +}
@@ -92744,7 +93082,7 @@ index 000000000000..bfc17171de38
 +		return;
 +
 +	dev_dbg(&client->dev, "%s: init pcm device.\n", __func__);
-+	err = gip_headset_init_pcm(headset);
++	err = snd_card_free_on_error(&client->dev, gip_headset_init_pcm(headset));
 +	if (err) {
 +		dev_err(&client->dev, "%s: init PCM failed: %d\n",
 +			__func__, err);
@@ -92766,6 +93104,14 @@ index 000000000000..bfc17171de38
 +	err = gip_init_audio_out(client);
 +	if (err) {
 +		dev_err(&client->dev, "%s: init audio out failed: %d\n",
++			__func__, err);
++		return;
++	}
++
++	dev_dbg(&client->dev, "%s: init audio in.\n", __func__);
++	err = gip_init_audio_in(client);
++	if (err) {
++		dev_err(&client->dev, "%s: init audio in failed: %d\n",
 +			__func__, err);
 +		return;
 +	}
@@ -92878,27 +93224,21 @@ index 000000000000..bfc17171de38
 +	INIT_DELAYED_WORK(&headset->work_power_on, gip_headset_power_on);
 +	INIT_WORK(&headset->work_register, gip_headset_register);
 +
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,15,0)
-+	hrtimer_setup(&headset->timer, gip_headset_send_samples,
-+		      CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-+	hrtimer_setup(&headset->start_audio_timer, gip_headset_start_audio,
-+		      CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-+#else
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6,15,0)
 +	hrtimer_init(&headset->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 +	headset->timer.function = gip_headset_send_samples;
 +	hrtimer_init(&headset->start_audio_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 +	headset->start_audio_timer.function = gip_headset_start_audio;
++#else
++	hrtimer_setup(&headset->timer, gip_headset_send_samples,
++		      CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++	hrtimer_setup(&headset->start_audio_timer, gip_headset_start_audio,
++		      CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 +#endif
 +
 +	err = gip_enable_audio(client);
 +	if (err)
 +		return err;
-+
-+	err = gip_init_audio_in(client);
-+	if (err) {
-+		gip_disable_audio(client);
-+		return err;
-+	}
 +
 +	dev_set_drvdata(&client->dev, headset);
 +
@@ -92918,11 +93258,6 @@ index 000000000000..bfc17171de38
 +	hrtimer_cancel(&headset->timer);
 +	hrtimer_cancel(&headset->start_audio_timer);
 +	gip_disable_audio(client);
-+
-+	if (headset->card) {
-+		snd_card_disconnect(headset->card);
-+		snd_card_free_when_closed(headset->card);
-+	}
 +}
 +
 +static struct gip_driver gip_headset_driver = {
@@ -93581,17 +93916,18 @@ index 000000000000..b98caf5fa614
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/custom/xonedo/install/modprobe.conf b/drivers/custom/xonedo/install/modprobe.conf
 new file mode 100644
-index 000000000000..11da85aced6c
+index 000000000000..21855c8306be
 --- /dev/null
 +++ b/drivers/custom/xonedo/install/modprobe.conf
-@@ -0,0 +1 @@
+@@ -0,0 +1,2 @@
++blacklist xpad
 +blacklist mt76x2u
 diff --git a/drivers/custom/xonedo/transport/dongle.c b/drivers/custom/xonedo/transport/dongle.c
 new file mode 100644
-index 000000000000..7385b9d04e5d
+index 000000000000..fd4506b4f823
 --- /dev/null
 +++ b/drivers/custom/xonedo/transport/dongle.c
-@@ -0,0 +1,1314 @@
+@@ -0,0 +1,1296 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/*
 + * Copyright (C) 2021 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
@@ -93620,15 +93956,11 @@ index 000000000000..7385b9d04e5d
 +
 +#define XONE_DONGLE_MAX_CLIENTS 16
 +
-+#define XONE_DONGLE_PAIRING_TIMEOUT msecs_to_jiffies(30000)
++#define XONE_DONGLE_PAIRING_TIMEOUT msecs_to_jiffies(60000)
 +#define XONE_DONGLE_PWR_OFF_TIMEOUT msecs_to_jiffies(5000)
 +#define XONE_DONGLE_FW_REQ_TIMEOUT_MS 3000
 +#define XONE_DONGLE_FW_REQ_RETRIES 11 // 30 seconds
 +#define XONE_DONGLE_FW_LOAD_RETRIES 3
-+
-+#define XONE_DONGLE_OFFICIAL_VENDOR 0x045e
-+#define XONE_DONGLE_OFFICIAL_PRODUCT 0x02fe
-+#define XONE_DONGLE_KNOCKOFF_PRODUCT1 0x02e6
 +
 +enum xone_dongle_queue {
 +	XONE_DONGLE_QUEUE_DATA = 0x00,
@@ -93656,14 +93988,16 @@ index 000000000000..7385b9d04e5d
 +	struct gip_adapter *adapter;
 +};
 +
++enum xone_dongle_event_type {
++	XONE_DONGLE_EVT_ADD_CLIENT,
++	XONE_DONGLE_EVT_REMOVE_CLIENT,
++	XONE_DONGLE_EVT_PAIR_CLIENT,
++	XONE_DONGLE_EVT_ENABLE_PAIRING,
++	XONE_DONGLE_EVT_ENABLE_ENCRYPTION,
++};
++
 +struct xone_dongle_event {
-+	enum xone_dongle_event_type {
-+		XONE_DONGLE_EVT_ADD_CLIENT,
-+		XONE_DONGLE_EVT_REMOVE_CLIENT,
-+		XONE_DONGLE_EVT_PAIR_CLIENT,
-+		XONE_DONGLE_EVT_ENABLE_PAIRING,
-+		XONE_DONGLE_EVT_ENABLE_ENCRYPTION,
-+	} type;
++	enum xone_dongle_event_type type;
 +
 +	struct xone_dongle *dongle;
 +	u8 address[ETH_ALEN];
@@ -93824,7 +94158,6 @@ index 000000000000..7385b9d04e5d
 +
 +static int xone_dongle_toggle_pairing(struct xone_dongle *dongle, bool enable)
 +{
-+	struct usb_interface *intf = to_usb_interface(dongle->mt.dev);
 +	enum xone_mt76_led_mode led;
 +	int err = 0;
 +
@@ -93848,11 +94181,6 @@ index 000000000000..7385b9d04e5d
 +	err = xone_mt76_set_led_mode(&dongle->mt, led);
 +	if (err)
 +		goto err_unlock;
-+
-+	if (enable)
-+		usb_autopm_get_interface(intf);
-+	else
-+		usb_autopm_put_interface(intf);
 +
 +	dev_dbg(dongle->mt.dev, "%s: enabled=%d\n", __func__, enable);
 +	dongle->pairing = enable;
@@ -93890,7 +94218,7 @@ index 000000000000..7385b9d04e5d
 +	struct usb_interface *intf = to_usb_interface(dev);
 +	struct xone_dongle *dongle = usb_get_intfdata(intf);
 +
-+	return sprintf(buf, "%d\n", dongle->pairing);
++	return sysfs_emit(buf, "%d\n", dongle->pairing);
 +}
 +
 +static ssize_t xone_dongle_pairing_store(struct device *dev,
@@ -94372,8 +94700,8 @@ index 000000000000..7385b9d04e5d
 +	if (err) {
 +		dev_err(dongle->mt.dev, "%s: process failed: %d\n",
 +			__func__, err);
-+		print_hex_dump_debug("xone-dongle packet: ", DUMP_PREFIX_NONE,
-+				     16, 1, data, len, false);
++		print_hex_dump_bytes("xone-dongle packet: ", DUMP_PREFIX_NONE,
++				     data, len);
 +	}
 +
 +	dev_kfree_skb(skb);
@@ -94512,20 +94840,10 @@ index 000000000000..7385b9d04e5d
 +
 +	struct xone_mt76 *mt = &dongle->mt;
 +	const struct firmware *fw;
-+	char fwname[25];
++	char fwname[21];
 +	int err;
 +
-+	switch (dongle->product) {
-+	case XONE_DONGLE_KNOCKOFF_PRODUCT1:
-+		snprintf(fwname, 25, "xow_dongle_%04x_%04x.bin", dongle->vendor,
-+			 dongle->product);
-+		break;
-+
-+	case XONE_DONGLE_OFFICIAL_PRODUCT:
-+	default:
-+		snprintf(fwname, 15, "xow_dongle.bin");
-+	}
-+
++	sprintf(fwname, "xone_dongle_%04x.bin", dongle->product);
 +	err = xone_dongle_fw_requester(&fw, dongle, fwname);
 +	if (dongle->fw_state == XONE_DONGLE_FW_STATE_STOP_LOADING) {
 +		dongle->fw_state = XONE_DONGLE_FW_STATE_ERROR;
@@ -97335,6 +97653,597 @@ index 000000000000..f5fe65b149aa
 +	u8 ctl2;
 +	u8 pktid;
 +} __packed;
+diff --git a/drivers/custom/xonedo/transport/wired.c b/drivers/custom/xonedo/transport/wired.c
+new file mode 100644
+index 000000000000..5453ed4e63a2
+--- /dev/null
++++ b/drivers/custom/xonedo/transport/wired.c
+@@ -0,0 +1,585 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * Copyright (C) 2021 Severin von Wnuck-Lipinski <severinvonw@outlook.de>
++ */
++
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/usb.h>
++
++#include "../bus/bus.h"
++
++#define XONE_WIRED_INTF_DATA 0
++#define XONE_WIRED_INTF_AUDIO 1
++
++#define XONE_WIRED_NUM_DATA_URBS 12
++#define XONE_WIRED_NUM_AUDIO_URBS 12
++#define XONE_WIRED_NUM_AUDIO_PKTS 8
++
++#define XONE_WIRED_LEN_DATA_PKT 64
++
++#define XONE_WIRED_VENDOR(vendor) \
++	.match_flags = USB_DEVICE_ID_MATCH_VENDOR | \
++		       USB_DEVICE_ID_MATCH_INT_INFO | \
++		       USB_DEVICE_ID_MATCH_INT_NUMBER, \
++	.idVendor = vendor, \
++	.bInterfaceClass = USB_CLASS_VENDOR_SPEC, \
++	.bInterfaceSubClass = 0x47, \
++	.bInterfaceProtocol = 0xd0, \
++	.bInterfaceNumber = XONE_WIRED_INTF_DATA,
++
++struct xone_wired {
++	struct usb_device *udev;
++
++	struct xone_wired_port {
++		struct device *dev;
++
++		struct usb_endpoint_descriptor *ep_in;
++		struct usb_endpoint_descriptor *ep_out;
++
++		struct urb *urb_in;
++		struct usb_anchor urbs_out_idle;
++		struct usb_anchor urbs_out_busy;
++
++		int buffer_length_out;
++	} data_port, audio_port;
++
++	struct gip_adapter *adapter;
++};
++
++static void xone_wired_complete_data_in(struct urb *urb)
++{
++	struct xone_wired *wired = urb->context;
++	struct device *dev = wired->data_port.dev;
++	int err;
++
++	switch (urb->status) {
++	case 0:
++		break;
++	case -ENOENT:
++	case -ECONNRESET:
++	case -ESHUTDOWN:
++		return;
++	default:
++		goto resubmit;
++	}
++
++	if (!urb->actual_length)
++		goto resubmit;
++
++	err = gip_process_buffer(wired->adapter, urb->transfer_buffer,
++				 urb->actual_length);
++	if (err) {
++		dev_err(dev, "%s: process failed: %d\n", __func__, err);
++		print_hex_dump_bytes("xone-wired packet: ", DUMP_PREFIX_NONE,
++				     urb->transfer_buffer, urb->actual_length);
++	}
++
++resubmit:
++	/* can fail during USB device removal */
++	err = usb_submit_urb(urb, GFP_ATOMIC);
++	if (err)
++		dev_dbg(dev, "%s: submit failed: %d\n", __func__, err);
++}
++
++static void xone_wired_complete_audio_in(struct urb *urb)
++{
++	struct xone_wired *wired = urb->context;
++	struct device *dev = wired->audio_port.dev;
++	struct usb_iso_packet_descriptor *desc;
++	int i, err;
++
++	if (urb->status)
++		return;
++
++	for (i = 0; i < urb->number_of_packets; i++) {
++		desc = &urb->iso_frame_desc[i];
++
++		/* device reset after system sleep can cause xHCI errors */
++		if (desc->status == -EPROTO) {
++			dev_warn_once(dev, "%s: protocol error\n", __func__);
++			break;
++		}
++
++		if (!desc->actual_length)
++			continue;
++
++		err = gip_process_buffer(wired->adapter,
++					 urb->transfer_buffer + desc->offset,
++					 desc->actual_length);
++		if (err)
++			dev_err(dev, "%s: process failed: %d\n", __func__, err);
++	}
++
++	/* can fail during USB device removal */
++	err = usb_submit_urb(urb, GFP_ATOMIC);
++	if (err)
++		dev_dbg(dev, "%s: submit failed: %d\n", __func__, err);
++}
++
++static void xone_wired_complete_out(struct urb *urb)
++{
++	struct xone_wired_port *port = urb->context;
++
++	usb_anchor_urb(urb, &port->urbs_out_idle);
++}
++
++static int xone_wired_init_data_in(struct xone_wired *wired)
++{
++	struct xone_wired_port *port = &wired->data_port;
++	struct urb *urb;
++	void *buf;
++
++	urb = usb_alloc_urb(0, GFP_KERNEL);
++	if (!urb)
++		return -ENOMEM;
++
++	port->urb_in = urb;
++
++	buf = usb_alloc_coherent(wired->udev, XONE_WIRED_LEN_DATA_PKT,
++				 GFP_KERNEL, &urb->transfer_dma);
++	if (!buf)
++		return -ENOMEM;
++
++	usb_fill_int_urb(urb, wired->udev,
++			 usb_rcvintpipe(wired->udev,
++					port->ep_in->bEndpointAddress),
++			 buf, XONE_WIRED_LEN_DATA_PKT,
++			 xone_wired_complete_data_in, wired,
++			 port->ep_in->bInterval);
++	urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
++
++	return usb_submit_urb(urb, GFP_KERNEL);
++}
++
++static int xone_wired_init_data_out(struct xone_wired *wired)
++{
++	struct xone_wired_port *port = &wired->data_port;
++	struct urb *urb;
++	void *buf;
++	int i;
++
++	port->buffer_length_out = XONE_WIRED_LEN_DATA_PKT;
++
++	for (i = 0; i < XONE_WIRED_NUM_DATA_URBS; i++) {
++		urb = usb_alloc_urb(0, GFP_KERNEL);
++		if (!urb)
++			return -ENOMEM;
++
++		usb_anchor_urb(urb, &port->urbs_out_idle);
++		usb_free_urb(urb);
++
++		buf = usb_alloc_coherent(wired->udev, XONE_WIRED_LEN_DATA_PKT,
++					 GFP_KERNEL, &urb->transfer_dma);
++		if (!buf)
++			return -ENOMEM;
++
++		usb_fill_int_urb(urb, wired->udev,
++				 usb_sndintpipe(wired->udev,
++						port->ep_out->bEndpointAddress),
++				 buf, XONE_WIRED_LEN_DATA_PKT,
++				 xone_wired_complete_out, port,
++				 port->ep_out->bInterval);
++		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
++	}
++
++	return 0;
++}
++
++static void xone_wired_free_urbs(struct xone_wired_port *port)
++{
++	struct urb *urb = port->urb_in;
++
++	if (urb) {
++		usb_free_coherent(urb->dev, urb->transfer_buffer_length,
++				  urb->transfer_buffer, urb->transfer_dma);
++		usb_free_urb(urb);
++		port->urb_in = NULL;
++	}
++
++	while ((urb = usb_get_from_anchor(&port->urbs_out_idle))) {
++		usb_free_coherent(urb->dev, port->buffer_length_out,
++				  urb->transfer_buffer, urb->transfer_dma);
++		usb_free_urb(urb);
++	}
++}
++
++static int xone_wired_get_buffer(struct gip_adapter *adap,
++				 struct gip_adapter_buffer *buf)
++{
++	struct xone_wired *wired = dev_get_drvdata(&adap->dev);
++	struct xone_wired_port *port;
++	struct urb *urb;
++
++	if (buf->type == GIP_BUF_DATA)
++		port = &wired->data_port;
++	else if (buf->type == GIP_BUF_AUDIO)
++		port = &wired->audio_port;
++	else
++		return -EINVAL;
++
++	urb = usb_get_from_anchor(&port->urbs_out_idle);
++	if (!urb)
++		return -ENOSPC;
++
++	buf->context = urb;
++	buf->data = urb->transfer_buffer;
++	buf->length = port->buffer_length_out;
++
++	return 0;
++}
++
++static int xone_wired_submit_buffer(struct gip_adapter *adap,
++				    struct gip_adapter_buffer *buf)
++{
++	struct xone_wired *wired = dev_get_drvdata(&adap->dev);
++	struct xone_wired_port *port;
++	struct urb *urb = buf->context;
++	int err;
++
++	if (buf->type == GIP_BUF_DATA)
++		port = &wired->data_port;
++	else if (buf->type == GIP_BUF_AUDIO)
++		port = &wired->audio_port;
++	else
++		return -EINVAL;
++
++	urb->transfer_buffer_length = buf->length;
++	usb_anchor_urb(urb, &port->urbs_out_busy);
++
++	err = usb_submit_urb(urb, GFP_ATOMIC);
++	if (err) {
++		usb_unanchor_urb(urb);
++		usb_anchor_urb(urb, &port->urbs_out_idle);
++	}
++
++	usb_free_urb(urb);
++
++	return err;
++}
++
++static int xone_wired_enable_audio(struct gip_adapter *adap)
++{
++	struct xone_wired *wired = dev_get_drvdata(&adap->dev);
++	struct usb_interface *intf;
++
++	if (!wired->audio_port.dev)
++		return -ENOTSUPP;
++
++	intf = to_usb_interface(wired->audio_port.dev);
++	if (intf->cur_altsetting->desc.bAlternateSetting == 1)
++		return -EALREADY;
++
++	return usb_set_interface(wired->udev, XONE_WIRED_INTF_AUDIO, 1);
++}
++
++static int xone_wired_init_audio_in(struct gip_adapter *adap)
++{
++	struct xone_wired *wired = dev_get_drvdata(&adap->dev);
++	struct xone_wired_port *port = &wired->audio_port;
++	struct urb *urb;
++	void *buf;
++	int len, i;
++
++	if (!port->ep_in)
++		return -ENOTSUPP;
++
++	urb = usb_alloc_urb(XONE_WIRED_NUM_AUDIO_PKTS, GFP_KERNEL);
++	if (!urb)
++		return -ENOMEM;
++
++	port->urb_in = urb;
++
++	len = usb_endpoint_maxp(port->ep_in);
++	buf = usb_alloc_coherent(wired->udev, len * XONE_WIRED_NUM_AUDIO_PKTS,
++				 GFP_KERNEL, &urb->transfer_dma);
++	if (!buf)
++		return -ENOMEM;
++
++	urb->dev = wired->udev;
++	urb->pipe = usb_rcvisocpipe(wired->udev, port->ep_in->bEndpointAddress);
++	urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
++	urb->transfer_buffer = buf;
++	urb->transfer_buffer_length = len * XONE_WIRED_NUM_AUDIO_PKTS;
++	urb->number_of_packets = XONE_WIRED_NUM_AUDIO_PKTS;
++	urb->interval = port->ep_in->bInterval;
++	urb->context = wired;
++	urb->complete = xone_wired_complete_audio_in;
++
++	for (i = 0; i < XONE_WIRED_NUM_AUDIO_PKTS; i++) {
++		urb->iso_frame_desc[i].offset = i * len;
++		urb->iso_frame_desc[i].length = len;
++	}
++
++	return usb_submit_urb(urb, GFP_KERNEL);
++}
++
++static int xone_wired_init_audio_out(struct gip_adapter *adap, int pkt_len)
++{
++	struct xone_wired *wired = dev_get_drvdata(&adap->dev);
++	struct xone_wired_port *port = &wired->audio_port;
++	struct urb *urb;
++	void *buf;
++	int i, j;
++
++	if (!port->ep_out)
++		return -ENOTSUPP;
++
++	port->buffer_length_out = pkt_len * XONE_WIRED_NUM_AUDIO_PKTS;
++
++	for (i = 0; i < XONE_WIRED_NUM_AUDIO_URBS; i++) {
++		urb = usb_alloc_urb(XONE_WIRED_NUM_AUDIO_PKTS, GFP_KERNEL);
++		if (!urb)
++			return -ENOMEM;
++
++		usb_anchor_urb(urb, &port->urbs_out_idle);
++		usb_free_urb(urb);
++
++		buf = usb_alloc_coherent(wired->udev, port->buffer_length_out,
++					 GFP_KERNEL, &urb->transfer_dma);
++		if (!buf)
++			return -ENOMEM;
++
++		urb->dev = wired->udev;
++		urb->pipe = usb_sndisocpipe(wired->udev,
++					    port->ep_out->bEndpointAddress);
++		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
++		urb->transfer_buffer = buf;
++		urb->transfer_buffer_length = port->buffer_length_out;
++		urb->number_of_packets = XONE_WIRED_NUM_AUDIO_PKTS;
++		urb->interval = port->ep_out->bInterval;
++		urb->context = port;
++		urb->complete = xone_wired_complete_out;
++
++		for (j = 0; j < XONE_WIRED_NUM_AUDIO_PKTS; j++) {
++			urb->iso_frame_desc[j].offset = j * pkt_len;
++			urb->iso_frame_desc[j].length = pkt_len;
++		}
++	}
++
++	return 0;
++}
++
++static int xone_wired_disable_audio(struct gip_adapter *adap)
++{
++	struct xone_wired *wired = dev_get_drvdata(&adap->dev);
++	struct xone_wired_port *port = &wired->audio_port;
++	struct usb_interface *intf;
++
++	if (!port->dev)
++		return -ENOTSUPP;
++
++	intf = to_usb_interface(port->dev);
++	if (!intf->cur_altsetting->desc.bAlternateSetting)
++		return -EALREADY;
++
++	usb_kill_urb(port->urb_in);
++	usb_kill_anchored_urbs(&port->urbs_out_busy);
++	xone_wired_free_urbs(port);
++
++	return usb_set_interface(wired->udev, XONE_WIRED_INTF_AUDIO, 0);
++}
++
++static struct gip_adapter_ops xone_wired_adapter_ops = {
++	.get_buffer = xone_wired_get_buffer,
++	.submit_buffer = xone_wired_submit_buffer,
++	.enable_audio = xone_wired_enable_audio,
++	.init_audio_in = xone_wired_init_audio_in,
++	.init_audio_out = xone_wired_init_audio_out,
++	.disable_audio = xone_wired_disable_audio,
++};
++
++static struct usb_driver xone_wired_driver;
++
++static int xone_wired_find_isoc_endpoints(struct usb_host_interface *alt,
++					  struct usb_endpoint_descriptor **in,
++					  struct usb_endpoint_descriptor **out)
++{
++	struct usb_endpoint_descriptor *ep;
++	int i;
++
++	for (i = 0; i < alt->desc.bNumEndpoints; i++) {
++		ep = &alt->endpoint[i].desc;
++		if (usb_endpoint_is_isoc_in(ep))
++			*in = ep;
++		else if (usb_endpoint_is_isoc_out(ep))
++			*out = ep;
++
++		if (*in && *out)
++			return 0;
++	}
++
++	return -ENXIO;
++}
++
++static int xone_wired_init_data_port(struct xone_wired *wired,
++				     struct usb_interface *intf)
++{
++	struct xone_wired_port *port = &wired->data_port;
++	int err;
++
++	init_usb_anchor(&port->urbs_out_idle);
++	init_usb_anchor(&port->urbs_out_busy);
++
++	err = usb_find_common_endpoints(intf->cur_altsetting, NULL, NULL,
++					&port->ep_in, &port->ep_out);
++	if (err)
++		return err;
++
++	port->dev = &intf->dev;
++
++	return 0;
++}
++
++static int xone_wired_init_audio_port(struct xone_wired *wired)
++{
++	struct xone_wired_port *port = &wired->audio_port;
++	struct usb_interface *intf;
++	struct usb_host_interface *alt;
++	int err;
++
++	init_usb_anchor(&port->urbs_out_idle);
++	init_usb_anchor(&port->urbs_out_busy);
++
++	intf = usb_ifnum_to_if(wired->udev, XONE_WIRED_INTF_AUDIO);
++	if (!intf) {
++		dev_dbg(&wired->udev->dev, "%s: audio unavailable\n", __func__);
++		return 0;
++	}
++
++	alt = usb_altnum_to_altsetting(intf, 1);
++	if (!alt)
++		return -ENXIO;
++
++	err = usb_driver_claim_interface(&xone_wired_driver, intf, NULL);
++	if (err)
++		return err;
++
++	/* disable the audio interface */
++	/* mandatory for certain third party devices */
++	err = usb_set_interface(wired->udev, XONE_WIRED_INTF_AUDIO, 0);
++	if (err)
++		return err;
++
++	err = xone_wired_find_isoc_endpoints(alt, &port->ep_in, &port->ep_out);
++	if (err)
++		return err;
++
++	port->dev = &intf->dev;
++
++	return 0;
++}
++
++static int xone_wired_probe(struct usb_interface *intf,
++			    const struct usb_device_id *id)
++{
++	struct xone_wired *wired;
++	int err;
++
++	wired = devm_kzalloc(&intf->dev, sizeof(*wired), GFP_KERNEL);
++	if (!wired)
++		return -ENOMEM;
++
++	wired->udev = interface_to_usbdev(intf);
++
++	/* newer devices require a reset after system sleep */
++	usb_reset_device(wired->udev);
++
++	err = xone_wired_init_data_port(wired, intf);
++	if (err)
++		return err;
++
++	err = xone_wired_init_audio_port(wired);
++	if (err)
++		return err;
++
++	wired->adapter = gip_create_adapter(&intf->dev, &xone_wired_adapter_ops,
++					    XONE_WIRED_NUM_AUDIO_PKTS);
++	if (IS_ERR(wired->adapter))
++		return PTR_ERR(wired->adapter);
++
++	dev_set_drvdata(&wired->adapter->dev, wired);
++
++	err = xone_wired_init_data_out(wired);
++	if (err)
++		goto err_free_urbs;
++
++	err = xone_wired_init_data_in(wired);
++	if (err)
++		goto err_free_urbs;
++
++	usb_set_intfdata(intf, wired);
++
++	/* enable USB remote wakeup */
++	device_wakeup_enable(&wired->udev->dev);
++
++	return 0;
++
++err_free_urbs:
++	xone_wired_free_urbs(&wired->data_port);
++	gip_destroy_adapter(wired->adapter);
++
++	return err;
++}
++
++static void xone_wired_disconnect(struct usb_interface *intf)
++{
++	struct xone_wired *wired = usb_get_intfdata(intf);
++
++	/* ignore audio interface unbind */
++	if (!wired)
++		return;
++
++	usb_kill_urb(wired->data_port.urb_in);
++	usb_kill_urb(wired->audio_port.urb_in);
++
++	/* also disables the audio interface */
++	gip_destroy_adapter(wired->adapter);
++
++	usb_kill_anchored_urbs(&wired->data_port.urbs_out_busy);
++	xone_wired_free_urbs(&wired->data_port);
++
++	usb_set_intfdata(intf, NULL);
++}
++
++static const struct usb_device_id xone_wired_id_table[] = {
++	{ XONE_WIRED_VENDOR(0x045e) }, /* Microsoft */
++	{ XONE_WIRED_VENDOR(0x0738) }, /* Mad Catz */
++	{ XONE_WIRED_VENDOR(0x0e6f) }, /* PDP */
++	{ XONE_WIRED_VENDOR(0x0f0d) }, /* Hori */
++	{ XONE_WIRED_VENDOR(0x1532) }, /* Razer */
++	{ XONE_WIRED_VENDOR(0x24c6) }, /* PowerA */
++	{ XONE_WIRED_VENDOR(0x20d6) }, /* BDA */
++	{ XONE_WIRED_VENDOR(0x044f) }, /* Thrustmaster */
++	{ XONE_WIRED_VENDOR(0x10f5) }, /* Turtle Beach */
++	{ XONE_WIRED_VENDOR(0x2e24) }, /* Hyperkin */
++	{ XONE_WIRED_VENDOR(0x3285) }, /* Nacon */
++	{ XONE_WIRED_VENDOR(0x2dc8) }, /* 8BitDo */
++	{ XONE_WIRED_VENDOR(0x2e95) }, /* SCUF */
++	{ XONE_WIRED_VENDOR(0x3537) }, /* GameSir */
++	{ XONE_WIRED_VENDOR(0x11c1) }, /* ??? */
++	{ XONE_WIRED_VENDOR(0x294b) }, /* Snakebyte */
++	{ XONE_WIRED_VENDOR(0x2c16) }, /* Priferential */
++	{ XONE_WIRED_VENDOR(0x0b05) }, /* ASUS */
++	{ XONE_WIRED_VENDOR(0x413d) }, /* BIGBIG WON */
++	{ XONE_WIRED_VENDOR(0x046d) }, /* Logitech Astro */
++	{ XONE_WIRED_VENDOR(0x0079) }, /* EasySMX */
++	{ XONE_WIRED_VENDOR(0x1038) }, /* SteelSeries ApS */
++	{ XONE_WIRED_VENDOR(0x1b1c) }, /* Corsair */
++	{ },
++};
++
++static struct usb_driver xone_wired_driver = {
++	.name = "xone-wired",
++	.probe = xone_wired_probe,
++	.disconnect = xone_wired_disconnect,
++	.id_table = xone_wired_id_table,
++};
++
++module_usb_driver(xone_wired_driver);
++
++MODULE_DEVICE_TABLE(usb, xone_wired_id_table);
++MODULE_AUTHOR("Severin von Wnuck-Lipinski <severinvonw@outlook.de>");
++MODULE_DESCRIPTION("xone wired driver");
++MODULE_VERSION("#VERSION#");
++MODULE_LICENSE("GPL");
 # ----------------------------------------
 # Module: zenergy
 # Version: 310ed88b13c6
