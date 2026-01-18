@@ -176,13 +176,13 @@ Summary: The Linux kernel
 %define specrpmversion 6.17.7
 %define specversion 6.17.7
 %define patchversion 6.17
-%define pkgrelease ba23
+%define pkgrelease ba24
 %define kversion 6
 %define tarfile_release 6.17.7
 # This is needed to do merge window version magic
 %define patchlevel 17
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba22%{?buildid}%{?dist}
+%define specrelease ba24%{?buildid}%{?dist}
 # This defines the kabi tarball version
 %define kabiversion 6.17.7
 
@@ -973,7 +973,7 @@ Source2: %{package_name}.changelog
 Source4: broadcom-wl.blob
 
 %define evdi_version 1.14.11
-%define nvidia_version 590.44.01
+%define nvidia_version 590.48.01
 %define nvidia_version_rel 1
 %define nvidia_version_lts 580.95.05
 %define nvidia_epoch 3
@@ -4515,6 +4515,9 @@ fi\
 #
 #
 %changelog
+* Sun Jan 18 2026 RJ Trujillo <eyecantcu@pm.me> [6.17.7-ba24]
+- Bump NVIDIA driver release to 590.48.01
+
 * Thu Dec 11 2025 Antheas Kapenekakis <lkml@antheas.dev> [6.17.7-ba22]
 - bump all modules (Antheas Kapenekakis)
 - drm/amd/display: Prevent Gating DTBCLK before It Is Properly Latched (Fangzhi Zuo)
