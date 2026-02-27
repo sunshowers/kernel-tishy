@@ -95,7 +95,9 @@ fi
 
 # Build without nvidia and zfs. Use --with bazzite for the build
 # configuration (disables debug, realtime, selftests, etc.) and --with
-# ubsb for secure boot signing.
+# ubsb for secure boot signing. Disable config checks because we're
+# using 6.17-era config files on a 6.19 kernel; make olddefconfig
+# handles the actual build correctly.
 rpmbuild \
   --define '_topdir   %(pwd)/build' \
   --define '_builddir %{_topdir}/BUILD' \
@@ -103,7 +105,7 @@ rpmbuild \
   --define '_srcrpmdir %{_topdir}/SRPMS' \
   --define '_sourcedir %(pwd)/' \
   --define '_specdir  %(pwd)/' \
-  --with bazzite --with ubsb \
+  --with bazzite --with ubsb --without configchecks \
   -ba kernel.spec &
 
 trap 'pkill --signal=SIGKILL -P $$; exit 130' INT
