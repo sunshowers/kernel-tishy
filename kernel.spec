@@ -1142,10 +1142,7 @@ Source4002: gating.yaml
 
 %if !%{nopatches}
 
-Patch1: patch-1-redhat.patch
-Patch2: patch-2-handheld.patch
-Patch3: patch-3-akmods.patch
-Patch4: patch-4-amdgpu-vrr-whitelist.patch
+Patch5: patch-5-hdmi-frl.patch
 %endif
 
 # empty final patch to facilitate testing of kernel patches
