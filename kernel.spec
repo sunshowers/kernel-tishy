@@ -2076,9 +2076,7 @@ ApplyOptionalPatch patch-5-hdmi-frl.patch
 
 ApplyOptionalPatch linux-kernel-test.patch
 
-# Copy broadcom blob
-mkdir -p drivers/custom/broadcom-wl/lib
-cp -a %{SOURCE4} drivers/custom/broadcom-wl/lib/wlc_hybrid.o_shipped
+# broadcom-wl blob and drivers/custom omitted: no akmods patch.
 
 %if %{with_nvidia}
 tar -xzf %{SOURCE5}
@@ -3581,9 +3579,7 @@ rm -rf %{buildroot}%{_libdir}/libperf.a
 
 # setup common files
 %{log_msg "Setup common package files"}
-pushd drivers/custom
-%{make} INSTALL_DIR=%{buildroot} install
-popd
+# drivers/custom install omitted: no akmods patch.
 
 %if %{with_tools}
 %ifarch %{cpupowerarchs}
