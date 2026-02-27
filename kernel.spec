@@ -173,18 +173,18 @@ Summary: The Linux kernel
 #  the --with-release option overrides this setting.)
 %define debugbuildsenabled 1
 # define buildid .local
-%define specrpmversion 6.17.7
-%define specversion 6.17.7
-%define patchversion 6.17
-%define pkgrelease ba25
+%define specrpmversion 6.19.3
+%define specversion 6.19.3
+%define patchversion 6.19
+%define pkgrelease frl1
 %define kversion 6
-%define tarfile_release 6.17.7
+%define tarfile_release 6.19.3
 # This is needed to do merge window version magic
-%define patchlevel 17
+%define patchlevel 19
 # This allows pkg_release to have configurable %%{?dist} tag
-%define specrelease ba25%{?buildid}%{?dist}
+%define specrelease frl1%{?buildid}%{?dist}
 # This defines the kabi tarball version
-%define kabiversion 6.17.7
+%define kabiversion 6.19.3
 
 # If this variable is set to 1, a bpf selftests build failure will cause a
 # fatal kernel package build error
@@ -2074,10 +2074,7 @@ cp -a %{SOURCE1} .
 %{log_msg "Start of patch applications"}
 %if !%{nopatches}
 
-ApplyOptionalPatch patch-1-redhat.patch
-ApplyOptionalPatch patch-2-handheld.patch
-ApplyOptionalPatch patch-3-akmods.patch
-ApplyOptionalPatch patch-4-amdgpu-vrr-whitelist.patch
+ApplyOptionalPatch patch-5-hdmi-frl.patch
 %endif
 
 ApplyOptionalPatch linux-kernel-test.patch

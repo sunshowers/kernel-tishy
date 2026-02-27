@@ -1,12 +1,13 @@
-name: Build Bazzite Kernel
+---
+name: Build Tishy Kernel
 
 on:
   push:
     branches:
-      - bazzite-*
+      - main
     tags:
-      - "*-ba*"
-      - "*-rc*"
+      - "*-frl*"
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -20,76 +21,29 @@ concurrency:
 
 jobs:
   build_kernel:
-    environment: ${{ (github.ref_type == 'tag' && (contains(github.ref_name, '-ba') || contains(github.ref_name, '-rc'))) && 'prod' || 'dev' }}
     strategy:
       fail-fast: false
       matrix:
-        arch: ["x86_64"] # "aarch64", 
+        arch: ["x86_64"]
         fedora_version: [43]
-    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      # - name: Setup ccache
-      #   id: ccache
-      #   run: |
-      #     TARFILE_RELEASE=$(sed -n 's/^%define[[:space:]]\+tarfile_release[[:space:]]\+//p' kernel.spec)
-      #     echo "ccache_key=ccache-${{ matrix.arch }}-${TARFILE_RELEASE}-${{ github.sha }}" >> $GITHUB_OUTPUT
-      #     CCACHE_USE=${{ (startsWith(github.ref, 'refs/heads/bazzite-') || startsWith(github.ref, 'refs/tags/') ) && '1' || '0' }}
-      #     CCACHE_WRITE=${{ startsWith(github.ref, 'refs/heads/bazzite-') && '1' || '0' }}
-      #     if [ "${{ startsWith(github.ref, 'refs/heads/bazzite-') }}" == "false" ]; then
-      #       CCACHE_READONLY="true"
-      #     else
-      #       CCACHE_READONLY=""
-      #     fi
-      #     echo "ccache_use=$CCACHE_USE" >> $GITHUB_OUTPUT
-      #     echo "ccache_write=$CCACHE_WRITE" >> $GITHUB_OUTPUT
-      #     echo "ccache_readonly=$CCACHE_READONLY" >> $GITHUB_OUTPUT
-
-      # - name: Restore ccache
-      #   if: ${{ steps.ccache.outputs.ccache_use == '1' }}
-      #   id: restore
-      #   uses: actions/cache/restore@v4
-      #   with:
-      #     path: |
-      #       ccache
-      #     key: ${{ steps.ccache.outputs.ccache_key }}
-      #     restore-keys: |
-      #       ccache-${{ matrix.arch }}-${TARFILE_RELEASE}
-      #       ccache-${{ matrix.arch }}
 
       - name: Create Build Environment
         run: |
           FEDORA_VERSION="${{ matrix.fedora_version }}"
           sudo podman build . --tag 'fedora_builder' \
             --build-arg UID=$(id -u) --build-arg GID=$(id -g) \
-            --build-arg FEDORA_VERSION=${FEDORA_VERSION:-41}
+            --build-arg FEDORA_VERSION=${FEDORA_VERSION:-43}
           sudo podman image prune -f
-
-      - name: Load Universal Blue Keys
-        if: (github.ref_type == 'tag' && (contains(github.ref_name, '-ba') || contains(github.ref_name, '-rc')))
-        env:
-          UBLUE_MOKKEY_LEGACY: ${{ secrets.UBLUE_MOKKEY_LEGACY }}
-          UBLUE_MOKKEY_KERNEL: ${{ secrets.UBLUE_MOKKEY_KERNEL }}
-        run: |
-          mkdir -p certs
-          if [ -n "$UBLUE_MOKKEY_LEGACY" ] && [ -n "$UBLUE_MOKKEY_KERNEL" ]; then
-            echo "${UBLUE_MOKKEY_LEGACY}" > certs/ubmok101.priv
-            cp ubmok101.cer certs/ubmok101.der
-            echo "${UBLUE_MOKKEY_KERNEL}" > certs/ubmok102.priv
-            cp ubmok102.cer certs/ubmok102.der
-          else
-            echo "One or more keys are missing, setup will create temporary keys"
-          fi
 
       - name: Maximize build space
         run: |
           df -h
-          #  remove swapfile (3gb)
           sudo swapoff -a; sudo rm -f /swapfile
-          # Remove toolchains, browsers
           shopt -s nullglob
           printf '%s\0' /opt/PyPy /opt/az /opt/node/ /opt/pipx /opt/go /opt/Ruby \
               /usr/lib/llvm-* /usr/local/julia* /usr/local/lib/android /usr/share/dotnet \
@@ -100,27 +54,14 @@ jobs:
 
       - name: Compile Kernel
         run: |
-          # Use ccache if:
-          # We have a cache hit and ccache is enabled for use
-          # OR we are writing to ccache (bazzite- branch)
-          CCACHE_USE=0 #{{ ((steps.ccache.outputs.ccache_use == '1' && steps.restore.outputs.cache-matched-key != '') || steps.ccache.outputs.ccache_write == '1') && '1' || '0' }}
+          CCACHE_USE=0
           sudo podman run --rm -v $(pwd):/workspace -e UID=$UID -e GID=$GID \
               -e ARCH=${{ matrix.arch }} -e FEDORA_VERSION=${{ matrix.fedora_version }} \
               --env CCACHE_USE="$CCACHE_USE" \
               fedora_builder bash ./build.sh \
               | grep -v ".o: warning: objtool:"
-              # --env CCACHE_READONLY={{ steps.ccache.outputs.ccache_readonly }} \
 
-          # We are signed, remove certs
           rm -rf ./certs
-
-      # - name: Backup ccache
-      #   if: ${{ steps.ccache.outputs.ccache_write == '1' }}
-      #   uses: actions/cache/save@v4
-      #   with:
-      #     path: |
-      #       ccache
-      #     key: ${{ steps.ccache.outputs.ccache_key }}
 
       - name: Separate debuginfo into different folder
         run: |
@@ -143,44 +84,18 @@ jobs:
             ./build/DRPMS/*.rpm
           compression-level: 7
 
-      - name: Convert to Arch
-        if: matrix.arch == 'x86_64' && matrix.fedora_version == 43 #arch_fedora
-        run: |
-          # Grab kernel ver from the log
-          KERNEL_VER=$(ls -a build/SRPMS/ | grep "kernel-*" | head -n 1 | sed 's/^kernel-//' | sed 's/.src.rpm//')
-          ARCH_VER=$(echo $KERNEL_VER | sed 's/-/./g')
-          # Place in PKGBUILD
-          cat PKGBUILD-ACTION | \
-            sed "s/VERSION_FEDORA/${KERNEL_VER}.x86_64/" | \
-            sed "s/VERSION_TAG/${ARCH_VER}/" \
-            > ./build/RPMS/${{ matrix.arch }}/PKGBUILD
-          sudo podman build . -f Dockerfile-arch --tag 'arch_builder' --build-arg UID=$(id -u) --build-arg GID=$(id -g) 
-          sudo podman run --rm -v $(pwd)/build/RPMS/${{ matrix.arch }}/:/workspace arch_builder makepkg -s
-
-      - name: Upload Kernel arch package to action
-        uses: actions/upload-artifact@v4
-        if: matrix.arch == 'x86_64' && matrix.fedora_version == 43 #arch_fedora
-        with:
-          name: linux-f${{ matrix.fedora_version }}-arch
-          path: |
-            ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst
-          compression-level: 7
-
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v3
         with:
           subject-path: |
             ./build/RPMS/${{ matrix.arch }}/kernel-*.rpm
-            ./build/SRPMS/${{ matrix.arch }}/kernel-*.rpm
-            ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst
-            ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
 
       - name: Create OCI image
         id: oci
         run: |
             FEDORA_VERSION="${{ matrix.fedora_version }}" ARCH="${{ matrix.arch }}" \
               buildah unshare ./oci.sh
-      
+
       - name: Upload OCI image to Registry
         id: upload
         run: |
@@ -188,7 +103,7 @@ jobs:
           podman push --digestfile .oci-digest "localhost/kernel-f${{ matrix.fedora_version}}" \
             "docker://ghcr.io/${{ github.repository }}:${{ github.ref_name }}-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
           echo "digest=$(cat .oci-digest)" >> $GITHUB_OUTPUT
-          
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -202,9 +117,9 @@ jobs:
           subject-digest: "${{ steps.upload.outputs.digest }}"
           subject-name: "ghcr.io/${{ github.repository }}"
           push-to-registry: true
-      
+
       - name: Upload OCI image to latest
-        if: github.ref_type == 'tag' && contains(github.ref_name, '-ba')
+        if: github.ref_type == 'tag' && contains(github.ref_name, '-frl')
         run: |
           podman push "localhost/kernel-f${{ matrix.fedora_version}}" \
             "docker://ghcr.io/${{ github.repository }}:latest-f${{ matrix.fedora_version }}-${{ matrix.arch }}"
@@ -217,9 +132,6 @@ jobs:
         with:
           files: |
             ./build/RPMS/${{ matrix.arch }}/kernel-*.rpm
-            ./build/SRPMS/${{ matrix.arch }}/kernel-*.rpm
-            ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst
-            ./build/RPMS/${{ matrix.arch }}/linux-*.pkg.tar.zst.sig
           fail_on_unmatched_files: false
           draft: true
 
@@ -234,13 +146,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           draft: false
-          prerelease: ${{ !contains(github.ref_name, '-ba') }}
-
-  update_aur:
-    uses: ./.github/workflows/publish-aur.yml
-    needs: post_release
-    if: github.ref_type == 'tag' && contains(github.ref_name, '-ba')
-    secrets: inherit
-    with:
-      relver: ${{ github.ref_name }}
-      fedora_version: 43 #arch_fedora
