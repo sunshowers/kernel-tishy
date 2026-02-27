@@ -4203,14 +4203,6 @@ fi\
 %endif
 
 %files common
-/usr/lib/modules-load.d/20-akmods.conf
-/usr/lib/modprobe.d/20-akmods.conf
-/usr/lib/udev/rules.d/70-razer.rules
-/usr/lib/udev/razer_mount
-/usr/lib/udev/rules.d/70-vhba.rules
-/usr/lib/modprobe.d/xone.conf
-/usr/bin/v4l2loopback-ctl
-/usr/lib/udev/rules.d/10-t150.rules
 
 %if %{with_tools}
 %ifnarch %{cpupowerarchs}
