@@ -1,5 +1,5 @@
 diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index a8a59126b2d2..0b5c47d9194a 100644
+index a8a59126b2d2..19fa581179f8 100644
 --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
 @@ -2069,6 +2069,9 @@ static int amdgpu_dm_init(struct amdgpu_device *adev)
@@ -12,7 +12,31 @@ index a8a59126b2d2..0b5c47d9194a 100644
  	adev->dm.dc->debug.visual_confirm = amdgpu_dc_visual_confirm;
  
  	/* TODO: Remove after DP2 receiver gets proper support of Cable ID feature */
-@@ -3276,6 +3279,12 @@ static void emulated_link_detect(struct dc_link *link)
+@@ -3224,6 +3227,23 @@ static int dm_suspend(struct amdgpu_ip_block *ip_block)
+ 
+ 	hpd_rx_irq_work_suspend(dm);
+ 
++	/* On a full machine shutdown (not suspend/resume), notify any connected
++	 * HDMI FRL sinks to stop expecting an FRL signal. This allows the sink
++	 * to fall back to TMDS immediately rather than waiting for a timeout.
++	 * Skip during suspend/resume — we will retrain FRL on resume anyway.
++	 */
++	if (adev->mp1_state == PP_MP1_STATE_UNLOAD) {
++		int i;
++
++		for (i = 0; i < dm->dc->link_count; i++) {
++			struct dc_link *link = dm->dc->links[i];
++
++			if (dc_is_hdmi_frl_signal(link->connector_signal) &&
++			    link->local_sink)
++				dm->dc->link_srv->hdmi_frl_disable(link);
++		}
++	}
++
+ 	dc_set_power_state(dm->dc, DC_ACPI_CM_POWER_STATE_D3);
+ 
+ 	if (dm->dc->caps.ips_support && adev->in_s0ix)
+@@ -3276,6 +3296,12 @@ static void emulated_link_detect(struct dc_link *link)
  		break;
  	}
  
@@ -25,7 +49,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  	case SIGNAL_TYPE_DVI_SINGLE_LINK: {
  		sink_caps.transaction_type = DDC_TRANSACTION_TYPE_I2C;
  		sink_caps.signal = SIGNAL_TYPE_DVI_SINGLE_LINK;
-@@ -6765,12 +6774,19 @@ static void fill_stream_properties_from_drm_display_mode(
+@@ -6765,12 +6791,19 @@ static void fill_stream_properties_from_drm_display_mode(
  
  	stream->out_transfer_func.type = TF_TYPE_PREDEFINED;
  	stream->out_transfer_func.tf = TRANSFER_FUNCTION_SRGB;
@@ -47,7 +71,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  		}
  	}
  
-@@ -7369,8 +7385,8 @@ create_stream_for_sink(struct drm_connector *connector,
+@@ -7369,8 +7402,8 @@ create_stream_for_sink(struct drm_connector *connector,
  
  	update_stream_signal(stream, sink);
  
@@ -58,7 +82,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  
  	if (stream->signal == SIGNAL_TYPE_DISPLAY_PORT ||
  	    stream->signal == SIGNAL_TYPE_DISPLAY_PORT_MST ||
-@@ -7829,6 +7845,8 @@ amdgpu_dm_connector_atomic_duplicate_state(struct drm_connector *connector)
+@@ -7829,6 +7862,8 @@ amdgpu_dm_connector_atomic_duplicate_state(struct drm_connector *connector)
  	__drm_atomic_helper_connector_duplicate_state(connector, &new_state->base);
  
  	new_state->freesync_capable = state->freesync_capable;
@@ -67,7 +91,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  	new_state->abm_level = state->abm_level;
  	new_state->scaling = state->scaling;
  	new_state->underscan_enable = state->underscan_enable;
-@@ -8541,6 +8559,7 @@ static int to_drm_connector_type(enum signal_type st, uint32_t connector_id)
+@@ -8541,6 +8576,7 @@ static int to_drm_connector_type(enum signal_type st, uint32_t connector_id)
  {
  	switch (st) {
  	case SIGNAL_TYPE_HDMI_TYPE_A:
@@ -75,7 +99,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  		return DRM_MODE_CONNECTOR_HDMIA;
  	case SIGNAL_TYPE_EDP:
  		return DRM_MODE_CONNECTOR_eDP;
-@@ -8945,6 +8964,7 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
+@@ -8945,6 +8981,7 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
  	aconnector->audio_inst = -1;
  	aconnector->pack_sdp_v1_3 = false;
  	aconnector->as_type = ADAPTIVE_SYNC_TYPE_NONE;
@@ -83,7 +107,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  	memset(&aconnector->vsdb_info, 0, sizeof(aconnector->vsdb_info));
  	mutex_init(&aconnector->hpd_lock);
  	mutex_init(&aconnector->handle_mst_msg_ready);
-@@ -9035,8 +9055,10 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
+@@ -9035,8 +9072,10 @@ void amdgpu_dm_connector_init_helper(struct amdgpu_display_manager *dm,
  	    connector_type == DRM_MODE_CONNECTOR_eDP) {
  		drm_connector_attach_hdr_output_metadata_property(&aconnector->base);
  
@@ -95,7 +119,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  
  		if (adev->dm.hdcp_workqueue)
  			drm_connector_attach_content_protection_property(&aconnector->base, true);
-@@ -9140,6 +9162,10 @@ int amdgpu_dm_initialize_hdmi_connector(struct amdgpu_dm_connector *aconnector)
+@@ -9140,6 +9179,10 @@ int amdgpu_dm_initialize_hdmi_connector(struct amdgpu_dm_connector *aconnector)
  	struct drm_device *ddev = aconnector->base.dev;
  	struct device *hdmi_dev = ddev->dev;
  
@@ -106,7 +130,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  	if (amdgpu_dc_debug_mask & DC_DISABLE_HDMI_CEC) {
  		drm_info(ddev, "HDMI-CEC feature masked\n");
  		return -EINVAL;
-@@ -9607,7 +9633,11 @@ static void update_freesync_state_on_stream(
+@@ -9607,7 +9650,11 @@ static void update_freesync_state_on_stream(
  
  	aconn = (struct amdgpu_dm_connector *)new_stream->dm_stream_context;
  
@@ -119,7 +143,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  		pack_sdp_v1_3 = aconn->pack_sdp_v1_3;
  
  		if (aconn->vsdb_info.amd_vsdb_version == 1)
-@@ -10826,6 +10856,31 @@ static int amdgpu_dm_atomic_setup_commit(struct drm_atomic_state *state)
+@@ -10826,6 +10873,31 @@ static int amdgpu_dm_atomic_setup_commit(struct drm_atomic_state *state)
  	return 0;
  }
  
@@ -151,7 +175,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  /**
   * amdgpu_dm_atomic_commit_tail() - AMDgpu DM's commit tail implementation.
   * @state: The atomic state to commit
-@@ -10868,12 +10923,14 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10868,12 +10940,14 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  	for_each_oldnew_connector_in_state(state, connector, old_con_state, new_con_state, i) {
  		struct dm_connector_state *dm_new_con_state = to_dm_connector_state(new_con_state);
  		struct dm_connector_state *dm_old_con_state = to_dm_connector_state(old_con_state);
@@ -166,7 +190,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  
  		memset(&stream_update, 0, sizeof(stream_update));
  
-@@ -10903,7 +10960,11 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10903,7 +10977,11 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  		hdr_changed =
  			!drm_connector_atomic_hdr_metadata_equal(old_con_state, new_con_state);
  
@@ -179,7 +203,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  			continue;
  
  		stream_update.stream = dm_new_crtc_state->stream;
-@@ -10933,6 +10994,17 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
+@@ -10933,6 +11011,17 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
  			stream_update.hdr_static_metadata = &hdr_packet;
  		}
  
@@ -197,7 +221,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  		status = dc_stream_get_status(dm_new_crtc_state->stream);
  
  		if (WARN_ON(!status))
-@@ -11312,6 +11384,12 @@ static void get_freesync_config_for_crtc(
+@@ -11312,6 +11401,12 @@ static void get_freesync_config_for_crtc(
  		config.vsif_supported = true;
  		config.btr = true;
  
@@ -210,7 +234,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  		if (fs_vid_mode) {
  			config.state = VRR_STATE_ACTIVE_FIXED;
  			config.fixed_refresh_in_uhz = new_crtc_state->freesync_config.fixed_refresh_in_uhz;
-@@ -11323,6 +11401,7 @@ static void get_freesync_config_for_crtc(
+@@ -11323,6 +11418,7 @@ static void get_freesync_config_for_crtc(
  		}
  	} else {
  		config.state = VRR_STATE_UNSUPPORTED;
@@ -218,7 +242,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  	}
  out:
  	new_crtc_state->freesync_config = config;
-@@ -13109,8 +13188,8 @@ static void parse_edid_displayid_vrr(struct drm_connector *connector,
+@@ -13109,8 +13205,8 @@ static void parse_edid_displayid_vrr(struct drm_connector *connector,
  	}
  }
  
@@ -229,7 +253,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  {
  	u8 *edid_ext = NULL;
  	int i;
-@@ -13144,13 +13223,13 @@ static int parse_amd_vsdb(struct amdgpu_dm_connector *aconnector,
+@@ -13144,13 +13240,13 @@ static int parse_amd_vsdb(struct amdgpu_dm_connector *aconnector,
  	return false;
  }
  
@@ -245,7 +269,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  
  	/*----- drm_find_cea_extension() -----*/
  	/* No EDID or EDID extensions */
-@@ -13171,9 +13250,99 @@ static int parse_hdmi_amd_vsdb(struct amdgpu_dm_connector *aconnector,
+@@ -13171,9 +13267,99 @@ static int parse_hdmi_amd_vsdb(struct amdgpu_dm_connector *aconnector,
  	if (edid_ext[0] != CEA_EXT)
  		return -ENODEV;
  
@@ -313,8 +337,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
 +
 +	aconn->min_vfreq = range->min_vfreq;
 +	aconn->max_vfreq = range->max_vfreq;
- 
--	return valid_vsdb_found ? i : -ENODEV;
++
 +	return is_freesync_capable(range);
 +}
 +
@@ -341,13 +364,14 @@ index a8a59126b2d2..0b5c47d9194a 100644
 +	 */
 +	if (vsdb->min_refresh_rate_hz < vrr_min && (vrr_min * 2 >= vrr_max))
 +		vrr_min = vsdb->min_refresh_rate_hz;
-+
+ 
+-	return valid_vsdb_found ? i : -ENODEV;
 +	display->monitor_range.min_vfreq = vrr_min;
 +	display->monitor_range.max_vfreq = vrr_max;
  }
  
  /**
-@@ -13190,16 +13359,20 @@ static int parse_hdmi_amd_vsdb(struct amdgpu_dm_connector *aconnector,
+@@ -13190,16 +13376,20 @@ static int parse_hdmi_amd_vsdb(struct amdgpu_dm_connector *aconnector,
  void amdgpu_dm_update_freesync_caps(struct drm_connector *connector,
  				    const struct drm_edid *drm_edid)
  {
@@ -370,7 +394,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  
  	if (!connector->state) {
  		drm_err(adev_to_drm(adev), "%s - Connector has no state", __func__);
-@@ -13227,68 +13400,77 @@ void amdgpu_dm_update_freesync_caps(struct drm_connector *connector,
+@@ -13227,68 +13417,77 @@ void amdgpu_dm_update_freesync_caps(struct drm_connector *connector,
  	if (!adev->dm.freesync_module || !dc_supports_vrr(sink->ctx->dce_version))
  		goto update;
  
@@ -497,7 +521,7 @@ index a8a59126b2d2..0b5c47d9194a 100644
  
  	if (connector->state && amdgpu_dm_connector->dc_link && !freesync_capable &&
  	    amdgpu_dm_connector->dc_link->replay_settings.config.replay_supported) {
-@@ -13297,8 +13479,15 @@ void amdgpu_dm_update_freesync_caps(struct drm_connector *connector,
+@@ -13297,8 +13496,15 @@ void amdgpu_dm_update_freesync_caps(struct drm_connector *connector,
  	}
  
  	if (connector->vrr_capable_property)
@@ -3212,7 +3236,7 @@ index 000000000000..ba97e0c0e346
 +#endif /* __DAL_DCN401_HPO_HDMI_STREAM_ENCODER_H__ */
 \ No newline at end of file
 diff --git a/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c b/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
-index ebd74b43e935..83886a85bbf7 100644
+index ebd74b43e935..e93b618c4648 100644
 --- a/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
 +++ b/drivers/gpu/drm/amd/display/dc/hwss/dce110/dce110_hwseq.c
 @@ -1178,6 +1178,7 @@ void dce110_disable_stream(struct pipe_ctx *pipe_ctx)
@@ -3261,7 +3285,49 @@ index ebd74b43e935..83886a85bbf7 100644
  		audio_output->pll_info.audio_dto_source_clock_in_khz =
  				state->clk_mgr->funcs->get_dp_ref_clk_frequency(
  						state->clk_mgr);
-@@ -2435,7 +2451,7 @@ static void dce110_setup_audio_dto(
+@@ -1645,7 +1661,13 @@ enum dc_status dce110_apply_single_controller_ctx_to_hw(
+ 		dce110_select_crtc_source(pipe_ctx);
+ 	}
+ 
+-	if (pipe_ctx->stream_res.audio != NULL) {
++	/* For HDMI FRL, the FRL rate may change during link training (rate
++	 * fallback). Defer audio setup until after set_dpms_on so that
++	 * pipe_ctx->link_config.dp_link_settings.frl_rate reflects the
++	 * actually-trained rate when hdmi_audio_setup is called.
++	 */
++	if (pipe_ctx->stream_res.audio != NULL &&
++			!dc_is_hdmi_frl_signal(pipe_ctx->stream->signal)) {
+ 		struct audio_output audio_output = {0};
+ 
+ 		build_audio_output(context, pipe_ctx, &audio_output);
+@@ -1749,6 +1771,26 @@ enum dc_status dce110_apply_single_controller_ctx_to_hw(
+ 	if (!stream->dpms_off)
+ 		dc->link_srv->set_dpms_on(context, pipe_ctx);
+ 
++	/* HDMI FRL audio setup deferred from above: pipe_ctx->link_config now
++	 * holds the actually-trained FRL rate after any rate fallback.
++	 */
++	if (pipe_ctx->stream_res.audio != NULL &&
++			dc_is_hdmi_frl_signal(pipe_ctx->stream->signal)) {
++		struct audio_output audio_output = {0};
++
++		build_audio_output(context, pipe_ctx, &audio_output);
++
++		link_hwss->setup_audio_output(pipe_ctx, &audio_output,
++				pipe_ctx->stream_res.audio->inst);
++
++		pipe_ctx->stream_res.audio->funcs->az_configure(
++				pipe_ctx->stream_res.audio,
++				pipe_ctx->stream->signal,
++				&audio_output.crtc_info,
++				&pipe_ctx->stream->audio_info,
++				&audio_output.dp_link_info);
++	}
++
+ 	/* DCN3.1 FPGA Workaround
+ 	 * Need to enable HPO DP Stream Encoder before setting OTG master enable.
+ 	 * To do so, move calling function enable_stream_timing to only be done AFTER calling
+@@ -2435,7 +2477,7 @@ static void dce110_setup_audio_dto(
  
  		if (pipe_ctx->top_pipe)
  			continue;
@@ -3724,6 +3790,19 @@ index 0f69946cce9f..f0224cd3bf44 100644
  	void (*set_dp_link_test_pattern)(struct dc_link *link,
  			const struct link_resource *link_res,
  			struct encoder_set_dp_phy_pattern_param *tp_params);
+diff --git a/drivers/gpu/drm/amd/display/dc/inc/link_service.h b/drivers/gpu/drm/amd/display/dc/inc/link_service.h
+index 6f94e48a24d1..a5b7dffc4156 100644
+--- a/drivers/gpu/drm/amd/display/dc/inc/link_service.h
++++ b/drivers/gpu/drm/amd/display/dc/inc/link_service.h
+@@ -346,5 +346,8 @@ struct link_service {
+ 	uint64_t (*dp_trace_get_edp_poweroff_timestamp)(struct dc_link *link);
+ 	void (*dp_trace_source_sequence)(
+ 			struct dc_link *link, uint8_t dp_test_mode);
++
++	/*************************** HDMI FRL *********************************/
++	void (*hdmi_frl_disable)(struct dc_link *link);
+ };
+ #endif /* __DC_LINK_HPD_H__ */
 diff --git a/drivers/gpu/drm/amd/display/dc/inc/resource.h b/drivers/gpu/drm/amd/display/dc/inc/resource.h
 index 79746d931471..05d4450562d4 100644
 --- a/drivers/gpu/drm/amd/display/dc/inc/resource.h
@@ -3990,7 +4069,7 @@ index 7fa6bc97a919..7db87e2125a1 100644
  		break;
  	default:
 diff --git a/drivers/gpu/drm/amd/display/dc/link/link_dpms.c b/drivers/gpu/drm/amd/display/dc/link/link_dpms.c
-index 6ae134147617..210ccf7f138a 100644
+index 6ae134147617..580a1a868adb 100644
 --- a/drivers/gpu/drm/amd/display/dc/link/link_dpms.c
 +++ b/drivers/gpu/drm/amd/display/dc/link/link_dpms.c
 @@ -47,6 +47,7 @@
@@ -4029,7 +4108,7 @@ index 6ae134147617..210ccf7f138a 100644
  {
  	struct dc_stream_state *stream = pipe_ctx->stream;
  	struct dc_link *link = stream->link;
-@@ -1973,15 +1979,39 @@ static void enable_link_hdmi(struct pipe_ctx *pipe_ctx)
+@@ -1973,15 +1979,49 @@ static void enable_link_hdmi(struct pipe_ctx *pipe_ctx)
  	bool is_vga_mode = (stream->timing.h_addressable == 640)
  			&& (stream->timing.v_addressable == 480);
  	struct dc *dc = pipe_ctx->stream->ctx->dc;
@@ -4056,6 +4135,16 @@ index 6ae134147617..210ccf7f138a 100644
 +			DC_LOG_HW_LINK_TRAINING("HDMI FRL: training failed\n");
 +			return DC_ERROR_UNEXPECTED;
 +		}
++
++		/* Sync the trained rate back so the audio setup in
++		 * dce110_apply_single_controller_ctx_to_hw uses the correct
++		 * FRL rate after any rate fallback during training.
++		 */
++		pipe_ctx->link_config.dp_link_settings.frl_rate =
++			link->cur_link_settings.frl_rate;
++		pipe_ctx->link_config.dp_link_settings.lane_count =
++			link->cur_link_settings.lane_count;
++
 +		return DC_OK;
 +	}
 +
@@ -4070,7 +4159,7 @@ index 6ae134147617..210ccf7f138a 100644
  	}
  
  	if (dc_is_hdmi_signal(pipe_ctx->stream->signal)) {
-@@ -2004,7 +2034,7 @@ static void enable_link_hdmi(struct pipe_ctx *pipe_ctx)
+@@ -2004,7 +2044,7 @@ static void enable_link_hdmi(struct pipe_ctx *pipe_ctx)
  		}
  	}
  
@@ -4079,7 +4168,7 @@ index 6ae134147617..210ccf7f138a 100644
  		write_scdc_data(
  			stream->link->ddc,
  			stream->phy_pix_clk,
-@@ -2033,6 +2063,8 @@ static void enable_link_hdmi(struct pipe_ctx *pipe_ctx)
+@@ -2033,6 +2073,8 @@ static void enable_link_hdmi(struct pipe_ctx *pipe_ctx)
  
  	if (dc_is_hdmi_signal(pipe_ctx->stream->signal))
  		read_scdc_data(link->ddc);
@@ -4088,7 +4177,7 @@ index 6ae134147617..210ccf7f138a 100644
  }
  
  static enum dc_status enable_link_dp(struct dc_state *state,
-@@ -2232,6 +2264,7 @@ static enum dc_status enable_link(
+@@ -2232,6 +2274,7 @@ static enum dc_status enable_link(
  		return DC_ERROR_UNEXPECTED;
  	link = stream->link;
  
@@ -4096,7 +4185,7 @@ index 6ae134147617..210ccf7f138a 100644
  	/* There's some scenarios where driver is unloaded with display
  	 * still enabled. When driver is reloaded, it may cause a display
  	 * to not light up if there is a mismatch between old and new
-@@ -2240,6 +2273,7 @@ static enum dc_status enable_link(
+@@ -2240,6 +2283,7 @@ static enum dc_status enable_link(
  	 */
  	if (link->link_status.link_active)
  		disable_link(link, &pipe_ctx->link_res, pipe_ctx->stream->signal);
@@ -4104,7 +4193,7 @@ index 6ae134147617..210ccf7f138a 100644
  
  	switch (pipe_ctx->stream->signal) {
  	case SIGNAL_TYPE_DISPLAY_PORT:
-@@ -2255,8 +2289,8 @@ static enum dc_status enable_link(
+@@ -2255,8 +2299,8 @@ static enum dc_status enable_link(
  	case SIGNAL_TYPE_DVI_SINGLE_LINK:
  	case SIGNAL_TYPE_DVI_DUAL_LINK:
  	case SIGNAL_TYPE_HDMI_TYPE_A:
@@ -4115,7 +4204,7 @@ index 6ae134147617..210ccf7f138a 100644
  		break;
  	case SIGNAL_TYPE_LVDS:
  		enable_link_lvds(pipe_ctx);
-@@ -2361,6 +2395,8 @@ void link_set_dpms_off(struct pipe_ctx *pipe_ctx)
+@@ -2361,6 +2405,8 @@ void link_set_dpms_off(struct pipe_ctx *pipe_ctx)
  
  	if (dp_is_128b_132b_signal(pipe_ctx))
  		vpg = pipe_ctx->stream_res.hpo_dp_stream_enc->vpg;
@@ -4124,7 +4213,7 @@ index 6ae134147617..210ccf7f138a 100644
  	if (dc_is_virtual_signal(pipe_ctx->stream->signal))
  		return;
  
-@@ -2392,7 +2428,7 @@ void link_set_dpms_off(struct pipe_ctx *pipe_ctx)
+@@ -2392,7 +2438,7 @@ void link_set_dpms_off(struct pipe_ctx *pipe_ctx)
  			dp_is_128b_132b_signal(pipe_ctx))
  		update_sst_payload(pipe_ctx, false);
  
@@ -4133,7 +4222,7 @@ index 6ae134147617..210ccf7f138a 100644
  		struct ext_hdmi_settings settings = {0};
  		enum engine_id eng_id = pipe_ctx->stream_res.stream_enc->id;
  
-@@ -2439,7 +2475,7 @@ void link_set_dpms_off(struct pipe_ctx *pipe_ctx)
+@@ -2439,7 +2485,7 @@ void link_set_dpms_off(struct pipe_ctx *pipe_ctx)
  		if (dc_is_dp_signal(pipe_ctx->stream->signal))
  			link_set_dsc_enable(pipe_ctx, false);
  	}
@@ -4142,7 +4231,7 @@ index 6ae134147617..210ccf7f138a 100644
  		if (pipe_ctx->stream_res.tg->funcs->set_out_mux)
  			pipe_ctx->stream_res.tg->funcs->set_out_mux(pipe_ctx->stream_res.tg, OUT_MUX_DIO);
  	}
-@@ -2477,6 +2513,8 @@ void link_set_dpms_on(
+@@ -2477,6 +2523,8 @@ void link_set_dpms_on(
  
  	if (dp_is_128b_132b_signal(pipe_ctx))
  		vpg = pipe_ctx->stream_res.hpo_dp_stream_enc->vpg;
@@ -4151,7 +4240,7 @@ index 6ae134147617..210ccf7f138a 100644
  	if (dc_is_virtual_signal(pipe_ctx->stream->signal))
  		return;
  
-@@ -2495,7 +2533,8 @@ void link_set_dpms_on(
+@@ -2495,7 +2543,8 @@ void link_set_dpms_on(
  	ASSERT(link_enc);
  
  	if (!dc_is_virtual_signal(pipe_ctx->stream->signal)
@@ -4161,7 +4250,7 @@ index 6ae134147617..210ccf7f138a 100644
  		if (link_enc)
  			link_enc->funcs->setup(
  				link_enc,
-@@ -2507,6 +2546,10 @@ void link_set_dpms_on(
+@@ -2507,6 +2556,10 @@ void link_set_dpms_on(
  	if (pipe_ctx->stream_res.tg->funcs->set_out_mux) {
  		if (dp_is_128b_132b_signal(pipe_ctx))
  			otg_out_dest = OUT_MUX_HPO_DP;
@@ -4172,7 +4261,7 @@ index 6ae134147617..210ccf7f138a 100644
  		else
  			otg_out_dest = OUT_MUX_DIO;
  		pipe_ctx->stream_res.tg->funcs->set_out_mux(pipe_ctx->stream_res.tg, otg_out_dest);
-@@ -2615,7 +2658,8 @@ void link_set_dpms_on(
+@@ -2615,7 +2668,8 @@ void link_set_dpms_on(
  	 * from transmitter control.
  	 */
  	if (!(dc_is_virtual_signal(pipe_ctx->stream->signal) ||
@@ -4182,6 +4271,38 @@ index 6ae134147617..210ccf7f138a 100644
  
  			if (link_enc)
  				link_enc->funcs->setup(
+diff --git a/drivers/gpu/drm/amd/display/dc/link/link_factory.c b/drivers/gpu/drm/amd/display/dc/link/link_factory.c
+index a6e2b0821969..1b27cfe9dd3a 100644
+--- a/drivers/gpu/drm/amd/display/dc/link/link_factory.c
++++ b/drivers/gpu/drm/amd/display/dc/link/link_factory.c
+@@ -42,6 +42,7 @@
+ #include "protocols/link_dp_training.h"
+ #include "protocols/link_edp_panel_control.h"
+ #include "protocols/link_hpd.h"
++#include "protocols/link_frl_training.h"
+ #include "gpio_service_interface.h"
+ #include "atomfirmware.h"
+ 
+@@ -248,6 +249,11 @@ static void construct_link_service_dp_cts(struct link_service *link_srv)
+ /* link dp trace implements tracing interfaces for tracking major dp sequences
+  * including execution status and timestamps
+  */
++static void construct_link_service_hdmi_frl(struct link_service *link_srv)
++{
++	link_srv->hdmi_frl_disable = dc_link_disable_frl;
++}
++
+ static void construct_link_service_dp_trace(struct link_service *link_srv)
+ {
+ 	link_srv->dp_trace_is_initialized = dp_trace_is_initialized;
+@@ -286,6 +292,7 @@ static void construct_link_service(struct link_service *link_srv)
+ 	construct_link_service_edp_panel_control(link_srv);
+ 	construct_link_service_dp_cts(link_srv);
+ 	construct_link_service_dp_trace(link_srv);
++	construct_link_service_hdmi_frl(link_srv);
+ }
+ 
+ struct link_service *link_create_link_service(void)
 diff --git a/drivers/gpu/drm/amd/display/dc/link/link_hwss_hpo_frl.c b/drivers/gpu/drm/amd/display/dc/link/link_hwss_hpo_frl.c
 deleted file mode 100644
 index 4b5eccd994c4..000000000000
@@ -4265,10 +4386,10 @@ index 5d2bcce2f669..6c5ee009fa6d 100644
  				sizeof(status_data.byte));
 diff --git a/drivers/gpu/drm/amd/display/dc/link/protocols/link_frl_training.c b/drivers/gpu/drm/amd/display/dc/link/protocols/link_frl_training.c
 new file mode 100644
-index 000000000000..16bbf28a9b34
+index 000000000000..fac7bd979bdc
 --- /dev/null
 +++ b/drivers/gpu/drm/amd/display/dc/link/protocols/link_frl_training.c
-@@ -0,0 +1,597 @@
+@@ -0,0 +1,616 @@
 +/*
 + * HDMI 2.1 Fixed Rate Link (FRL) training
 + *
@@ -4281,6 +4402,7 @@ index 000000000000..16bbf28a9b34
 +#include "link_hwss.h"
 +#include "link_ddc.h"
 +#include "dc_hdmi_types.h"
++#include "resource.h"
 +
 +#define DC_LOGGER link->ctx->logger
 +
@@ -4332,8 +4454,9 @@ index 000000000000..16bbf28a9b34
 +	uint8_t frl_rate = link->cur_link_settings.frl_rate;
 +	uint8_t sink_version;
 +	uint8_t update;
-+	uint8_t status;
++	uint8_t status = 0;
 +	uint16_t ltp_req;
++	uint8_t patterns[FRL_MAX_LANES] = {0, 0, 0, 0};
 +	uint8_t write_buffer[2];
 +	int poll;
 +	int lane;
@@ -4473,21 +4596,11 @@ index 000000000000..16bbf28a9b34
 +			}
 +		}
 +
-+		/* Program requested training patterns */
-+		pr_err("FRL DEBUG: programming training patterns\n");
-+		enc->funcs->set_training_patterns(enc,
-+						  ((ltp_req >> 0) & 0xF) - 1,
-+						  ((ltp_req >> 4) & 0xF) - 1,
-+						  ((ltp_req >> 8) & 0xF) - 1,
-+						  ((ltp_req >> 12) & 0xF) - 1);
-+
-+		/* Detect LOWER_RATE / NEXT_FFE */
++		/* Check for special LTP requests before programming patterns */
 +		for (lane = 0; lane < lane_count; lane++) {
 +			uint8_t ltp = (ltp_req >> (lane * 4)) & 0xF;
 +
 +			if (ltp == HDMI_LTP_LOWER_RATE) {
-+				pr_err("FRL DEBUG: lane %d requested LOWER_RATE\n",
-+				       lane);
 +				DC_LOG_ERROR(
 +					"FRL: sink requested lower rate (unsupported)\n");
 +				goto fail;
@@ -4498,6 +4611,19 @@ index 000000000000..16bbf28a9b34
 +				       lane);
 +			}
 +		}
++
++		/* Update per-lane patterns; preserve current pattern for passing lanes */
++		for (lane = 0; lane < lane_count; lane++) {
++			uint8_t ltp = (ltp_req >> (lane * 4)) & 0xF;
++
++			if (ltp != HDMI_LTP_PASS && ltp != HDMI_LTP_NEXT_FFE)
++				patterns[lane] = ltp - 1;
++		}
++
++		pr_err("FRL DEBUG: programming training patterns\n");
++		enc->funcs->set_training_patterns(enc,
++						  patterns[0], patterns[1],
++						  patterns[2], patterns[3]);
 +
 +		msleep(FRL_POLL_DELAY_MS);
 +	}
@@ -4516,8 +4642,9 @@ index 000000000000..16bbf28a9b34
 +bool dc_link_perform_frl_training_with_retries(struct dc_link *link,
 +				  const struct link_resource *link_res)
 +{
++	const struct link_hwss *link_hwss = get_link_hwss(link, link_res);
 +	uint8_t min_rate;
-+	bool success;
++	bool success = false;
 +	int i;
 +
 +	/*
@@ -4531,6 +4658,19 @@ index 000000000000..16bbf28a9b34
 +	link->cur_link_settings.lane_count = link->cur_link_settings.frl_rate <= 2 ? 3 : 4;
 +
 +	for (i = 0; i < FRL_TRAINING_RETRIES; ++i) {
++		/* Reprogram the PHY for the current rate attempt. The caller
++		 * (enable_link_hdmi) already called enable_hdmi_link_output once
++		 * at the DFM-selected rate; disable and re-enable here so the
++		 * PHY clock matches whatever rate we are about to train at.
++		 */
++		link_hwss->disable_link_output(link, link_res,
++					       link->connector_signal);
++		if (link_hwss->ext.enable_hdmi_link_output)
++			link_hwss->ext.enable_hdmi_link_output(
++				link, link_res,
++				link->connector_signal,
++				&link->cur_link_settings);
++
 +		success = dc_link_perform_frl_training(link, link_res);
 +
 +		if (success)
