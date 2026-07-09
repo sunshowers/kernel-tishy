@@ -31,18 +31,25 @@ fi
 
 echo "Building OGC ${OGC_VERSION} (linux-${TAR_KVER}, build ${BUILDNUM})"
 
+# The rpmbuild tree lives outside the source checkout by default. Locally the
+# checkout is a bind mount whose setgid/ACL group is unmappable in the rootless
+# user namespace, so the spec's `cp -a` calls in %install fail with EPERM when
+# preserving ownership onto it; container-local storage avoids that (and is
+# discarded with the container).
+TOPDIR="${RPM_TOPDIR:-/var/tmp/kernel-tishy-rpmbuild}"
+
 # Substitute the version macros into a working copy of the spec so repeated
 # runs don't accumulate edits on the tracked file.
-mkdir -p rpmbuild/SPECS
+mkdir -p "$TOPDIR/SPECS"
 sed \
     -e "s/@@BASEKVER@@/${BASE_KVER}/" \
     -e "s/@@STABLEKVER@@/${STABLE_KVER}/" \
     -e "s/@@OGCVER@@/${OGC_REV}/" \
     -e "s/@@BUILDNUM@@/${BUILDNUM}/" \
-    fedora/kernel.spec > rpmbuild/SPECS/kernel.spec
+    fedora/kernel.spec > "$TOPDIR/SPECS/kernel.spec"
 
 if [ "${SKIP_DEPS:-0}" != "1" ]; then
-    dnf -y builddep rpmbuild/SPECS/kernel.spec
+    dnf -y builddep "$TOPDIR/SPECS/kernel.spec"
     dnf -y install gnupg2 wget python3
     [ -n "${CCACHE_DIR:-}" ] && dnf -y install ccache
 fi
@@ -77,11 +84,11 @@ python3 merge-config.py \
     --config fedora/config \
     --set config/fedora.config.set --set config/ogc.config.set \
     --unset config/fedora.config.unset --unset config/ogc.config.unset \
+    --unset config/tishy.config.unset \
     --output "linux-${TAR_KVER}/.config"
 ( cd "linux-${TAR_KVER}" && make olddefconfig )
 
 # Assemble the rpmbuild tree and build.
-TOPDIR="$(pwd)/rpmbuild"
 mkdir -p "$TOPDIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SRPMS}
 cp "linux-${TAR_KVER}.tar.xz" "$TOPDIR/SOURCES/"
 cp monolithic.patch "$TOPDIR/SOURCES/"

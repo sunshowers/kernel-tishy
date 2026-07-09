@@ -1,0 +1,10 @@
+# tishy options layered on top of the Fedora + OGC configs.
+#
+# OGC's base config enables CONFIG_DRM_WERROR ("Enable -Werror in CI and
+# development"), which compiles the whole DRM subtree with -Werror. The HDMI
+# FRL patch set (patches/) is developed on CachyOS, which does not enable it,
+# and cannot pass it: dcn30_frl_reg_defs.h intentionally shadows 78 register
+# macros that linux 7.1's dcn_3_6_0/dcn_4_1_0 offset headers also define
+# (last definition wins per translation unit). Build the patch the way its
+# author validates it.
+CONFIG_DRM_WERROR

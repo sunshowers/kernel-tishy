@@ -46,10 +46,19 @@ Additionally, one dead hunk was removed from the
 `drivers/gpu/drm/amd/display/dc/clk_mgr/dcn401/dcn401_clk_mgr.c` block: upstream
 adds three variable declarations (`otg_master`, `frl_present`, `i`) to
 `dcn401_build_update_display_clocks_sequence()` that nothing ever uses (a
-leftover from an earlier patch revision). The amdgpu display makefiles build
-with `-Werror`, so the unused variables fail the Fedora build; Arch/CachyOS
-builds don't hit this. The block's real change (routing HDMI FRL signals to the
-HPO encoder path) is kept.
+leftover from an earlier patch revision). The block's real change (routing HDMI
+FRL signals to the HPO encoder path) is kept.
+
+## Werror
+
+The patch set does not build under `CONFIG_DRM_WERROR` (which OGC's base config
+enables): besides the dead variables above, `dcn30_frl_reg_defs.h` intentionally
+shadows 78 register macros that linux 7.1's `dcn_3_6_0`/`dcn_4_1_0` offset
+headers also define, relying on last-definition-wins per translation unit (the
+ASIC offset headers are included after it in the `dcn36`/`dcn401` resource
+files, so the ASIC-correct values win there). CachyOS, where the patch is
+developed, does not enable `CONFIG_DRM_WERROR`; `config/tishy.config.unset`
+disables it to match.
 
 Only those two file blocks differ from upstream; every other file's diff is
 byte-identical. The adapted patch applies with zero rejects against

@@ -37,9 +37,12 @@ podman run --rm \
     bash build.sh
 
 echo "== Packaging OCI image ${IMAGE} =="
+KERNEL_VERSION_LABEL="$(tr -d '[:space:]' < KERNEL_VERSION)"
 ctxfile=$(mktemp)
 printf 'FROM scratch\nCOPY rpms/*.rpm /\n' > "$ctxfile"
-podman build -f "$ctxfile" -t "$IMAGE" .
+podman build -f "$ctxfile" \
+    --label "org.tishy.kernel.version=${KERNEL_VERSION_LABEL}" \
+    -t "$IMAGE" .
 rm -f "$ctxfile"
 
 echo
