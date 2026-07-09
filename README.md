@@ -28,12 +28,35 @@ The kernel version is pinned in [`KERNEL_VERSION`](KERNEL_VERSION)
 KERNEL_VERSION              OGC tag to build (e.g. 7.1.3-ogc3)
 public.key                  OGC monolithic.patch signing key
 fedora/kernel.spec          OGC Fedora kernel spec + tishy FRL patches
-fedora/config               OGC base Fedora config
-config/*.config.{set,unset} Fedora + OGC config fragments
+fedora/config               base kernel config (see "Config provenance")
+config/*.config.{set,unset} Fedora + OGC + tishy config fragments
 patches/                    HDMI FRL + VRR patches (see patches/README.md)
+build.sh                    build core, shared by CI and local builds
+build-local.sh              local build via podman + fedora container
+merge-config.py             config fragment merge (kernel-configurator logic)
 oci.sh                      packages built RPMs into the scratch OCI image
 .github/workflows/build.yml CI: build RPMs, package + push OCI image
 ```
+
+## Config provenance
+
+`fedora/config` is **not** OGC kernel-packages' current `fedora/config`. Their
+commit `33f30ad` ("chore: Update Fedora kernel config", 2026-06-29) regenerated
+the file and dropped ~1,573 previously-enabled options; after `make
+olddefconfig` resolves defaults, ~525 stay silently off, including
+`CONFIG_IA32_EMULATION` (32-bit binaries — Steam), `CONFIG_KVM_AMD`/
+`CONFIG_KVM_INTEL`, IOMMU support, and most AMD ACP audio codecs. Every OGC
+artifact tagged `v7.1.2-ogc1` or later is built from the broken config; the
+last good config is commit `ea2f210` (2026-05-18), which produced the
+`7.0.9-ogc3.2` builds that Bazzite ships (Bazzite consumes OGC's prebuilt
+artifacts via `ublue-os/akmods` and has no kernel config of its own).
+
+Instead, `fedora/config` here is the complete resolved config of a known-good
+OGC build (`7.0.9-ogc3.2.fc44`, extracted from `/proc/config.gz` on a running
+machine; see the file's header) — i.e., OGC's `ea2f210` config after
+`olddefconfig`. On version bumps, `make olddefconfig` resolves new options with
+their defaults — same as OGC's own flow. If OGC fixes their config upstream,
+re-vendoring it is fine after diffing for the options above.
 
 ## Building a new version
 
