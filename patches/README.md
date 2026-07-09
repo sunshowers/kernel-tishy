@@ -40,6 +40,17 @@ adapted patch resolves them to the equivalent one-line swaps against OGC's code:
   `} else if (drm_edid && dc_is_hdmi_signal(sink->sink_signal)) {`
 
 The amd-staging-only "prefer HDMI VRR" refinement is not present on the OGC base
-and is not reintroduced. Only the `amdgpu_dm.c` diff block was regenerated; every
-other file's diff is byte-identical to upstream. The adapted patch applies with
-zero rejects against `v7.1.3-ogc3`.
+and is not reintroduced.
+
+Additionally, one dead hunk was removed from the
+`drivers/gpu/drm/amd/display/dc/clk_mgr/dcn401/dcn401_clk_mgr.c` block: upstream
+adds three variable declarations (`otg_master`, `frl_present`, `i`) to
+`dcn401_build_update_display_clocks_sequence()` that nothing ever uses (a
+leftover from an earlier patch revision). The amdgpu display makefiles build
+with `-Werror`, so the unused variables fail the Fedora build; Arch/CachyOS
+builds don't hit this. The block's real change (routing HDMI FRL signals to the
+HPO encoder path) is kept.
+
+Only those two file blocks differ from upstream; every other file's diff is
+byte-identical. The adapted patch applies with zero rejects against
+`v7.1.3-ogc3`.

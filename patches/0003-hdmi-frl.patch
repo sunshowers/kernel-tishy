@@ -775,16 +775,6 @@ diff -ruN a/drivers/gpu/drm/amd/display/dc/clk_mgr/dcn401/dcn401_clk_mgr.c b/dri
  		if (!use_hpo_encoder)
  			continue;
  
-@@ -1092,6 +1093,9 @@
- 	bool update_dispclk = false;
- 	bool update_dppclk = false;
- 	bool dppclk_lowered = false;
-+	struct pipe_ctx *otg_master;
-+	bool frl_present = false;
-+	unsigned int i;
- 
- 	unsigned int num_steps = 0;
- 
 
 
 diff -ruN a/drivers/gpu/drm/amd/display/dc/core/dc.c b/drivers/gpu/drm/amd/display/dc/core/dc.c

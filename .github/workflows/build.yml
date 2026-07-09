@@ -5,8 +5,9 @@ name: Build Tishy Kernel
 # VRR patches layered on top, then packages the RPMs into a FROM-able OCI image
 # consumed by the tishy-deck build (see ../tishy/Containerfile.deck).
 #
-# The OGC kernel version to build is read from the KERNEL_VERSION file
-# (e.g. 7.1.3-ogc3) unless overridden via workflow_dispatch.
+# The build core is build.sh, shared with local builds (build-local.sh), so CI
+# and local builds run the exact same steps. The OGC kernel version is read from
+# the KERNEL_VERSION file unless overridden via workflow_dispatch.
 
 on:
   push:
@@ -68,118 +69,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Get version
-        id: version
-        shell: bash
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            OGC_VERSION="${{ github.event.inputs.version }}"
-          else
-            OGC_VERSION="$(tr -d '[:space:]' < KERNEL_VERSION)"
-          fi
-          KERNEL_VERSION="${OGC_VERSION%-ogc*}"
-          MAJOR_VERSION="${KERNEL_VERSION%%.*}.x"
-          OGC_REV="${OGC_VERSION##*-ogc}"
-          BASE_KVER="${KERNEL_VERSION%.*}"
-          STABLE_KVER="${KERNEL_VERSION##*.}"
-          if [ "$STABLE_KVER" = "0" ]; then
-            TAR_KVER="$BASE_KVER"
-          else
-            TAR_KVER="$KERNEL_VERSION"
-          fi
-          echo "ogc_version=$OGC_VERSION" >> "$GITHUB_OUTPUT"
-          echo "kernel_version=$KERNEL_VERSION" >> "$GITHUB_OUTPUT"
-          echo "major_version=$MAJOR_VERSION" >> "$GITHUB_OUTPUT"
-          echo "ogc_rev=$OGC_REV" >> "$GITHUB_OUTPUT"
-          echo "base_kver=$BASE_KVER" >> "$GITHUB_OUTPUT"
-          echo "stable_kver=$STABLE_KVER" >> "$GITHUB_OUTPUT"
-          echo "tar_kver=$TAR_KVER" >> "$GITHUB_OUTPUT"
-          echo "Building OGC $OGC_VERSION (tarball linux-$TAR_KVER)"
-
-      - name: Substitute versions
-        shell: bash
-        run: |
-          sed -i \
-            -e "s/@@BASEKVER@@/${{ steps.version.outputs.base_kver }}/" \
-            -e "s/@@STABLEKVER@@/${{ steps.version.outputs.stable_kver }}/" \
-            -e "s/@@OGCVER@@/${{ steps.version.outputs.ogc_rev }}/" \
-            -e "s/@@BUILDNUM@@/${{ github.run_number }}/" \
-            fedora/kernel.spec
-
-      - name: Dependencies
-        run: |
-          dnf -y builddep fedora/kernel.spec
-          dnf -y install gnupg2 jq sed wget
-
-      - name: Download and verify kernel source
-        shell: bash
-        run: |
-          TAR_KVER="${{ steps.version.outputs.tar_kver }}"
-          MAJOR_VERSION="${{ steps.version.outputs.major_version }}"
-          OGC_VERSION="${{ steps.version.outputs.ogc_version }}"
-          wget "https://cdn.kernel.org/pub/linux/kernel/v${MAJOR_VERSION}/linux-${TAR_KVER}.tar.xz"
-          wget "https://cdn.kernel.org/pub/linux/kernel/v${MAJOR_VERSION}/linux-${TAR_KVER}.tar.sign"
-          wget "https://github.com/OpenGamingCollective/linux/releases/download/v${OGC_VERSION}/monolithic.patch"
-          wget "https://github.com/OpenGamingCollective/linux/releases/download/v${OGC_VERSION}/monolithic.patch.sig"
-          # Import kernel.org signing keys (Linus Torvalds & Greg Kroah-Hartman)
-          gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys \
-            ABAF11C65A2970B130ABE3C479BE3E4300411886 \
-            647F28654894E3BD457199BE38DBBDC86092693E
-          # Import the OGC monolithic patch signing key
-          gpg --import "$GITHUB_WORKSPACE/public.key"
-          # Verify the kernel tarball and OGC patch signatures before use
-          xz -dc "linux-${TAR_KVER}.tar.xz" | gpg --verify "linux-${TAR_KVER}.tar.sign" -
-          gpg --verify monolithic.patch.sig monolithic.patch
-          tar -xf "linux-${TAR_KVER}.tar.xz"
-          # Apply the OGC monolithic patch so the config-generation tree matches
-          # the build tree. The FRL patches add no Kconfig symbols, so they are
-          # applied only inside rpmbuild %prep, not here.
-          ( cd "linux-${TAR_KVER}" && patch -Np1 < ../monolithic.patch )
-
-      - name: Merge kernel configuration files
-        uses: OpenGamingCollective/kernel-configurator@5b4abc58a2edf89941180dbbe33b26415db23b0b # v1.0.1
-        with:
-          config: fedora/config
-          set: |
-            config/fedora.config.set
-            config/ogc.config.set
-          unset: |
-            config/fedora.config.unset
-            config/ogc.config.unset
-          output: linux-${{ steps.version.outputs.tar_kver }}/.config
-
-      - name: Validate combined kernel config file
-        shell: bash
-        run: |
-          cd "linux-${{ steps.version.outputs.tar_kver }}"
-          make olddefconfig
-
-      - name: Build
-        shell: bash
-        run: |
-          TAR_KVER="${{ steps.version.outputs.tar_kver }}"
-          TOPDIR="$(pwd)/rpmbuild"
-          mkdir -p "$TOPDIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-          # Pre-populate SOURCES with the already-downloaded and verified inputs.
-          cp "linux-${TAR_KVER}.tar.xz" "$TOPDIR/SOURCES/"
-          cp monolithic.patch "$TOPDIR/SOURCES/"
-          cp fedora/kvm_stat.logrotate "$TOPDIR/SOURCES/"
-          # tishy HDMI FRL + VRR patches referenced as Patch1..Patch4 in the spec.
-          cp patches/0001-fix-amd-color-manager.patch "$TOPDIR/SOURCES/"
-          cp patches/0002-fix-dc-plane-cm-build-error.patch "$TOPDIR/SOURCES/"
-          cp patches/0003-hdmi-frl.patch "$TOPDIR/SOURCES/"
-          cp patches/0004-hdmi-vrr.patch "$TOPDIR/SOURCES/"
-          # The merged, olddefconfig-validated config.
-          cp "linux-${TAR_KVER}/.config" "$TOPDIR/SOURCES/config"
-          rpmbuild --define "_topdir $TOPDIR" -ba ./fedora/kernel.spec
-
-      - name: Collect binary RPMs
-        shell: bash
-        run: |
-          mkdir -p rpms
-          find rpmbuild/RPMS -type f -name 'kernel-*.rpm' ! -name '*debuginfo*' \
-            ! -name '*debugsource*' -exec cp -t rpms/ {} +
-          echo "Packaged RPMs:"; ls -1 rpms/
+      - name: Build kernel RPMs
+        env:
+          OGC_VERSION: ${{ github.event.inputs.version }}
+          BUILDNUM: ${{ github.run_number }}
+        run: bash build.sh
 
       - name: Attest RPM provenance
         uses: actions/attest-build-provenance@v3
