@@ -1,14 +1,23 @@
-*.xz
-*.bz2
-kernel-6.*
-*.log
-build
-buildroot
-*.rpm
-cache
-x86_64
-ccache
-NVIDIA-Linux*
+# Downloaded/extracted kernel sources
+*.tar.xz
 *.tar.gz
+*.tar.sign
+linux-*/
+
+# OGC monolithic patch (downloaded at build time)
+monolithic.patch
+monolithic.patch.sig
+
+# Build outputs
+rpmbuild/
+build/
+buildroot/
+rpms/
+*.rpm
+*.log
+.oci-digest
+
+# Signing / caches
 certs
-.*-release
+ccache
+cache
