@@ -111,8 +111,16 @@ rpmbuild --define "_topdir ${TOPDIR}" --define "_smp_mflags -j${JOBS}" \
     -ba "$TOPDIR/SPECS/kernel.spec"
 
 # Collect the binary kernel RPMs (excluding debug packages) for packaging.
+# Clean first: a leftover rpms/ from a previous build would put two kernel
+# versions in the OCI image and break the tishy-deck install glob.
+rm -rf rpms
 mkdir -p rpms
 find "$TOPDIR/RPMS" -type f -name 'kernel-*.rpm' \
     ! -name '*debuginfo*' ! -name '*debugsource*' -exec cp -t rpms/ {} +
+versions=$(ls rpms/kernel-core-*.rpm | wc -l)
+if [ "$versions" -ne 1 ]; then
+    echo "Error: expected exactly one kernel-core RPM in rpms/, found ${versions}" >&2
+    exit 1
+fi
 echo "Built RPMs:"
 ls -1 rpms/
